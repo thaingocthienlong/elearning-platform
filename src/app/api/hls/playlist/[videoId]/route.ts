@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
 import { r2, R2_BUCKET } from '@/lib/r2';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
@@ -50,7 +49,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ videoId:
             headers: {
                 'Content-Type': 'application/vnd.apple.mpegurl',
                 // Cache for 1 minute, stale for 5 minutes (Master playlist rarely changes)
-                'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+                'Cache-Control': 'private, no-store',
             },
         });
     } catch (error) {

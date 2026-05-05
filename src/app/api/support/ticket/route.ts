@@ -109,8 +109,6 @@ export async function POST(request: Request) {
 
         // Check User-Agent for iPad/Tablet to temporarily bypass reCAPTCHA
         const userAgent = request.headers.get('user-agent') || '';
-        const isTablet = /iPad|Macintosh|Tablet|Android/i.test(userAgent) && ('ontouchend' in globalThis ? true : /iPad|Tablet/i.test(userAgent));
-
         // Note: Generic "Macintosh" check is included because iPads requesting desktop sites send "Macintosh"
         // This is a temporary workaround as requested.
         const isIpadOrTablet = /iPad|Tablet/i.test(userAgent) || (userAgent.includes('Macintosh') && userAgent.includes('Safari') && !userAgent.includes('Chrome'));
@@ -197,7 +195,6 @@ export async function POST(request: Request) {
 // GET endpoint to check rate limit status
 export async function GET(request: Request) {
     try {
-        const { searchParams } = new URL(request.url);
         const session = await getServerSession(authOptions);
 
         if (!session?.user?.id) {
