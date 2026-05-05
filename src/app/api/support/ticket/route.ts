@@ -10,6 +10,7 @@ import {
     optionalBoundedString,
     requireBoundedString,
 } from '@/lib/request-security';
+import { serverLog } from '@/lib/server-log';
 
 const rateLimitStore = new Map<string, number>();
 const RATE_LIMIT_WINDOW = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -73,7 +74,7 @@ async function verifyRecaptcha(token: string): Promise<boolean> {
         const data = await response.json();
         return data.success === true;
     } catch (error) {
-        console.error('reCAPTCHA verification error:', error);
+            serverLog.error('reCAPTCHA verification error', error);
         return false;
     }
 }
@@ -155,7 +156,7 @@ export async function POST(request: Request) {
 
         // Log received data size for monitoring
         if (safeConsoleLogs) {
-            console.log(`Ticket received with diagnostics for authenticated support request`);
+            serverLog.info('Ticket received with diagnostics for authenticated support request');
         }
 
         // Create ticket with additional data
@@ -174,7 +175,7 @@ export async function POST(request: Request) {
         // Send admin notification (fire-and-forget)
         import('@/lib/email').then(({ sendTicketNotification }) => {
             sendTicketNotification(ticket.id, sessionEmail, safeDescription).catch(err =>
-                console.error('Failed to send admin notification:', err)
+                serverLog.error('Failed to send admin notification', err)
             );
         });
 
@@ -188,7 +189,7 @@ export async function POST(request: Request) {
             return new NextResponse(error.message, { status: 400 });
         }
 
-        console.error('Ticket submission error:', error);
+        serverLog.error('Ticket submission error', error);
         return new NextResponse('Internal Server Error', { status: 500 });
     }
 }
@@ -217,7 +218,7 @@ export async function GET(request: Request) {
             waitTime,
         });
     } catch (error) {
-        console.error('Rate limit check error:', error);
+        serverLog.error('Rate limit check error', error);
         return new NextResponse('Internal Server Error', { status: 500 });
     }
 }
