@@ -136,7 +136,7 @@ Explicitly excluded from v1 to prevent scope creep.
 
 ## Traceability
 
-Initial proposed mapping. The roadmap must validate that every v1 requirement maps to exactly one phase.
+Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -214,4 +214,4 @@ Initial proposed mapping. The roadmap must validate that every v1 requirement ma
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-05 after initialization*
+*Last updated: 2026-05-05 after roadmap creation*
