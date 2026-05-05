@@ -7,6 +7,10 @@ import path from 'path';
 d.config({ path: path.resolve(process.cwd(), '.env') });
 d.config({ path: path.resolve(process.cwd(), '.env.local'), override: true });
 
+function errorMessage(error: unknown) {
+    return error instanceof Error ? error.message : String(error);
+}
+
 async function verify() {
     const strict = process.argv.includes('--strict') || process.env.CI === 'true';
     const live = process.argv.includes('--live');
@@ -48,7 +52,7 @@ async function verify() {
                 const userId = payload.sub || 'unknown';
                 console.log(`   Tenant ID: ${tenantId}`);
                 console.log(`   User ID (sub): ${userId}`);
-            } catch (e) {
+            } catch {
                 console.warn("   WARN Could not decode token details");
             }
         }
@@ -65,21 +69,22 @@ async function verify() {
             });
             console.log("   OK Job created. ID:", result.videoId);
             console.log("   (Note: The job itself will fail later because the file doesn't exist, but the API interaction was successful!)");
-        } catch (e: any) {
+        } catch (error: unknown) {
+            const message = errorMessage(error);
             console.log("   WARN Job creation threw an error:");
-            console.log(`   "${e.message}"`);
+            console.log(`   "${message}"`);
 
-            if (e.message.includes("GraphQL errors")) {
+            if (message.includes("GraphQL errors")) {
                 console.log("\n   FAIL This likely means the Profile ID is invalid or the Service Account lacks permission.");
-            } else if (e.message.includes("Auth failed")) {
+            } else if (message.includes("Auth failed")) {
                 console.log("\n   FAIL Authentication refused this request.");
             } else {
                 console.log("\n   OK Connection reached. Error was expected for dummy data.");
             }
         }
 
-    } catch (error: any) {
-        console.error("\nFAIL Fatal Verification Error:", error.message);
+    } catch (error: unknown) {
+        console.error("\nFAIL Fatal Verification Error:", errorMessage(error));
         process.exit(1);
     }
 }

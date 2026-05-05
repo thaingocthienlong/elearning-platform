@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Player from './Player';
-import { detectDRMCapabilities, getOptimalDRMConfig, getBrowserInfo, DRMConfig, DRMCapabilities } from '@/lib/drm-detection';
+import { detectDRMCapabilities, getOptimalDRMConfig, getBrowserInfo, DRMConfig } from '@/lib/drm-detection';
 import { toast } from 'sonner';
 import { resolveAxinomLicenseServerUrl } from '@/lib/shaka-axinom';
 
@@ -30,7 +30,6 @@ export default function DRMPlayerWrapper({
     onFullscreenChange,
 }: DRMPlayerWrapperProps) {
     const [drmConfig, setDrmConfig] = useState<DRMConfig | null>(null);
-    const [capabilities, setCapabilities] = useState<DRMCapabilities | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [robustnessOverride, setRobustnessOverride] = useState<string | null>(null);
     const [hasAttemptedL1, setHasAttemptedL1] = useState(false);
@@ -45,10 +44,9 @@ export default function DRMPlayerWrapper({
 
                 // Detect DRM capabilities
                 const caps = await detectDRMCapabilities();
-                setCapabilities(caps);
 
                 // Get optimal configuration
-                let config = getOptimalDRMConfig(dashUrl, hlsUrl, requireHD);
+                const config = getOptimalDRMConfig(dashUrl, hlsUrl, requireHD);
 
                 if (!config) {
                     toast.error('No compatible DRM manifest available for your device');
@@ -132,7 +130,7 @@ export default function DRMPlayerWrapper({
         };
 
         initDRM();
-    }, [dashUrl, hlsUrl, requireHD, robustnessOverride, videoId]);
+    }, [dashUrl, hlsUrl, requireHD, robustnessOverride, videoId, hasAttemptedL1]);
 
     // Callback for when black screen is detected
     const handleBlackScreenDetected = () => {

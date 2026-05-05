@@ -59,6 +59,8 @@ For ordinary local setup, missing external credentials are allowed. The app can 
 
 Axinom DRM and Encoding have a dedicated setup guide at `docs/axinom-setup.md`. Use it when configuring an Axinom trial tenant, communication keys, license service URLs, encoding profiles, and webhook callbacks.
 
+After configuring real tenant values, use `docs/axinom-staging-checklist.md` for the opt-in staging playback validation path.
+
 ## Prisma MongoDB Setup
 
 The active Prisma datasource is MongoDB:
@@ -117,6 +119,16 @@ npm run verify:services:strict
 ```
 
 Strict mode, and `CI=true`, fails if any required service group is missing variables. The verifier does not call external service APIs in Phase 1 and does not print env values.
+
+Axinom has a narrower verifier:
+
+```bash
+npm run verify:axinom
+npm run verify:axinom -- --strict
+npm run verify:axinom -- --strict --live
+```
+
+The default and strict Axinom modes validate configuration only. `--live` is opt-in and should be used only after real Axinom trial tenant values are configured.
 
 ## Troubleshooting
 

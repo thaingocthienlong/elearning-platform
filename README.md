@@ -36,6 +36,8 @@ Replace placeholder values in `.env.local` before running workflows that need re
 
 - [Maintainer setup](docs/setup.md)
 - [Environment matrix](docs/env-matrix.md)
+- [Axinom setup](docs/axinom-setup.md)
+- [Axinom staging checklist](docs/axinom-staging-checklist.md)
 - [Verification commands](docs/verification.md)
 - [Secret hygiene](docs/secret-hygiene.md)
 - [System architecture](docs/architecture/system_overview.md)

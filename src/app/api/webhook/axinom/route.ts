@@ -13,6 +13,15 @@ interface VideoEncodingFinishedPayload {
     timestamp: string;
 }
 
+type AxinomVideoDetails = {
+    dashManifestPath: string;
+    hlsManifestPath: string;
+    outputLocation?: string;
+    videoStreams: {
+        nodes: { keyId: string }[];
+    };
+};
+
 /**
  * Verify HMAC signature from Axinom webhook
  */
@@ -49,7 +58,7 @@ function verifySignature(payload: string, signature: string): boolean {
 /**
  * Query Axinom for video details (manifest URLs + DRM key IDs)
  */
-async function getVideoDetails(axinomVideoId: string) {
+async function getVideoDetails(axinomVideoId: string): Promise<AxinomVideoDetails> {
     const CLIENT_ID = process.env.AXINOM_ENCODING_CLIENT_ID!;
     const CLIENT_SECRET = process.env.AXINOM_ENCODING_CLIENT_SECRET!;
     const IDENTITY_URL = 'https://id.service.eu.axinom.net/graphql';
@@ -141,7 +150,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ message: 'Event ignored' });
         }
 
-        // 4. Find our video record by Axinom Video ID (stored in description)
+        // 4. Find our video record by explicit Axinom IDs, with legacy description fallback.
         const video = await prisma.video.findFirst({
             where: {
                 OR: [
@@ -172,7 +181,7 @@ export async function POST(request: NextRequest) {
         // 6. Extract unique key IDs
         const keyIds = [
             ...new Set(
-                axinomVideo.videoStreams.nodes.map((s: any) => s.keyId)
+                axinomVideo.videoStreams.nodes.map((stream) => stream.keyId)
             )
         ];
 

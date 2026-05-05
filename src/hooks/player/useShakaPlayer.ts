@@ -31,6 +31,8 @@ export function useShakaPlayer({
     const [player, setPlayer] = useState<shaka.Player | null>(null);
 
     useEffect(() => {
+        let activePlayer: shaka.Player | null = null;
+
         const initPlayer = async () => {
             if (!videoRef.current || !containerRef.current) return;
 
@@ -41,6 +43,7 @@ export function useShakaPlayer({
             if (!shaka) return;
 
             const newPlayer = new shaka.Player();
+            activePlayer = newPlayer;
             await newPlayer.attach(videoRef.current);
 
             // Configure Multi-DRM with L1 support
@@ -138,12 +141,12 @@ export function useShakaPlayer({
                 };
                 ui.configure(config);
             } catch (e: unknown) {
-                const error = e as { code: number; data: any[] };
-                console.error('❌ Error:', error.code, error.data);
+                const error = e as { code: number; data: unknown[] };
+                console.error('Shaka player error:', error.code, error.data);
 
                 // Handle Error 6012: REQUESTED_KEY_SYSTEM_CONFIG_UNAVAILABLE (Robustness Fallback)
                 if (error.code === 6012 && robustness) {
-                    console.warn('⚠️ DRM Robustness check failed, retrying without robustness requirement...');
+                    console.warn('DRM robustness check failed; retrying without robustness requirement.');
 
                     if (newPlayer) {
                         newPlayer.configure({
@@ -160,7 +163,7 @@ export function useShakaPlayer({
                         try {
                             await newPlayer.load(manifestUrl);
                         } catch (retryError) {
-                            console.error('❌ Retry failed:', retryError);
+                            console.error('Shaka retry without robustness failed:', retryError);
                         }
                     }
                 }
@@ -172,8 +175,8 @@ export function useShakaPlayer({
         initPlayer();
 
         return () => {
-            if (player) {
-                player.destroy();
+            if (activePlayer) {
+                void activePlayer.destroy();
             }
         };
     }, [manifestUrl, licenseServerUrl, drmToken, drmType, robustness, fairplayCertUrl, videoRef, containerRef]);
