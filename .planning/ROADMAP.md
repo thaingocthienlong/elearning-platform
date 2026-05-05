@@ -75,7 +75,17 @@ Cross-cutting constraints:
   3. Authorized playback uses centralized, server-only, short-lived, scoped, officially signed Axinom License Service Messages and Shaka sends entitlement tokens only with license requests.
   4. Maintainer can tell whether the local DRM license endpoint is disabled/quarantined or backed by real key custody, so it is not mistaken for production DRM.
   5. A staging test video can be encoded, published, authorized, and played through explicit Axinom operational fields and safe webhook signature handling.
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+**Wave 0**
+- [ ] 03-01-PLAN.md - Axinom official setup docs and canonical env validation.
+**Wave 1** *(blocked on Wave 0 completion)*
+- [ ] 03-02-PLAN.md - Official License Service Message signing and local license quarantine.
+- [ ] 03-03-PLAN.md - Shaka Axinom license request integration.
+**Wave 2** *(blocked on Wave 0 completion)*
+- [ ] 03-04-PLAN.md - Explicit Axinom video metadata fields and sync/webhook adoption.
+**Wave 3** *(blocked on Waves 1 and 2 completion)*
+- [ ] 03-05-PLAN.md - Axinom staging runbook and full phase gate.
 
 ### Phase 4: Zoom Meeting SDK Preservation and Upgrade Path
 **Goal**: Users can join Zoom meetings through the existing authenticated flow while maintainers have a single, current SDK path and verified role controls.
@@ -147,7 +157,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 |-------|----------------|--------|-----------|
 | 1. Installable Baseline, Docs, and Secret Hygiene | 4/4 | Complete | 2026-05-05 |
 | 2. Central Authorization and Core Security Fixes | 4/4 | Complete | 2026-05-05 |
-| 3. Axinom Trial Setup and DRM/Encoding Validation | 0/TBD | Not started | - |
+| 3. Axinom Trial Setup and DRM/Encoding Validation | 0/5 | Planned | - |
 | 4. Zoom Meeting SDK Preservation and Upgrade Path | 0/TBD | Not started | - |
 | 5. Prisma/MongoDB Performance and Data Cleanup | 0/TBD | Not started | - |
 | 6. Vercel Staging Deployment and Smoke Suite | 0/TBD | Not started | - |
@@ -229,4 +239,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Roadmap created: 2026-05-05*
-*Last updated: 2026-05-05 after Phase 2 verification*
+*Last updated: 2026-05-05 after Phase 3 planning*
