@@ -9,17 +9,17 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 
 ### Setup And Documentation
 
-- [ ] **SETUP-01**: Maintainer can install dependencies from a clean checkout using documented Node and npm versions.
-- [ ] **SETUP-02**: Maintainer can generate the Prisma client and prepare the MongoDB-backed schema using documented commands.
-- [ ] **SETUP-03**: Maintainer can start the local development server with placeholder-safe environment documentation.
-- [ ] **SETUP-04**: Maintainer can identify every required environment variable, its owning service, whether it is secret, and whether it is needed for local or staging.
-- [ ] **SETUP-05**: Maintainer can follow setup documentation that corrects stale README claims about PostgreSQL versus the implemented Prisma MongoDB datasource.
-- [ ] **SETUP-06**: Maintainer can run lint, typecheck, build, and test commands from root package scripts.
-- [ ] **SETUP-07**: Repository documents how to handle sensitive env files, DRM keys, media artifacts, and sample placeholders without committing secrets.
+- [x] **SETUP-01**: Maintainer can install dependencies from a clean checkout using documented Node and npm versions.
+- [x] **SETUP-02**: Maintainer can generate the Prisma client and prepare the MongoDB-backed schema using documented commands.
+- [x] **SETUP-03**: Maintainer can start the local development server with placeholder-safe environment documentation.
+- [x] **SETUP-04**: Maintainer can identify every required environment variable, its owning service, whether it is secret, and whether it is needed for local or staging.
+- [x] **SETUP-05**: Maintainer can follow setup documentation that corrects stale README claims about PostgreSQL versus the implemented Prisma MongoDB datasource.
+- [x] **SETUP-06**: Maintainer can run lint, typecheck, build, and test commands from root package scripts.
+- [x] **SETUP-07**: Repository documents how to handle sensitive env files, DRM keys, media artifacts, and sample placeholders without committing secrets.
 
 ### Verification And Tests
 
-- [ ] **TEST-01**: Automated test tooling is installed and documented for route/service unit tests.
+- [x] **TEST-01**: Automated test tooling is installed and documented for route/service unit tests.
 - [ ] **TEST-02**: Critical media entitlement allow/deny paths are covered by automated tests.
 - [ ] **TEST-03**: DRM token and HLS authorization routes are covered by automated tests.
 - [ ] **TEST-04**: Zoom signature generation and meeting access checks are covered by automated tests or a documented smoke test.
@@ -140,14 +140,14 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | Phase 1 | Pending |
-| SETUP-02 | Phase 1 | Pending |
-| SETUP-03 | Phase 1 | Pending |
-| SETUP-04 | Phase 1 | Pending |
-| SETUP-05 | Phase 1 | Pending |
-| SETUP-06 | Phase 1 | Pending |
-| SETUP-07 | Phase 1 | Pending |
-| TEST-01 | Phase 1 | Pending |
+| SETUP-01 | Phase 1 | Complete |
+| SETUP-02 | Phase 1 | Complete |
+| SETUP-03 | Phase 1 | Complete |
+| SETUP-04 | Phase 1 | Complete |
+| SETUP-05 | Phase 1 | Complete |
+| SETUP-06 | Phase 1 | Complete |
+| SETUP-07 | Phase 1 | Complete |
+| TEST-01 | Phase 1 | Complete |
 | SEC-01 | Phase 2 | Pending |
 | SEC-02 | Phase 2 | Pending |
 | SEC-03 | Phase 2 | Pending |
@@ -214,4 +214,4 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-05 after roadmap creation*
+*Last updated: 2026-05-05 after Phase 1 verification*

@@ -12,7 +12,7 @@ This roadmap stabilizes a handed-over secure academic streaming platform by maki
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Installable Baseline, Docs, and Secret Hygiene** - Maintainers can install, configure, verify, and handle sensitive artifacts from a clean checkout.
+- [x] **Phase 1: Installable Baseline, Docs, and Secret Hygiene** - Maintainers can install, configure, verify, and handle sensitive artifacts from a clean checkout.
 - [ ] **Phase 2: Central Authorization and Core Security Fixes** - Media, support, admin, logging, and security-event flows enforce server-owned security rules consistently.
 - [ ] **Phase 3: Axinom Trial Setup and DRM/Encoding Validation** - Maintainers can configure and exercise the official Axinom DRM/Encoding path through Shaka playback.
 - [ ] **Phase 4: Zoom Meeting SDK Preservation and Upgrade Path** - Meetings keep the current authenticated join flow while signatures, roles, and SDK assets are made maintainable.
@@ -34,10 +34,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Maintainer can see setup documentation that corrects PostgreSQL drift and explains how sensitive env files, DRM keys, media artifacts, and placeholders must be handled.
 **Plans**: 4 plans
 Plans:
-- [ ] 01-01-PLAN.md - Wave 0 Jest baseline, dependency setup, and root verification script contract.
-- [ ] 01-03-PLAN.md - Wave 1 placeholder-safe env example and service-grouped env matrix.
-- [ ] 01-02-PLAN.md - Wave 2 clean-checkout bootstrap, Prisma MongoDB setup, local dev startup docs, and env-matrix-driven service verification.
-- [ ] 01-04-PLAN.md - Wave 3 README drift correction and secret hygiene inventory/scanning linked to setup, env, and verification docs.
+- [x] 01-01-PLAN.md - Wave 0 Jest baseline, dependency setup, and root verification script contract.
+- [x] 01-03-PLAN.md - Wave 1 placeholder-safe env example and service-grouped env matrix.
+- [x] 01-02-PLAN.md - Wave 2 clean-checkout bootstrap, Prisma MongoDB setup, local dev startup docs, and env-matrix-driven service verification.
+- [x] 01-04-PLAN.md - Wave 3 README drift correction and secret hygiene inventory/scanning linked to setup, env, and verification docs.
 
 ### Phase 2: Central Authorization and Core Security Fixes
 **Goal**: Users and admins encounter consistent server-side authorization, support, logging, and audit behavior across critical security surfaces.
@@ -131,7 +131,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Installable Baseline, Docs, and Secret Hygiene | 0/4 | Not started | - |
+| 1. Installable Baseline, Docs, and Secret Hygiene | 4/4 | Complete | 2026-05-05 |
 | 2. Central Authorization and Core Security Fixes | 0/TBD | Not started | - |
 | 3. Axinom Trial Setup and DRM/Encoding Validation | 0/TBD | Not started | - |
 | 4. Zoom Meeting SDK Preservation and Upgrade Path | 0/TBD | Not started | - |
@@ -215,3 +215,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Roadmap created: 2026-05-05*
+*Last updated: 2026-05-05 after Phase 1 verification*
