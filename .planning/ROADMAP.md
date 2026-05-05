@@ -13,7 +13,7 @@ This roadmap stabilizes a handed-over secure academic streaming platform by maki
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Installable Baseline, Docs, and Secret Hygiene** - Maintainers can install, configure, verify, and handle sensitive artifacts from a clean checkout.
-- [ ] **Phase 2: Central Authorization and Core Security Fixes** - Media, support, admin, logging, and security-event flows enforce server-owned security rules consistently.
+- [x] **Phase 2: Central Authorization and Core Security Fixes** - Media, support, admin, logging, and security-event flows enforce server-owned security rules consistently.
 - [ ] **Phase 3: Axinom Trial Setup and DRM/Encoding Validation** - Maintainers can configure and exercise the official Axinom DRM/Encoding path through Shaka playback.
 - [ ] **Phase 4: Zoom Meeting SDK Preservation and Upgrade Path** - Meetings keep the current authenticated join flow while signatures, roles, and SDK assets are made maintainable.
 - [ ] **Phase 5: Prisma/MongoDB Performance and Data Cleanup** - Current MongoDB implementation is profiled, bounded, indexed, and optimized before any migration decision.
@@ -52,13 +52,13 @@ Plans:
 **Plans**: 4 plans
 Plans:
 **Wave 0**
-- [ ] 02-01-PLAN.md - Shared media entitlement helper and helper tests.
+- [x] 02-01-PLAN.md - Shared media entitlement helper and helper tests.
 **Wave 1** *(blocked on Wave 0 completion)*
-- [ ] 02-02-PLAN.md - Adopt shared entitlement across watch, DRM token, local license, HLS playlist, and heartbeat routes.
+- [x] 02-02-PLAN.md - Adopt shared entitlement across watch, DRM token, local license, HLS playlist, and heartbeat routes.
 **Wave 2** *(blocked on Wave 0 completion)*
-- [ ] 02-03-PLAN.md - Harden support ticket identity, diagnostics, redaction, and rate limiting.
+- [x] 02-03-PLAN.md - Harden support ticket identity, diagnostics, redaction, and rate limiting.
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 02-04-PLAN.md - Harden Axinom malformed webhook signatures, security-event flush protection, and redacted logging.
+- [x] 02-04-PLAN.md - Harden Axinom malformed webhook signatures, security-event flush protection, and redacted logging.
 
 Cross-cutting constraints:
 - Use typed server-side security helpers instead of duplicating route-local authorization logic.
@@ -146,7 +146,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Installable Baseline, Docs, and Secret Hygiene | 4/4 | Complete | 2026-05-05 |
-| 2. Central Authorization and Core Security Fixes | 0/4 | Planned | - |
+| 2. Central Authorization and Core Security Fixes | 4/4 | Complete | 2026-05-05 |
 | 3. Axinom Trial Setup and DRM/Encoding Validation | 0/TBD | Not started | - |
 | 4. Zoom Meeting SDK Preservation and Upgrade Path | 0/TBD | Not started | - |
 | 5. Prisma/MongoDB Performance and Data Cleanup | 0/TBD | Not started | - |
@@ -229,4 +229,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Roadmap created: 2026-05-05*
-*Last updated: 2026-05-05 after Phase 1 verification*
+*Last updated: 2026-05-05 after Phase 2 verification*

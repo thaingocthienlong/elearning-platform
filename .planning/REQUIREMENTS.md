@@ -20,26 +20,26 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 ### Verification And Tests
 
 - [x] **TEST-01**: Automated test tooling is installed and documented for route/service unit tests.
-- [ ] **TEST-02**: Critical media entitlement allow/deny paths are covered by automated tests.
-- [ ] **TEST-03**: DRM token and HLS authorization routes are covered by automated tests.
+- [x] **TEST-02**: Critical media entitlement allow/deny paths are covered by automated tests.
+- [x] **TEST-03**: DRM token and HLS authorization routes are covered by automated tests.
 - [ ] **TEST-04**: Zoom signature generation and meeting access checks are covered by automated tests or a documented smoke test.
-- [ ] **TEST-05**: Support ticket identity and rate-limit protections are covered by automated tests.
-- [ ] **TEST-06**: Webhook signature validation handles malformed signatures without 500 responses.
+- [x] **TEST-05**: Support ticket identity and rate-limit protections are covered by automated tests.
+- [x] **TEST-06**: Webhook signature validation handles malformed signatures without 500 responses.
 - [ ] **TEST-07**: Staging smoke checks cover auth, course access, playback, DRM token issuance, HLS access, Zoom meeting launch, support ticket creation, Redis, storage, and Axinom webhook readiness.
 
 ### Security And Authorization
 
-- [ ] **SEC-01**: Media authorization uses one server-only entitlement helper shared by watch page, DRM token route, HLS playlist route, license route, heartbeat, and future media routes.
-- [ ] **SEC-02**: Entitlement decisions consistently enforce user identity, course enrollment, open-course access, direct video access, publication/deletion state, time windows, and view limits.
-- [ ] **SEC-03**: Protected media and token routes return consistent denial reasons without leaking sensitive operational details.
-- [ ] **SEC-04**: HLS playlist access is denied unless the same entitlement rules as the watch page pass.
-- [ ] **SEC-05**: DRM token issuance respects direct-access validity windows and does not issue broad or stale entitlements.
-- [ ] **SEC-06**: Support ticket submission derives authenticated email from the session and rejects or audits mismatches.
-- [ ] **SEC-07**: Support ticket diagnostics have payload size limits and recursive sensitive-field redaction before persistence.
-- [ ] **SEC-08**: Ticket-specific rate limiting uses a distributed store suitable for Vercel/serverless staging.
-- [ ] **SEC-09**: Security event destructive actions are audited and protected by explicit admin confirmation or a narrower permission boundary.
-- [ ] **SEC-10**: Application logging avoids raw token, key, email, and credential leakage through structured or redacted logging.
-- [ ] **SEC-11**: Secret-like files in the workspace are inventoried, ignored, and documented for rotation/removal decisions before staging.
+- [x] **SEC-01**: Media authorization uses one server-only entitlement helper shared by watch page, DRM token route, HLS playlist route, license route, heartbeat, and future media routes.
+- [x] **SEC-02**: Entitlement decisions consistently enforce user identity, course enrollment, open-course access, direct video access, publication/deletion state, time windows, and view limits.
+- [x] **SEC-03**: Protected media and token routes return consistent denial reasons without leaking sensitive operational details.
+- [x] **SEC-04**: HLS playlist access is denied unless the same entitlement rules as the watch page pass.
+- [x] **SEC-05**: DRM token issuance respects direct-access validity windows and does not issue broad or stale entitlements.
+- [x] **SEC-06**: Support ticket submission derives authenticated email from the session and rejects or audits mismatches.
+- [x] **SEC-07**: Support ticket diagnostics have payload size limits and recursive sensitive-field redaction before persistence.
+- [x] **SEC-08**: Ticket-specific rate limiting uses a distributed store suitable for Vercel/serverless staging.
+- [x] **SEC-09**: Security event destructive actions are audited and protected by explicit admin confirmation or a narrower permission boundary.
+- [x] **SEC-10**: Application logging avoids raw token, key, email, and credential leakage through structured or redacted logging.
+- [x] **SEC-11**: Secret-like files in the workspace are inventoried, ignored, and documented for rotation/removal decisions before staging.
 
 ### Axinom DRM And Video Processing
 
@@ -148,21 +148,21 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 | SETUP-06 | Phase 1 | Complete |
 | SETUP-07 | Phase 1 | Complete |
 | TEST-01 | Phase 1 | Complete |
-| SEC-01 | Phase 2 | Pending |
-| SEC-02 | Phase 2 | Pending |
-| SEC-03 | Phase 2 | Pending |
-| SEC-04 | Phase 2 | Pending |
-| SEC-05 | Phase 2 | Pending |
-| SEC-06 | Phase 2 | Pending |
-| SEC-07 | Phase 2 | Pending |
-| SEC-08 | Phase 2 | Pending |
-| SEC-09 | Phase 2 | Pending |
-| SEC-10 | Phase 2 | Pending |
-| SEC-11 | Phase 2 | Pending |
-| TEST-02 | Phase 2 | Pending |
-| TEST-03 | Phase 2 | Pending |
-| TEST-05 | Phase 2 | Pending |
-| TEST-06 | Phase 2 | Pending |
+| SEC-01 | Phase 2 | Complete |
+| SEC-02 | Phase 2 | Complete |
+| SEC-03 | Phase 2 | Complete |
+| SEC-04 | Phase 2 | Complete |
+| SEC-05 | Phase 2 | Complete |
+| SEC-06 | Phase 2 | Complete |
+| SEC-07 | Phase 2 | Complete |
+| SEC-08 | Phase 2 | Complete |
+| SEC-09 | Phase 2 | Complete |
+| SEC-10 | Phase 2 | Complete |
+| SEC-11 | Phase 2 | Complete |
+| TEST-02 | Phase 2 | Complete |
+| TEST-03 | Phase 2 | Complete |
+| TEST-05 | Phase 2 | Complete |
+| TEST-06 | Phase 2 | Complete |
 | DRM-01 | Phase 3 | Pending |
 | DRM-02 | Phase 3 | Pending |
 | DRM-03 | Phase 3 | Pending |
@@ -214,4 +214,4 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-05 after Phase 1 verification*
+*Last updated: 2026-05-05 after Phase 2 verification*
