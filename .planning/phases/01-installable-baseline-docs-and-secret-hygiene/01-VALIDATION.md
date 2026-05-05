@@ -38,14 +38,14 @@ created: 2026-05-05
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 1-01-01 | 01 | 0 | TEST-01 | — | N/A | unit/config | `npm test -- --runInBand` | ❌ W0 | ⬜ pending |
-| 1-01-02 | 01 | 0 | SETUP-06 | — | N/A | unit/script | `npm test -- package-scripts` | ❌ W0 | ⬜ pending |
-| 1-02-01 | 02 | 1 | SETUP-01 | — | N/A | smoke/script | `npm run verify:setup` | ❌ W0 | ⬜ pending |
-| 1-02-02 | 02 | 1 | SETUP-02 | — | N/A | smoke/script | `npm run prisma:generate` | ❌ W0 | ⬜ pending |
-| 1-03-01 | 03 | 1 | SETUP-03 | T-1-01 | Placeholder-only env examples | docs/unit | `npm test -- env` | ❌ W0 | ⬜ pending |
-| 1-03-02 | 03 | 1 | SETUP-04 | T-1-02 | Env sensitivity and service ownership documented | docs/unit | `npm test -- env` | ❌ W0 | ⬜ pending |
-| 1-04-01 | 04 | 1 | SETUP-05 | — | N/A | docs/unit | `npm test -- docs` | ❌ W0 | ⬜ pending |
-| 1-04-02 | 04 | 1 | SETUP-07 | T-1-01 | Secret inventory is path-only and scanner output redacted | script | `npm run secrets:inventory && npm run secrets:scan` | ❌ W0 | ⬜ pending |
+| 1-01-01 | 01 | 0 | SETUP-06 | — | N/A | unit/script | `node -e "const p=require('./package.json'); for (const s of ['typecheck','test','test:watch','prisma:generate','db:push','verify:setup','verify:services','verify:services:strict','secrets:inventory','secrets:scan']) if (!p.scripts[s]) process.exit(1)"` | ❌ W0 | ⬜ pending |
+| 1-01-02 | 01 | 0 | TEST-01 | — | N/A | unit/config | `npm test -- package-scripts --runInBand` | ❌ W0 | ⬜ pending |
+| 1-03-01 | 03 | 1 | SETUP-03 | T-1-01 | Placeholder-only env examples | docs/unit | `npm test -- env` | task creates test first | ⬜ pending |
+| 1-03-02 | 03 | 1 | SETUP-04 | T-1-02 | Env sensitivity and service ownership documented | docs/unit | `npm test -- env` | task creates test first | ⬜ pending |
+| 1-02-01 | 02 | 2 | SETUP-01, SETUP-03 | — | Local startup uses placeholder-safe env docs | smoke/script | `npm run verify:setup` | depends on W0 + Plan 03 | ⬜ pending |
+| 1-02-02 | 02 | 2 | SETUP-02 | — | N/A | smoke/script | `npm run prisma:generate` | depends on W0 | ⬜ pending |
+| 1-04-01 | 04 | 3 | SETUP-05 | — | N/A | docs/unit | `npm test -- docs` | task creates test first | ⬜ pending |
+| 1-04-02 | 04 | 3 | SETUP-07 | T-1-01 | Secret inventory is path-only and scanner output redacted | script | `npm run secrets:inventory && npm run secrets:scan` | depends on W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,11 +53,12 @@ created: 2026-05-05
 
 ## Wave 0 Requirements
 
-- [ ] `jest.config.ts` - Next-aware Jest config using `next/jest`.
-- [ ] `__tests__/env/env-matrix.test.ts` - validates `.env.example` and env matrix contract for SETUP-03 and SETUP-04.
-- [ ] `__tests__/scripts/package-scripts.test.ts` - validates root script surface for SETUP-06.
 - [ ] Jest dependencies in `devDependencies`.
 - [ ] `zod` as a direct dependency if shared env/script validation uses it.
+- [ ] `jest.config.ts` - Next-aware Jest config using `next/jest`.
+- [ ] `__tests__/scripts/package-scripts.test.ts` - validates root script surface for SETUP-06.
+
+Env and docs contract tests remain Nyquist-compliant inside their owning plans: Plan 03 creates `__tests__/env/env-matrix.test.ts` before accepting `.env.example` or `docs/env-matrix.md`, and Plan 04 creates `__tests__/docs/readme-and-secret-hygiene.test.ts` before accepting README or secret-hygiene changes.
 
 ---
 

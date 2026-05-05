@@ -34,10 +34,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Maintainer can see setup documentation that corrects PostgreSQL drift and explains how sensitive env files, DRM keys, media artifacts, and placeholders must be handled.
 **Plans**: 4 plans
 Plans:
-- [ ] 01-01-PLAN.md - Jest baseline and root verification script contract.
-- [ ] 01-02-PLAN.md - Clean-checkout bootstrap, Prisma MongoDB setup, and service verification docs.
-- [ ] 01-03-PLAN.md - Placeholder-safe env example and service-grouped env matrix.
-- [ ] 01-04-PLAN.md - README drift correction and secret hygiene inventory/scanning.
+- [ ] 01-01-PLAN.md - Wave 0 Jest baseline, dependency setup, and root verification script contract.
+- [ ] 01-03-PLAN.md - Wave 1 placeholder-safe env example and service-grouped env matrix.
+- [ ] 01-02-PLAN.md - Wave 2 clean-checkout bootstrap, Prisma MongoDB setup, local dev startup docs, and env-matrix-driven service verification.
+- [ ] 01-04-PLAN.md - Wave 3 README drift correction and secret hygiene inventory/scanning linked to setup, env, and verification docs.
 
 ### Phase 2: Central Authorization and Core Security Fixes
 **Goal**: Users and admins encounter consistent server-side authorization, support, logging, and audit behavior across critical security surfaces.
