@@ -57,6 +57,8 @@ Do not copy inherited real env values into docs or examples. `.env.example` is p
 
 For ordinary local setup, missing external credentials are allowed. The app can still install, generate Prisma client code, and start once required local placeholders are replaced enough for the workflow being exercised.
 
+Axinom DRM and Encoding have a dedicated setup guide at `docs/axinom-setup.md`. Use it when configuring an Axinom trial tenant, communication keys, license service URLs, encoding profiles, and webhook callbacks.
+
 ## Prisma MongoDB Setup
 
 The active Prisma datasource is MongoDB:

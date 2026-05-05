@@ -21,6 +21,7 @@ This matrix is the source of truth for environment variables used by the platfor
 | Axinom | AXINOM_ENCODING_CLIENT_SECRET | server secret | optional | required | src/lib/axinom-video-service.ts | Axinom Encoding API client secret. |
 | Axinom | AXINOM_ENCODING_PROFILE_DRM | operational secret | optional | required | src/lib/axinom-video-service.ts | Axinom encoding profile ID for DRM output. |
 | Axinom | AXINOM_ENCODING_PROFILE_CLEAR | operational secret | optional | required | src/lib/axinom-video-service.ts | Axinom encoding profile ID for clear output. |
+| Axinom | AXINOM_ENCODING_API_URL | public | optional | required | src/lib/axinom-env.ts | Axinom Encoding API base URL; default examples use the EU endpoint. Legacy alias `AX_ENCODING_BASE` is local-only compatibility. |
 | Axinom | AXINOM_VIDEO_SERVICE_URL | operational secret | optional | required | src/lib/axinom-video-service.ts | Axinom video service API base URL. |
 | Axinom | AXINOM_WEBHOOK_SECRET | server secret | optional | required | src/app/api/axinom/webhook/route.ts | Shared secret for Axinom webhook verification. |
 | Axinom | AXINOM_FAIRPLAY_CERT_URL | operational secret | optional | required | src/server/axinom.ts | FairPlay certificate URL used by player integration. |
@@ -49,4 +50,5 @@ This matrix is the source of truth for environment variables used by the platfor
 | Public player/config | NEXT_PUBLIC_ZOOM_PASSCODE | public | optional | required | src/app/meeting | Browser-exposed Zoom passcode; do not treat as an access-control secret. |
 | Public player/config | NEXT_PUBLIC_ASSET_BASE | public | optional | required | src/components/video | Browser-exposed playback asset base URL. |
 | Public player/config | NEXT_PUBLIC_AX_WV_LS_URL | public | optional | required | src/hooks/player/useShakaPlayer.ts | Browser-exposed Axinom Widevine license service URL. |
+| Public player/config | NEXT_PUBLIC_AX_PR_LS_URL | public | optional | required | src/hooks/player/useShakaPlayer.ts | Browser-exposed Axinom PlayReady license service URL. |
 | Public player/config | NEXT_PUBLIC_AX_FP_LS_URL | public | optional | required | src/hooks/player/useShakaPlayer.ts | Browser-exposed Axinom FairPlay license service URL. |
