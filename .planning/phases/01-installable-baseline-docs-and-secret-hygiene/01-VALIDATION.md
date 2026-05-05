@@ -40,11 +40,11 @@ created: 2026-05-05
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 1-01-01 | 01 | 0 | SETUP-06 | — | N/A | unit/script | `node -e "const p=require('./package.json'); for (const s of ['typecheck','test','test:watch','prisma:generate','db:push','verify:setup','verify:services','verify:services:strict','secrets:inventory','secrets:scan']) if (!p.scripts[s]) process.exit(1)"` | ❌ W0 | ⬜ pending |
 | 1-01-02 | 01 | 0 | TEST-01 | — | N/A | unit/config | `npm test -- package-scripts --runInBand` | ❌ W0 | ⬜ pending |
-| 1-03-01 | 03 | 1 | SETUP-03 | T-1-01 | Placeholder-only env examples | docs/unit | `npm test -- env` | task creates test first | ⬜ pending |
+| 1-03-01 | 03 | 1 | SETUP-03 | T-1-01 | Placeholder-only env examples | docs/unit contract creation | `powershell -NoProfile -Command 'if (!(Test-Path "__tests__/env/env-matrix.test.ts")) { exit 1 }; foreach ($pattern in @("DATABASE_URL","NEXT_PUBLIC_ZOOM_MEETING_ID","server secret")) { if (!(Select-String -Path "__tests__/env/env-matrix.test.ts" -Pattern $pattern -Quiet)) { exit 1 } }'` | task creates test first | ⬜ pending |
 | 1-03-02 | 03 | 1 | SETUP-04 | T-1-02 | Env sensitivity and service ownership documented | docs/unit | `npm test -- env` | task creates test first | ⬜ pending |
 | 1-02-01 | 02 | 2 | SETUP-01, SETUP-03 | — | Local startup uses placeholder-safe env docs | smoke/script | `npm run verify:setup` | depends on W0 + Plan 03 | ⬜ pending |
 | 1-02-02 | 02 | 2 | SETUP-02 | — | N/A | smoke/script | `npm run prisma:generate` | depends on W0 | ⬜ pending |
-| 1-04-01 | 04 | 3 | SETUP-05 | — | N/A | docs/unit | `npm test -- docs` | task creates test first | ⬜ pending |
+| 1-04-01 | 04 | 3 | SETUP-05 | — | N/A | docs/unit contract creation | `powershell -NoProfile -Command 'if (!(Test-Path "__tests__/docs/readme-and-secret-hygiene.test.ts")) { exit 1 }; foreach ($pattern in @("PostgreSQL","readFileSync","--redact")) { if (!(Select-String -Path "__tests__/docs/readme-and-secret-hygiene.test.ts" -Pattern $pattern -Quiet)) { exit 1 } }'` | task creates test first | ⬜ pending |
 | 1-04-02 | 04 | 3 | SETUP-07 | T-1-01 | Secret inventory is path-only and scanner output redacted | script | `npm run secrets:inventory && npm run secrets:scan` | depends on W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*

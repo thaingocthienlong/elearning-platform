@@ -383,17 +383,15 @@ describe('env documentation contract', () => {
 | A3 | Scanner warning signs include token-like or production-domain-like examples. | Common Pitfalls | False positives may occur; human review is still required. |
 | A4 | Async page/component imports that await Prisma/session calls are poor Phase 1 Jest targets. | Common Pitfalls | Some components may be refactored into testable units later, but not needed for Phase 1. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Which Node pinning file should the project use?**
    - What we know: Next.js 16 requires Node >=20.9.0, local shell has Node v24.15.0, and no `.nvmrc`, `.node-version`, or Volta config was found. [CITED: nextjs.org/docs/app/guides/upgrading/version-16] [VERIFIED: local shell]
-   - What's unclear: Team preference for nvm, Volta, asdf, or docs-only pinning. [ASSUMED]
-   - Recommendation: Add `.nvmrc` or `.node-version` with a current LTS-compatible version unless the maintainer specifies Volta. [ASSUMED]
+   - Plan-selected answer: Use `.nvmrc` with `20.11.1` as specified in `01-02-PLAN.md`. This satisfies the Next.js 16 minimum while choosing the common nvm-compatible pinning file for the clean-checkout baseline. [VERIFIED: 01-02-PLAN.md]
 
 2. **Should Phase 1 install Gitleaks as a prerequisite or provide a fallback?**
    - What we know: Gitleaks is not installed locally; official CLI supports redaction. [VERIFIED: local shell] [CITED: github.com/gitleaks/gitleaks]
-   - What's unclear: Whether maintainers can install external binaries. [ASSUMED]
-   - Recommendation: Plan `scripts/scan-secrets.ts` to detect Gitleaks and fail with install guidance in strict mode, while always running path-only inventory locally. [ASSUMED]
+   - Plan-selected answer: Local path-only inventory can run without Gitleaks. `secrets:scan` should use Gitleaks when available and must fail in strict/CI mode when the scanner is unavailable or findings exist; non-strict local mode gives clear skip/fallback messaging instead of blocking onboarding. [VERIFIED: 01-04-PLAN.md]
 
 ## Environment Availability
 
