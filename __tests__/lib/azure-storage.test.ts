@@ -24,7 +24,12 @@ describe('azure storage baseline behavior', () => {
 
     const { azureStorage } = await import('@/lib/azure-storage');
 
-    expect(azureStorage.accountName).toBe('');
+    expect(() => azureStorage.accountName).toThrow(
+      'Azure Storage is not configured'
+    );
+    expect(() => azureStorage.getOutputUrl('sample/manifest.mpd')).toThrow(
+      'Azure Storage is not configured'
+    );
     await expect(azureStorage.getUploadSasUrl('sample.mp4')).rejects.toThrow(
       'Azure Storage is not configured'
     );

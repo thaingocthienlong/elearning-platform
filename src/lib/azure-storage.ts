@@ -1,11 +1,22 @@
 import { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryParameters, BlobSASPermissions } from '@azure/storage-blob';
 
-const accountName = process.env.AZURE_STORAGE_ACCOUNT || '';
-const accountKey = process.env.AZURE_STORAGE_KEY || '';
 const inputContainer = process.env.AZURE_VIDEO_INPUT_CONTAINER || 'video-input';
 const outputContainer = process.env.AZURE_VIDEO_OUTPUT_CONTAINER || 'video-output';
 
+function getAccountName() {
+    const accountName = process.env.AZURE_STORAGE_ACCOUNT;
+
+    if (!accountName) {
+        throw new Error('Azure Storage is not configured. Set AZURE_STORAGE_ACCOUNT.');
+    }
+
+    return accountName;
+}
+
 function getAzureClients() {
+    const accountName = getAccountName();
+    const accountKey = process.env.AZURE_STORAGE_KEY;
+
     if (!accountName || !accountKey) {
         throw new Error('Azure Storage is not configured. Set AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_KEY.');
     }
@@ -22,7 +33,10 @@ function getAzureClients() {
 export const azureStorage = {
     inputContainer,
     outputContainer,
-    accountName,
+
+    get accountName(): string {
+        return getAccountName();
+    },
 
     async getUploadSasUrl(fileName: string, expiresInMinutes: number = 60): Promise<{ url: string; blobName: string }> {
         const { blobServiceClient, sharedKeyCredential } = getAzureClients();
@@ -46,6 +60,6 @@ export const azureStorage = {
     },
 
     getOutputUrl(path: string): string {
-        return `https://${accountName}.blob.core.windows.net/${outputContainer}/${path}`;
+        return `https://${getAccountName()}.blob.core.windows.net/${outputContainer}/${path}`;
     }
 };
