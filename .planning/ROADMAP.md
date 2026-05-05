@@ -49,7 +49,21 @@ Plans:
   3. User support tickets derive authenticated identity from the session, limit and redact diagnostics before persistence, and enforce distributed rate limits suitable for Vercel.
   4. Admin destructive security actions require explicit protection and leave an audit trail, while application logs avoid raw token, key, email, and credential leakage.
   5. Automated tests cover media entitlement allow/deny paths, DRM/HLS route authorization, support protections, and malformed webhook signatures.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+**Wave 0**
+- [ ] 02-01-PLAN.md - Shared media entitlement helper and helper tests.
+**Wave 1** *(blocked on Wave 0 completion)*
+- [ ] 02-02-PLAN.md - Adopt shared entitlement across watch, DRM token, local license, HLS playlist, and heartbeat routes.
+**Wave 2** *(blocked on Wave 0 completion)*
+- [ ] 02-03-PLAN.md - Harden support ticket identity, diagnostics, redaction, and rate limiting.
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 02-04-PLAN.md - Harden Axinom malformed webhook signatures, security-event flush protection, and redacted logging.
+
+Cross-cutting constraints:
+- Use typed server-side security helpers instead of duplicating route-local authorization logic.
+- Preserve existing successful user flows while tightening denied paths.
+- Mock Prisma/session/external providers in tests; do not require real service credentials.
 
 ### Phase 3: Axinom Trial Setup and DRM/Encoding Validation
 **Goal**: Maintainers can configure Axinom from official documentation and verify authorized DRM playback through the repo's Shaka integration.
@@ -132,7 +146,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Installable Baseline, Docs, and Secret Hygiene | 4/4 | Complete | 2026-05-05 |
-| 2. Central Authorization and Core Security Fixes | 0/TBD | Not started | - |
+| 2. Central Authorization and Core Security Fixes | 0/4 | Planned | - |
 | 3. Axinom Trial Setup and DRM/Encoding Validation | 0/TBD | Not started | - |
 | 4. Zoom Meeting SDK Preservation and Upgrade Path | 0/TBD | Not started | - |
 | 5. Prisma/MongoDB Performance and Data Cleanup | 0/TBD | Not started | - |
