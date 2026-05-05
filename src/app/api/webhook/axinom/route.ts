@@ -144,9 +144,15 @@ export async function POST(request: NextRequest) {
         // 4. Find our video record by Axinom Video ID (stored in description)
         const video = await prisma.video.findFirst({
             where: {
-                description: {
-                    contains: payload.videoId
-                }
+                OR: [
+                    { axinomVideoId: payload.videoId },
+                    { axinomIdClear: payload.videoId },
+                    {
+                        description: {
+                            contains: payload.videoId
+                        }
+                    }
+                ]
             }
         });
 
@@ -177,6 +183,10 @@ export async function POST(request: NextRequest) {
                 dashUrl: axinomVideo.dashManifestPath,
                 hlsUrl: axinomVideo.hlsManifestPath,
                 drmKeyId: keyIds.join(','), // Store as comma-separated
+                axinomVideoId: payload.videoId,
+                axinomEncodingStatus: 'READY',
+                axinomOutputLocation: axinomVideo.outputLocation,
+                axinomSyncedAt: new Date(),
                 published: true, // Auto-publish
                 updatedAt: new Date()
             }

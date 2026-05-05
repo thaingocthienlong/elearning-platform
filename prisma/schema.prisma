@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Course {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  thumbnail  String?
+  published  Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  isDeleted  Boolean      @default(false)
+  Enrollment Enrollment[]
+  Video      Video[]
+  accessType CourseAccessType @default(VERIFY)
+
+  // Compound index for common query: "find published, non-deleted courses"
+  @@index([published, isDeleted])
+}
+
+model Enrollment {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  courseId   String   @db.ObjectId
+  enrolledAt DateTime @default(now())
+  isDeleted  Boolean  @default(false)
+  Course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  // Compound index for common queries: "find active enrollments for user"
+  @@index([userId, isDeleted])
+  @@index([courseId, isDeleted])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  fingerprint  String?
+  ipAddress    String?
+  userAgent    String?
+  lastActive   DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([fingerprint])
+  @@index([lastActive])
+}
+
+model RevokedSession {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  revokedAt DateTime @default(now())
+  reason    String?
+
+  @@index([email, revokedAt])
+}
+
+model User {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?         @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role            @default(USER)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  Account       Account[]
+  Enrollment    Enrollment[]
+  Session       Session[]
+  WatchRecord   WatchRecord[]
+  VideoAccess   VideoAccess[]
+  SecurityEvent SecurityEvent[]
+  DRMSession    DRMSession[]
+  Ticket        Ticket[]
+  isDeleted     Boolean         @default(false)
+
+  @@index([role])
+  @@index([isDeleted])
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Video {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  description   String?
+  duration      Float?
+  position      Int             @default(0)
+  published     Boolean         @default(false)
+  r2Key         String?
+  dashUrl       String?
+  hlsUrl        String?
+  hlsUrlClear   String?
+  drmKeyId      String?
+  axinomVideoId String?
+  axinomIdClear String?
+  axinomJobId   String?
+  axinomEncodingStatus String?
+  axinomOutputLocation String?
+  axinomSyncedAt DateTime?
+  viewLimit     Int?
+  courseId      String          @db.ObjectId
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  chatLog       Json?
+  isDeleted     Boolean         @default(false)
+  Course        Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  WatchRecord   WatchRecord[]
+  VideoAccess   VideoAccess[]
+  SecurityEvent SecurityEvent[]
+  DRMSession    DRMSession[]
+
+  // Compound indexes for common queries
+  @@index([courseId, published, isDeleted])
+  @@index([courseId, position])
+  @@index([drmKeyId])  // For DRM license lookups
+  @@index([axinomVideoId])
+  @@index([axinomIdClear])
+  @@index([axinomEncodingStatus])
+}
+
+model WatchRecord {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String    @db.ObjectId
+  videoId      String    @db.ObjectId
+  lastPosition Int       @default(0)
+  completedAt  DateTime?
+  viewCount    Int       @default(0)
+  viewLimit    Int?
+  lastViewedAt DateTime  @default(now())
+  User         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Video        Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@index([userId])
+  @@index([videoId])
+  @@index([lastViewedAt])
+}
+
+model AllowedEmail {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  fullname  String?
+  phone     String?
+  email     String   @unique
+  notes     String?
+  createdAt DateTime @default(now())
+  createdBy String?
+}
+
+model Ticket {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String?  @db.ObjectId
+  User        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email       String
+  description String
+  descriptionHtml String? @default("")
+  status      String   @default("WAITING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  consoleLogs Json?
+  browserInfo Json?
+  pageUrl     String?
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([email])
+  @@index([userId])
+}
+
+model VideoAccess {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String    @db.ObjectId
+  videoId    String    @db.ObjectId
+  grantedAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  validFrom  DateTime?
+  validUntil DateTime?
+  User       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Video      Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@index([userId])
+  @@index([videoId])
+  @@index([expiresAt])
+  @@index([validFrom])
+  @@index([validUntil])
+}
+
+model SecurityEvent {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  videoId   String?  @db.ObjectId
+  eventType String
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Video     Video?   @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@index([videoId])
+}
+
+model DRMSession {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId
+  videoId       String   @db.ObjectId
+  drmType       String
+  protocol      String
+  robustness    String?
+  isHardwareDRM Boolean  @default(false)
+  browser       String?
+  os            String?
+  isMobile      Boolean  @default(false)
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+  User          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Video         Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([videoId])
+  @@index([drmType])
+  @@index([isHardwareDRM])
+  @@index([createdAt])
+}
+
+model WatermarkSettings {
+  id                      String   @id @default(auto()) @map("_id") @db.ObjectId
+  opacity                 Float    @default(0.5)
+  sizeMultiplier          Float    @default(1.0)
+  mobileSizeMultiplier    Float    @default(0.7)
+  fullscreenSizeMultiplier Float   @default(1.3)
+  iosFullscreenSizeMultiplier Float @default(0.8)
+  // Zoom meeting watermark settings
+  zoomWatermarkColor      String   @default("#FFFFFF")
+  zoomWatermarkOpacity    Float    @default(0.2)
+  zoomWatermarkSizePercent Float   @default(2.5)
+  updatedAt               DateTime @updatedAt
+  updatedBy               String?
+
+  @@index([updatedAt])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TicketStatus {
+  WAITING
+  RESOLVING
+  RESOLVED
+}
+
+enum CourseAccessType {
+  OPEN
+  VERIFY
+}
