@@ -32,7 +32,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Maintainer can start the local dev server using placeholder-safe environment documentation that identifies every required variable, owner, secret status, and local/staging need.
   3. Maintainer can run root lint, typecheck, build, and test commands, with route/service test tooling installed and documented.
   4. Maintainer can see setup documentation that corrects PostgreSQL drift and explains how sensitive env files, DRM keys, media artifacts, and placeholders must be handled.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md - Jest baseline and root verification script contract.
+- [ ] 01-02-PLAN.md - Clean-checkout bootstrap, Prisma MongoDB setup, and service verification docs.
+- [ ] 01-03-PLAN.md - Placeholder-safe env example and service-grouped env matrix.
+- [ ] 01-04-PLAN.md - README drift correction and secret hygiene inventory/scanning.
 
 ### Phase 2: Central Authorization and Core Security Fixes
 **Goal**: Users and admins encounter consistent server-side authorization, support, logging, and audit behavior across critical security surfaces.
@@ -126,7 +131,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Installable Baseline, Docs, and Secret Hygiene | 0/TBD | Not started | - |
+| 1. Installable Baseline, Docs, and Secret Hygiene | 0/4 | Not started | - |
 | 2. Central Authorization and Core Security Fixes | 0/TBD | Not started | - |
 | 3. Axinom Trial Setup and DRM/Encoding Validation | 0/TBD | Not started | - |
 | 4. Zoom Meeting SDK Preservation and Upgrade Path | 0/TBD | Not started | - |
