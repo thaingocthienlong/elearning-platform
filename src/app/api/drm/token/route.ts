@@ -6,6 +6,7 @@ import {
     evaluateMediaEntitlement,
     mapMediaEntitlementToHttp,
 } from '@/lib/media-entitlement';
+import { serverLog } from '@/lib/server-log';
 
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
@@ -32,11 +33,16 @@ export async function POST(req: Request) {
             return new NextResponse('Video not found or not encrypted', { status: 404 });
         }
 
-        const token = generateAxinomToken(entitlement.video.drmKeyId);
+        const token = generateAxinomToken({
+            keyIds: entitlement.video.drmKeyId,
+            userId: entitlement.user.id,
+            ttlSeconds: 300,
+            allowPersistence: false,
+        });
 
         return NextResponse.json({ token });
     } catch (error) {
-        console.error('Token generation error:', error);
+        serverLog.error('DRM token generation error', error);
         return new NextResponse('Internal Server Error', { status: 500 });
     }
 }

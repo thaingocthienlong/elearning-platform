@@ -80,7 +80,7 @@ Plans:
 **Wave 0**
 - [x] 03-01-PLAN.md - Axinom official setup docs and canonical env validation.
 **Wave 1** *(blocked on Wave 0 completion)*
-- [ ] 03-02-PLAN.md - Official License Service Message signing and local license quarantine.
+- [x] 03-02-PLAN.md - Official License Service Message signing and local license quarantine.
 - [ ] 03-03-PLAN.md - Shaka Axinom license request integration.
 **Wave 2** *(blocked on Wave 0 completion)*
 - [ ] 03-04-PLAN.md - Explicit Axinom video metadata fields and sync/webhook adoption.
@@ -157,7 +157,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 |-------|----------------|--------|-----------|
 | 1. Installable Baseline, Docs, and Secret Hygiene | 4/4 | Complete | 2026-05-05 |
 | 2. Central Authorization and Core Security Fixes | 4/4 | Complete | 2026-05-05 |
-| 3. Axinom Trial Setup and DRM/Encoding Validation | 1/5 | In progress | - |
+| 3. Axinom Trial Setup and DRM/Encoding Validation | 2/5 | In progress | - |
 | 4. Zoom Meeting SDK Preservation and Upgrade Path | 0/TBD | Not started | - |
 | 5. Prisma/MongoDB Performance and Data Cleanup | 0/TBD | Not started | - |
 | 6. Vercel Staging Deployment and Smoke Suite | 0/TBD | Not started | - |

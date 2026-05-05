@@ -148,4 +148,40 @@ describe('media route entitlement adoption', () => {
       code: 'NOT_ENROLLED',
     });
   });
+
+  test('local DRM license route is quarantined after authorized checks', async () => {
+    mockedEvaluate.mockResolvedValue({
+      allowed: true,
+      user: { id: 'user-1' },
+      video: { id: 'video-1' },
+    });
+
+    const response = await drmLicensePost(
+      jsonRequest({ videoId: 'video-1', kids: ['kid-1'] })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(501);
+    expect(body.provider).toBe('Axinom License Service');
+  });
+
+  test('DRM token route signs authorized key IDs through Axinom helper', async () => {
+    mockedEvaluate.mockResolvedValue({
+      allowed: true,
+      user: { id: 'user-1' },
+      video: { id: 'video-1', drmKeyId: 'kid-1,kid-2' },
+    });
+
+    const response = await drmTokenPost(jsonRequest({ videoId: 'video-1' }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.token).toBe('signed-token');
+    expect(mockedGenerateAxinomToken).toHaveBeenCalledWith({
+      keyIds: 'kid-1,kid-2',
+      userId: 'user-1',
+      ttlSeconds: 300,
+      allowPersistence: false,
+    });
+  });
 });
