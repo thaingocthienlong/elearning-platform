@@ -43,15 +43,15 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 
 ### Axinom DRM And Video Processing
 
-- [ ] **DRM-01**: Maintainer has an official-doc-based Axinom DRM trial setup guide covering portal setup, communication key ID/value, license service URLs, and required secrets.
-- [ ] **DRM-02**: Maintainer has an official-doc-based Axinom Encoding setup guide covering service credentials, storage, encoding profiles, webhook URLs, and staging configuration.
-- [ ] **DRM-03**: Repo env validation clearly maps Axinom portal values to the app's Axinom environment variables and flags missing or legacy aliases.
-- [ ] **DRM-04**: Axinom License Service Message generation is centralized, server-only, scoped to authorized key IDs, short-lived, and signed according to official Axinom documentation.
-- [ ] **DRM-05**: Shaka Player integration sends Axinom entitlement tokens only with license requests and uses documented Widevine, PlayReady, and FairPlay license/certificate URLs.
-- [ ] **DRM-06**: Local DRM license endpoint is either implemented with real key custody or clearly disabled/quarantined so maintainers do not mistake it for production DRM.
-- [ ] **DRM-07**: Axinom webhook signature verification rejects invalid signatures consistently and handles malformed signatures safely.
-- [ ] **DRM-08**: Axinom operational IDs and statuses are stored in explicit video fields instead of overloading user-facing descriptions.
-- [ ] **DRM-09**: A staging test video can be encoded, published, authorized, and played through the documented Axinom/Shaka flow.
+- [x] **DRM-01**: Maintainer has an official-doc-based Axinom DRM trial setup guide covering portal setup, communication key ID/value, license service URLs, and required secrets.
+- [x] **DRM-02**: Maintainer has an official-doc-based Axinom Encoding setup guide covering service credentials, storage, encoding profiles, webhook URLs, and staging configuration.
+- [x] **DRM-03**: Repo env validation clearly maps Axinom portal values to the app's Axinom environment variables and flags missing or legacy aliases.
+- [x] **DRM-04**: Axinom License Service Message generation is centralized, server-only, scoped to authorized key IDs, short-lived, and signed according to official Axinom documentation.
+- [x] **DRM-05**: Shaka Player integration sends Axinom entitlement tokens only with license requests and uses documented Widevine, PlayReady, and FairPlay license/certificate URLs.
+- [x] **DRM-06**: Local DRM license endpoint is either implemented with real key custody or clearly disabled/quarantined so maintainers do not mistake it for production DRM.
+- [x] **DRM-07**: Axinom webhook signature verification rejects invalid signatures consistently and handles malformed signatures safely.
+- [x] **DRM-08**: Axinom operational IDs and statuses are stored in explicit video fields instead of overloading user-facing descriptions.
+- [x] **DRM-09**: A staging test video can be encoded, published, authorized, and played through the documented Axinom/Shaka flow.
 
 ### Zoom Meetings
 
@@ -163,15 +163,15 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 | TEST-03 | Phase 2 | Complete |
 | TEST-05 | Phase 2 | Complete |
 | TEST-06 | Phase 2 | Complete |
-| DRM-01 | Phase 3 | Pending |
-| DRM-02 | Phase 3 | Pending |
-| DRM-03 | Phase 3 | Pending |
-| DRM-04 | Phase 3 | Pending |
-| DRM-05 | Phase 3 | Pending |
-| DRM-06 | Phase 3 | Pending |
-| DRM-07 | Phase 3 | Pending |
-| DRM-08 | Phase 3 | Pending |
-| DRM-09 | Phase 3 | Pending |
+| DRM-01 | Phase 3 | Complete |
+| DRM-02 | Phase 3 | Complete |
+| DRM-03 | Phase 3 | Complete |
+| DRM-04 | Phase 3 | Complete |
+| DRM-05 | Phase 3 | Complete |
+| DRM-06 | Phase 3 | Complete |
+| DRM-07 | Phase 3 | Complete |
+| DRM-08 | Phase 3 | Complete |
+| DRM-09 | Phase 3 | Complete |
 | ZOOM-01 | Phase 4 | Pending |
 | ZOOM-02 | Phase 4 | Pending |
 | ZOOM-03 | Phase 4 | Pending |
@@ -214,4 +214,4 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-05 after Phase 2 verification*
+*Last updated: 2026-05-05 after Phase 3 verification*

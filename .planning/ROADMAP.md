@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Installable Baseline, Docs, and Secret Hygiene** - Maintainers can install, configure, verify, and handle sensitive artifacts from a clean checkout.
 - [x] **Phase 2: Central Authorization and Core Security Fixes** - Media, support, admin, logging, and security-event flows enforce server-owned security rules consistently.
-- [ ] **Phase 3: Axinom Trial Setup and DRM/Encoding Validation** - Maintainers can configure and exercise the official Axinom DRM/Encoding path through Shaka playback.
+- [x] **Phase 3: Axinom Trial Setup and DRM/Encoding Validation** - Maintainers can configure and exercise the official Axinom DRM/Encoding path through Shaka playback.
 - [ ] **Phase 4: Zoom Meeting SDK Preservation and Upgrade Path** - Meetings keep the current authenticated join flow while signatures, roles, and SDK assets are made maintainable.
 - [ ] **Phase 5: Prisma/MongoDB Performance and Data Cleanup** - Current MongoDB implementation is profiled, bounded, indexed, and optimized before any migration decision.
 - [ ] **Phase 6: Vercel Staging Deployment and Smoke Suite** - Staging can be deployed and accepted through documented env, callback, build, log, and smoke checks.
@@ -157,7 +157,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 |-------|----------------|--------|-----------|
 | 1. Installable Baseline, Docs, and Secret Hygiene | 4/4 | Complete | 2026-05-05 |
 | 2. Central Authorization and Core Security Fixes | 4/4 | Complete | 2026-05-05 |
-| 3. Axinom Trial Setup and DRM/Encoding Validation | 5/5 | Verification pending | - |
+| 3. Axinom Trial Setup and DRM/Encoding Validation | 5/5 | Complete | 2026-05-05 |
 | 4. Zoom Meeting SDK Preservation and Upgrade Path | 0/TBD | Not started | - |
 | 5. Prisma/MongoDB Performance and Data Cleanup | 0/TBD | Not started | - |
 | 6. Vercel Staging Deployment and Smoke Suite | 0/TBD | Not started | - |
@@ -239,4 +239,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Roadmap created: 2026-05-05*
-*Last updated: 2026-05-05 after Phase 3 planning*
+*Last updated: 2026-05-05 after Phase 3 verification*
