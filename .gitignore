@@ -65,3 +65,8 @@ scripts/keystore.json
 wv_pssh.hex
 
 .vercel
+
+# Quarantined inherited Zoom SDK samples. These may contain sample certs/keys
+# and large vendor bundles; keep only the README tracked.
+archive/zoom-sdk-quarantine/**
+!archive/zoom-sdk-quarantine/README.md
