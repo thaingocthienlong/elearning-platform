@@ -53,12 +53,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         effectiveViewLimit: entitlement.effectiveViewLimit,
     };
 
-    // 2. Fetch all other data in parallel
-    const [
-        whitelistEntry,
-        courseVideos,
-        watchRecords,
-    ] = await Promise.all([
+    const [whitelistEntry, courseVideos] = await Promise.all([
         // Whitelist data for watermark
         prisma.allowedEmail.findUnique({
             where: { email: user.email! },
@@ -77,23 +72,23 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 position: true,
             },
         }),
-        // Watch records for sidebar
-        prisma.watchRecord.findMany({
+    ]);
+
+    const courseVideoIds = courseVideos.map((courseVideo) => courseVideo.id);
+    const watchRecords = courseVideoIds.length > 0
+        ? await prisma.watchRecord.findMany({
             where: {
                 userId: user.id,
                 videoId: {
-                    in: (await prisma.video.findMany({
-                        where: { courseId: video.courseId, published: true },
-                        select: { id: true }
-                    })).map(v => v.id)
-                }, // Note: We need IDs first, but let's optimize this query
+                    in: courseVideoIds,
+                },
             },
             select: {
                 videoId: true,
                 completedAt: true,
             },
         })
-    ]);
+        : [];
 
     // Merge data for sidebar
     const sidebarVideos = courseVideos.map((v) => ({

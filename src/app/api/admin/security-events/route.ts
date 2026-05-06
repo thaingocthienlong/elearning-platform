@@ -4,6 +4,19 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { serverLog } from '@/lib/server-log';
 
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
+const DEFAULT_LOOKBACK_DAYS = 90;
+
+function boundedPositiveInt(value: string | null, fallback: number, max: number): number {
+  const parsed = Number.parseInt(value || '', 10);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+
+  return Math.min(parsed, max);
+}
+
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
@@ -13,15 +26,28 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const page = boundedPositiveInt(searchParams.get('page'), 1, 10_000);
+    const limit = boundedPositiveInt(searchParams.get('limit'), DEFAULT_LIMIT, MAX_LIMIT);
     const search = searchParams.get('search') || '';
     const eventType = searchParams.get('eventType') || '';
+    const sinceParam = searchParams.get('since');
+
+    const defaultSince = new Date();
+    defaultSince.setDate(defaultSince.getDate() - DEFAULT_LOOKBACK_DAYS);
+    const requestedSince = sinceParam ? new Date(sinceParam) : null;
+    const since =
+      requestedSince && !Number.isNaN(requestedSince.getTime())
+        ? requestedSince
+        : defaultSince;
 
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {};
+    const where: any = {
+      createdAt: {
+        gte: since,
+      },
+    };
 
     if (eventType) {
       where.eventType = eventType;
@@ -81,6 +107,8 @@ export async function GET(req: NextRequest) {
       totalCount,
       totalPages,
       currentPage: page,
+      limit,
+      since: since.toISOString(),
     });
   } catch (error) {
     console.error('Security events fetch error:', error);

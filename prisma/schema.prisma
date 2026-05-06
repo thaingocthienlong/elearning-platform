@@ -68,6 +68,7 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, expires])
   @@index([fingerprint])
   @@index([lastActive])
 }
@@ -166,6 +167,7 @@ model WatchRecord {
 
   @@unique([userId, videoId])
   @@index([userId])
+  @@index([userId, lastViewedAt])
   @@index([videoId])
   @@index([lastViewedAt])
 }
@@ -195,6 +197,7 @@ model Ticket {
   pageUrl     String?
 
   @@index([status])
+  @@index([status, createdAt])
   @@index([createdAt])
   @@index([email])
   @@index([userId])
@@ -213,6 +216,7 @@ model VideoAccess {
 
   @@unique([userId, videoId])
   @@index([userId])
+  @@index([userId, validFrom, validUntil])
   @@index([videoId])
   @@index([expiresAt])
   @@index([validFrom])
@@ -232,7 +236,9 @@ model SecurityEvent {
   Video     Video?   @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, createdAt])
   @@index([eventType])
+  @@index([eventType, createdAt])
   @@index([createdAt])
   @@index([videoId])
 }
@@ -255,6 +261,7 @@ model DRMSession {
   Video         Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, createdAt])
   @@index([videoId])
   @@index([drmType])
   @@index([isHardwareDRM])
@@ -263,6 +270,7 @@ model DRMSession {
 
 model WatermarkSettings {
   id                      String   @id @default(auto()) @map("_id") @db.ObjectId
+  scope                   String   @default("global")
   opacity                 Float    @default(0.5)
   sizeMultiplier          Float    @default(1.0)
   mobileSizeMultiplier    Float    @default(0.7)
@@ -275,6 +283,7 @@ model WatermarkSettings {
   updatedAt               DateTime @updatedAt
   updatedBy               String?
 
+  @@unique([scope])
   @@index([updatedAt])
 }
 

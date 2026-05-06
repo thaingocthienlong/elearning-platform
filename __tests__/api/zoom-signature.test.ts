@@ -19,7 +19,7 @@ jest.mock('@/lib/prisma', () => ({
       findUnique: jest.fn(),
     },
     watermarkSettings: {
-      findFirst: jest.fn(),
+      findUnique: jest.fn(),
     },
   },
 }));
@@ -30,7 +30,7 @@ const mockedPrisma = prisma as unknown as {
     findUnique: jest.Mock;
   };
   watermarkSettings: {
-    findFirst: jest.Mock;
+    findUnique: jest.Mock;
   };
 };
 
@@ -61,7 +61,7 @@ describe('Zoom signature route', () => {
       NEXT_PUBLIC_ZOOM_PASSCODE: 'public-passcode',
     };
     mockedPrisma.allowedEmail.findUnique.mockResolvedValue(null);
-    mockedPrisma.watermarkSettings.findFirst.mockResolvedValue(null);
+    mockedPrisma.watermarkSettings.findUnique.mockResolvedValue(null);
   });
 
   afterAll(() => {
@@ -119,7 +119,7 @@ describe('Zoom signature route', () => {
       fullname: 'Admin Name',
       phone: '555-0100',
     });
-    mockedPrisma.watermarkSettings.findFirst.mockResolvedValue({
+    mockedPrisma.watermarkSettings.findUnique.mockResolvedValue({
       zoomWatermarkColor: '#FF0000',
       zoomWatermarkOpacity: 0.4,
       zoomWatermarkSizePercent: 3,

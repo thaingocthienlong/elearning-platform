@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 
+const WATERMARK_SCOPE = 'global';
+
 export async function POST(req: Request) {
     try {
         void req;
@@ -74,8 +76,8 @@ export async function POST(req: Request) {
         let zoomWatermarkSizePercent = 2.5;
 
         try {
-            const watermarkSettings = await prisma.watermarkSettings.findFirst({
-                orderBy: { updatedAt: 'desc' },
+            const watermarkSettings = await prisma.watermarkSettings.findUnique({
+                where: { scope: WATERMARK_SCOPE },
             });
 
             if (watermarkSettings) {
