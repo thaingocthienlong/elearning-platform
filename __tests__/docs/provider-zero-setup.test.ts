@@ -66,4 +66,28 @@ describe('provider zero setup guide', () => {
       expect(guide).toContain(term);
     }
   });
+
+  test('documents concrete Axinom portal setup steps', () => {
+    const guide = readText('docs/provider-zero-setup.md');
+
+    for (const term of [
+      'Open https://portal.axinom.com/.',
+      'My Mosaic',
+      'Management System',
+      'Acquire Credentials',
+      'Credentials Protection Tool',
+      'Settings** -> **Video Encoding',
+      'Acquisition Profile',
+      'Publishing Profile',
+      'Processing Profile',
+      'STAGING_DRM',
+      'https://<staging-domain>/api/webhook/axinom',
+      'Videos',
+      'New',
+      'Encode',
+      'AX_CLIENT_ID',
+    ]) {
+      expect(guide).toContain(term);
+    }
+  });
 });

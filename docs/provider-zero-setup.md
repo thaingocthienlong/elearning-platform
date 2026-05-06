@@ -127,22 +127,130 @@ NEXT_PUBLIC_AX_PR_LS_URL=<PLAYREADY_LICENSE_SERVICE_URL>
 NEXT_PUBLIC_AX_FP_LS_URL=<FAIRPLAY_LICENSE_SERVICE_URL>
 ```
 
-Steps:
+Axinom account and tenant creation:
 
-1. Create a new Axinom trial/evaluation account or tenant.
-2. In Axinom DRM, create or locate the DRM communication key.
-3. Store communication key ID and secret in the password manager.
-4. Copy Widevine, PlayReady, and FairPlay license service URLs for the tenant/region.
-5. Configure or copy the FairPlay certificate URL when FairPlay is used.
-6. In Axinom Encoding/Video Service, create service credentials for API access.
-7. Create or configure encoding profiles:
-   - DRM output profile.
-   - Clear output profile if the app keeps a clear fallback flow.
-8. Configure storage input/output connections according to the Azure containers used by this app.
-9. Configure the Axinom webhook URL as `<STAGING_ORIGIN>/api/webhook/axinom`.
-10. Generate a new webhook shared secret and put it in `AXINOM_WEBHOOK_SECRET`.
-11. Put public license URLs into `NEXT_PUBLIC_AX_*` variables.
-12. Put secrets only into local `.env.local` and Vercel encrypted env settings.
+1. Open https://portal.axinom.com/.
+2. Sign in with the maintainer email that should own the trial. If no account exists, use the portal sign-up path and verify the email.
+3. Open **My Mosaic**.
+4. Create or select the evaluation tenant/environment for this project.
+5. Open **Overview**.
+6. In the **Management System** area, copy/open the tenant Management System URL. Keep this tab open; the Encoding and Video Service GUI setup is done there.
+7. In the password manager, create an entry named `Axinom - <environment> - Secure Streaming Platform`.
+8. Record only labels, IDs, URLs, and non-secret notes in this document or tickets. Do not paste real secrets.
+
+DRM credentials and license URLs:
+
+1. In https://portal.axinom.com/, open **My Mosaic**.
+2. Click **DRM** in the left navigation.
+3. If the page shows an onboarding action such as **Acquire Credentials**, click it and complete the evaluation agreement/onboarding flow.
+4. Open the DRM configuration that belongs to the new tenant/environment.
+5. Find the **License Service** or **Communication Key** section.
+6. Copy the **Communication Key ID** into the password manager as `AXINOM_COM_KEY_ID`.
+7. Copy the **Communication Key** value into the password manager as `AXINOM_COM_KEY_SECRET`. Axinom documents this value as base64 for signing License Service Message JWTs.
+8. Copy the Widevine License Service URL into `NEXT_PUBLIC_AX_WV_LS_URL`.
+9. Copy the PlayReady License Service URL into `NEXT_PUBLIC_AX_PR_LS_URL`.
+10. Copy the FairPlay License Service URL into `NEXT_PUBLIC_AX_FP_LS_URL`.
+11. If the tenant does not show tenant-specific license URLs, use the documented Axinom defaults only for the matching DRM type:
+    - Widevine: `https://drm-widevine-licensing.axprod.net/AcquireLicense`
+    - PlayReady: `https://drm-playready-licensing.axprod.net/AcquireLicense`
+    - FairPlay: `https://drm-fairplay-licensing.axprod.net/AcquireLicense`
+12. If FairPlay is required, locate the FairPlay certificate or streaming certificate URL and store it as `AXINOM_FAIRPLAY_CERT_URL`. If FairPlay has not been provisioned yet, mark FairPlay as blocked and keep Widevine/PlayReady testing separate.
+13. Open https://portal.axinom.com/Tools or the Axinom **Tools** area.
+14. Open the **Entitlement Message** or **DRM Video Playback** tool.
+15. Use the tool only with test content and temporary values to confirm that the Communication Key ID/value can sign a License Service Message. Do not paste production user or content identifiers.
+
+Encoding and Video Service access:
+
+1. Open the tenant Management System URL copied from **My Mosaic** -> **Overview** -> **Management System**.
+2. Confirm the left navigation includes **Settings** and **Videos**. If it does not, the account is missing Video Service/Encoding permissions.
+3. Open the Mosaic Admin Portal for the same tenant/environment.
+4. Create a dedicated service account named `secure-streaming-platform-staging`.
+5. Grant the service account only the permissions required for this app's Axinom flow. At minimum, Axinom's Encoding API docs call out `Videos: Encode` for encoding access.
+6. Copy the service account client ID into `AXINOM_ENCODING_CLIENT_ID`.
+7. Copy the service account client secret into `AXINOM_ENCODING_CLIENT_SECRET`.
+8. Keep the default Video Service GraphQL URL as `https://video.service.eu.axinom.net/graphql` unless Axinom assigns a different region/tenant endpoint. Store it in `AXINOM_VIDEO_SERVICE_URL`.
+9. Keep the Encoding API URL aligned with the tenant region. Axinom documents the default service URL as `https://vip-eu-west-1.axinom.com`; this repo's lower-level Encoding helper expects the API form in `AXINOM_ENCODING_API_URL`.
+
+Storage setup inside Axinom:
+
+1. Complete the Azure Blob or R2/S3-compatible storage setup from the storage sections of this guide first.
+2. In the tenant Management System, open **Settings**.
+3. Open **Video Encoding** or the **Video Settings** area.
+4. Click the tile or menu for **Acquisition Profile**.
+5. Create or edit the input profile.
+6. Set **Title** to a stable name such as `STAGING_INPUT`.
+7. Set **Storage Provider** to the storage type used for source files:
+   - Use **Azure Storage** for Azure Blob input.
+   - Use **S3 Compatible Storage** for R2/S3-compatible input.
+   - Use **Mosaic Hosting Service** only for a pure Axinom-hosted trial.
+8. For Azure input, fill **Storage Account Name**, encrypted **Storage Account Key**, and **Container Name** with the staging input container.
+9. For S3-compatible input, fill **S3 Endpoint**, **Access Key Id**, encrypted **Access Key**, **Bucket name**, and region/provider fields shown by the UI.
+10. Set **Root Path** only if this app uploads sources below a fixed prefix. Otherwise leave it blank and upload each source video into its own folder.
+11. Save the Acquisition Profile.
+12. Return to **Settings** -> **Video Encoding**.
+13. Click **Publishing Profile**.
+14. Create or edit the output profile.
+15. Set **Title** to a stable name such as `STAGING_OUTPUT`.
+16. Configure the output storage provider and output container/bucket.
+17. For first staging playback, make the output manifests and media segments readable by the browser/CDN path used by this app. The Axinom quickstart notes that output needs public read access when previewing directly.
+18. Save the Publishing Profile.
+19. For any storage secret that Axinom asks for, use Axinom's **Credentials Protection Tool** or certificate-based credentials protection. Axinom's Encoding docs state storage and DRM secrets should be encrypted before being passed to the Encoding service.
+
+DRM processing profile:
+
+1. In the tenant Management System, open **Settings** -> **Video Encoding**.
+2. Click **Processing** or **Processing Profile**.
+3. Create a new profile or duplicate/edit `DEFAULT`.
+4. Set **Title** to `STAGING_DRM`.
+5. Set the output format to the format this app should test first:
+   - Prefer **CMAF** when one output should support Widevine, PlayReady, and FairPlay.
+   - Use **DASH** for Widevine/PlayReady-only testing.
+   - Use **HLS** for FairPlay-specific testing.
+6. Enable **DRM Protection**.
+7. Choose the DRM mode that uses Axinom Key Service/DRM-managed keys.
+8. Open the **DRM Settings** area for the profile.
+9. Fill the Key Service **Management API URL**, **Tenant ID**, encrypted **Management Key**, and encrypted **Key Seed ID** from **My Mosaic** -> **DRM** -> **Key Service**. Axinom notes that the Key Seed is usually created automatically during DRM setup.
+10. Save the profile.
+11. Copy the saved profile database ID from the Management System URL, details panel, GraphQL query, or admin metadata view into `AXINOM_ENCODING_PROFILE_DRM`.
+12. If this project must keep a clear fallback, repeat the profile step with **DRM Protection** disabled, title it `STAGING_CLEAR`, save it, and copy its ID into `AXINOM_ENCODING_PROFILE_CLEAR`.
+13. If clear fallback is not approved, leave `AXINOM_ENCODING_PROFILE_CLEAR` unset and document that clear encoding is intentionally blocked.
+
+Webhook setup:
+
+1. Generate a new random webhook secret in the password manager. Store it as `AXINOM_WEBHOOK_SECRET`.
+2. In the tenant Management System or Mosaic Admin Portal, open the webhook/integration settings for Video Service/Encoding events.
+3. Add a webhook subscription for the encoding completion/failure event used by the tenant's Video Service.
+4. Set the target URL to:
+
+```text
+https://<staging-domain>/api/webhook/axinom
+```
+
+5. Configure the webhook signing/shared secret with the value stored as `AXINOM_WEBHOOK_SECRET`.
+6. Save and enable the webhook.
+7. If the Axinom UI offers a test delivery, send a test event and confirm the app returns an expected non-500 response. Do not paste the signature or secret into evidence.
+
+First encoding job through Axinom UI:
+
+1. Prepare a short non-sensitive `.mp4` file, ideally 1-2 minutes.
+2. Upload it to the configured input storage in a dedicated folder, for example `staging-smoke-001/source.mp4`.
+3. In the tenant Management System, click **Videos**.
+4. Click **New**.
+5. Select the folder as **Source Location**.
+6. Select the `STAGING_DRM` processing profile.
+7. Click **Encode**.
+8. Wait for encoding to finish. Use the job details/logs in the Management System.
+9. Click **Preview** or open the video details to copy the DASH/HLS manifest URLs.
+10. Confirm the protected preview can obtain an entitlement message and license service URLs. Axinom's protected preview docs expect entitlement data plus Widevine/PlayReady/FairPlay license service URLs and, for FairPlay, the streaming certificate URL.
+
+Connect the Axinom tenant to this app:
+
+1. Add the repo env vars above to local `.env.local` for local smoke only. Do not commit the file.
+2. Add the same values to Vercel encrypted environment settings for staging.
+3. Use canonical `AXINOM_*` names. Do not rely on legacy `AX_CLIENT_ID`, `AX_CLIENT_SECRET`, `AX_PROFILE_ID`, or `AX_ENCODING_BASE` in staging.
+4. Confirm `AXINOM_VIDEO_SERVICE_URL` matches the tenant region.
+5. Confirm `NEXT_PUBLIC_AX_WV_LS_URL`, `NEXT_PUBLIC_AX_PR_LS_URL`, and `NEXT_PUBLIC_AX_FP_LS_URL` are public license URLs only, not secrets.
+6. Restart/redeploy the app after changing environment variables.
 
 Validation:
 
