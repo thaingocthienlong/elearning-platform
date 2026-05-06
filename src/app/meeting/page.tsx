@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, Loader2, Video } from 'lucide-react';
 
 export default function MeetingPage() {
     const { data: session, status } = useSession();
@@ -101,10 +103,11 @@ export default function MeetingPage() {
 
     if (status === 'loading') {
         return (
-            <div className="flex items-center justify-center h-screen bg-black text-white">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p>Loading...</p>
+            <div className="academic-page flex items-center justify-center p-6">
+                <div className="academic-panel w-full max-w-md p-6 text-center">
+                    <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+                    <h1 className="mt-4 text-xl font-semibold">Loading meeting access</h1>
+                    <p className="mt-2 text-sm text-muted-foreground">Checking your institute session before opening Zoom.</p>
                 </div>
             </div>
         );
@@ -112,9 +115,12 @@ export default function MeetingPage() {
 
     if (error) {
         return (
-            <div className="flex items-center justify-center h-screen bg-black text-white">
-                <div className="text-red-500 font-bold p-4 bg-white/10 rounded">
-                    Error: {error}
+            <div className="academic-page flex items-center justify-center p-6">
+                <div className="academic-panel w-full max-w-md p-6 text-center">
+                    <AlertCircle className="mx-auto h-8 w-8 text-destructive" />
+                    <h1 className="mt-4 text-xl font-semibold">Meeting unavailable</h1>
+                    <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+                    <Button className="mt-5" onClick={() => router.push('/')}>Return to portal</Button>
                 </div>
             </div>
         );
@@ -122,10 +128,12 @@ export default function MeetingPage() {
 
     if (!iframeSrc) {
         return (
-            <div className="flex items-center justify-center h-screen bg-black text-white">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p>Preparing Secure Meeting Environment...</p>
+            <div className="academic-page flex items-center justify-center p-6">
+                <div className="academic-panel w-full max-w-md p-6 text-center">
+                    <Video className="mx-auto h-8 w-8 text-primary" />
+                    <h1 className="mt-4 text-xl font-semibold">Preparing secure meeting room</h1>
+                    <p className="mt-2 text-sm text-muted-foreground">Generating a server-owned Zoom signature for your session.</p>
+                    <Loader2 className="mx-auto mt-5 h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
             </div>
         );

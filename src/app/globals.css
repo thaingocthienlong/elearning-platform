@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 45 29% 97%;
+    --foreground: 210 18% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 18% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 18% 12%;
+    --primary: 151 43% 22%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 42 32% 91%;
+    --secondary-foreground: 151 43% 18%;
+    --muted: 42 25% 92%;
+    --muted-foreground: 213 12% 41%;
+    --accent: 351 43% 30%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 42 18% 82%;
+    --input: 42 18% 82%;
+    --ring: 151 43% 22%;
+    --chart-1: 151 43% 28%;
+    --chart-2: 351 43% 36%;
+    --chart-3: 42 72% 45%;
+    --chart-4: 205 32% 35%;
+    --chart-5: 18 48% 45%;
+    --radius: 0.5rem;
+    --sidebar-background: 45 29% 97%;
+    --sidebar-foreground: 210 18% 18%;
+    --sidebar-primary: 151 43% 22%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 42 32% 91%;
+    --sidebar-accent-foreground: 151 43% 18%;
+    --sidebar-border: 42 18% 82%;
+    --sidebar-ring: 151 43% 22%;
+  }
+
+  .dark {
+    --background: 210 18% 10%;
+    --foreground: 45 25% 94%;
+    --card: 210 17% 13%;
+    --card-foreground: 0 0% 98%;
+    --popover: 210 17% 13%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 143 42% 58%;
+    --primary-foreground: 151 43% 12%;
+    --secondary: 210 14% 20%;
+    --secondary-foreground: 45 25% 94%;
+    --muted: 210 14% 20%;
+    --muted-foreground: 42 15% 68%;
+    --accent: 351 45% 56%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 14% 24%;
+    --input: 210 14% 24%;
+    --ring: 143 42% 58%;
+    --chart-1: 143 42% 58%;
+    --chart-2: 351 45% 56%;
+    --chart-3: 42 72% 55%;
+    --chart-4: 205 42% 62%;
+    --chart-5: 18 60% 60%;
+    --sidebar-background: 210 18% 10%;
+    --sidebar-foreground: 45 25% 94%;
+    --sidebar-primary: 143 42% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 14% 20%;
+    --sidebar-accent-foreground: 45 25% 94%;
+    --sidebar-border: 210 14% 24%;
+    --sidebar-ring: 143 42% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-image:
+      linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background))),
+      linear-gradient(to right, hsl(var(--border) / 0.28) 1px, transparent 1px);
+    background-size: auto, 56px 56px;
+  }
+}
+
+@layer components {
+  .academic-page {
+    @apply min-h-[calc(100vh-4rem)] bg-background;
+  }
+
+  .academic-band {
+    @apply border-b border-border/70 bg-card/80;
+  }
+
+  .academic-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .academic-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-primary;
+  }
+
+  .academic-panel {
+    @apply rounded-lg border border-border/80 bg-card shadow-sm;
+  }
+}
+
+body.video-fullscreen-mode nav {
+  display: none !important;
+}
+
+/* Legacy iOS Support for Click Events */
+@media (hover: none) {
+
+  /* iOS < 13 requires cursor: pointer for click events to bubble on div/span */
+  div[role="button"],
+  div[role="checkbox"],
+  iframe[title*="recaptcha"] {
+    cursor: pointer !important;
+  }
+}
+
+/* 
+   Aggressive reCAPTCHA Z-Index & Pointer Fix 
+   Targets the container Google appends to body which creates the challenge popup.
+*/
+
+/* Ensure the iframe itself accepts clicks */
+iframe[title*="recaptcha"] {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 2147483647 !important;
+}
+
+/* 
+   Target the container Google likely uses. 
+   On iOS 10, :has() isn't supported, so we rely on the iframe rules 
+   and this generic high z-index for the challenge bubble.
+*/
+.g-recaptcha-bubble-arrow+div {
+  z-index: 2147483647 !important;
+}
+
+/* 
+   For old iOS, sometimes the overlay capturing clicks is a sibling.
+   We force the challenge container to be top-most.
+   Use :has to strictly target the recaptcha container and avoid breaking other portals (like Tours).
+*/
+body>div:has(iframe[title*="recaptcha"]) {
+  /* If Google sets a z-index, we boost it to max */
+  z-index: 2147483647 !important;
+}
+
+/* 
+   Ensure touch events aren't intercepted as potential scrolls
+   This is critical for iOS "tap to select" in iframes 
+*/
+iframe[title*="recaptcha"],
+.g-recaptcha-bubble-arrow+div {
+  touch-action: none !important;
+}
