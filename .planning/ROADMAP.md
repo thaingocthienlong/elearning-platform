@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Prisma/MongoDB Performance and Data Cleanup** - Current MongoDB implementation is profiled, bounded, indexed, and optimized before any migration decision.
 - [x] **Phase 6: Vercel Staging Deployment and Smoke Suite** - Staging can be deployed and accepted through documented env, callback, build, log, and smoke checks.
 - [x] **Phase 7: Academic Frontend Redesign** - Existing routes and workflows receive a formal institute-style UI with responsive and screenshot coverage.
-- [ ] **Phase 8: Maintainer Operations and Hardening Backlog** - Maintainers have subsystem, upgrade, readiness, and production-hardening guidance after staging readiness.
+- [x] **Phase 8: Maintainer Operations and Hardening Backlog** - Maintainers have subsystem, upgrade, readiness, and production-hardening guidance after staging readiness.
 
 ## Phase Details
 
@@ -166,7 +166,12 @@ Plans:
   3. Maintainer can see documented limits of client-side anti-recording controls and distinguish deterrence from enforceable server, DRM, watermark, and audit layers.
   4. Maintainer can use health or checklist documentation to assess Axinom, Zoom, Redis, storage, database, OAuth, Sentry, and webhook readiness.
   5. Maintainer can find remaining production-hardening items separately from completed staging readiness.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [x] 08-01-PLAN.md - Subsystem operations runbook.
+- [x] 08-02-PLAN.md - Vendor upgrade playbooks.
+- [x] 08-03-PLAN.md - Health checklist and hardening backlog.
+- [x] 08-04-PLAN.md - Milestone gate and closure.
 
 ## Progress
 
@@ -182,7 +187,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. Prisma/MongoDB Performance and Data Cleanup | 4/4 | Complete | 2026-05-06 |
 | 6. Vercel Staging Deployment and Smoke Suite | 4/4 | Complete | 2026-05-06 |
 | 7. Academic Frontend Redesign | 4/4 | Complete | 2026-05-06 |
-| 8. Maintainer Operations and Hardening Backlog | 0/TBD | Not started | - |
+| 8. Maintainer Operations and Hardening Backlog | 4/4 | Complete | 2026-05-06 |
 
 ## Coverage
 
@@ -259,4 +264,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Roadmap created: 2026-05-05*
-*Last updated: 2026-05-06 after Phase 7 verification*
+*Last updated: 2026-05-06 after Phase 8 verification*

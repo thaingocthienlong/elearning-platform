@@ -26,6 +26,7 @@ Maintainers can reliably run, secure, deploy, and evolve the platform without gu
 - Existing Vercel-oriented deployment shape through Next.js App Router, `vercel.json`, Vercel Analytics, and Speed Insights - existing.
 - Phase 6 Vercel staging runbook, callback/origin contract, env matrix staging notes, and smoke checklist/verifier - validated.
 - Phase 7 formal institute-style frontend treatment for primary user routes, watch shell, meeting states, auth, support shell, navigation, and screenshot checklist - validated.
+- Phase 8 subsystem operations runbooks, vendor upgrade playbooks, health checklist, and prioritized production hardening backlog - validated.
 
 ### Active
 
@@ -110,6 +111,7 @@ Axinom is central to the project. The current backend depends on an Axinom DRM f
 | Use singleton watermark settings | Append-only latest-row watermark settings created ambiguous reads and unbounded growth; the app now uses a `global` singleton scope. | Accepted in Phase 5 |
 | Represent unavailable live staging checks explicitly | Phase 6 cannot certify real Google, Axinom, Zoom, Redis, storage, SMTP, or Sentry behavior without tenant credentials; smoke rows use `blocked: missing credentials/service access` instead of false pass/fail claims. | Accepted in Phase 6 |
 | Redesign primary user surfaces before deep admin UI | Phase 7 user choice prioritized home, courses, course detail, watch, meeting, support/auth, while preserving dense admin behavior through shared tokens/nav. | Accepted in Phase 7 |
+| Capture production hardening separately from staging readiness | Phase 8 records production launch blockers as P0/P1/P2 backlog items rather than claiming v1 production certification. | Accepted in Phase 8 |
 
 ## Evolution
 
@@ -129,4 +131,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state.
 
 ---
-*Last updated: 2026-05-06 after Phase 7 verification*
+*Last updated: 2026-05-06 after Phase 8 verification*

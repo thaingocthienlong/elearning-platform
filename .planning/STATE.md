@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** Maintainers can reliably run, secure, deploy, and evolve the platform without guessing how its DRM, Zoom, database, authentication, and streaming flows fit together.
-**Current focus:** Phase 8 - Maintainer Operations and Hardening Backlog
+**Current focus:** Milestone complete - staging-ready rescue baseline
 
 ## Current Position
 
 Phase: 8 of 8 (Maintainer Operations and Hardening Backlog)
-Plan: Not planned
-Status: Phase 7 complete; ready to discuss and plan Phase 8
-Last activity: 2026-05-06 - Phase 7 academic frontend redesign, UI contract, screenshot checklist, tests, and verification completed.
+Plan: Complete
+Status: All v1 milestone phases complete; production hardening remains tracked in docs/operations/hardening-backlog.md
+Last activity: 2026-05-06 - Phase 8 operations runbooks, vendor upgrade playbooks, health checklist, hardening backlog, tests, and verification completed.
 
-Progress: [#########-] 87%
+Progress: [##########] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 29
-- Average duration: 4.7 min
-- Total execution time: 137 min
+- Total plans completed: 33
+- Average duration: 4.6 min
+- Total execution time: 149 min
 
 **By Phase:**
 
@@ -34,10 +34,11 @@ Progress: [#########-] 87%
 | 5 | 4 | 20 min | 5 min |
 | 6 | 4 | 12 min | 3 min |
 | 7 | 4 | 16 min | 4 min |
+| 8 | 4 | 12 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-04, 07-01, 07-02, 07-03, 07-04
-- Trend: Baseline, security, Axinom, Zoom, MongoDB performance, staging smoke contract, and academic frontend redesign phases complete
+- Last 5 plans: 07-04, 08-01, 08-02, 08-03, 08-04
+- Trend: All v1 rescue phases complete
 
 *Updated after each plan completion*
 
@@ -66,10 +67,11 @@ Recent decisions affecting current work:
 - [Phase 5]: Watermark settings use a `global` singleton scope instead of append-only latest-row updates.
 - [Phase 6]: Staging readiness is documented as a Vercel Preview/Custom Environment runbook plus smoke checklist, with unavailable live-provider checks marked `blocked: missing credentials/service access`.
 - [Phase 7]: Academic redesign prioritizes primary user surfaces and preserves admin density; screenshot rows exist but automated capture is blocked until browser automation tooling is installed.
+- [Phase 8]: Production launch blockers are tracked separately in `docs/operations/hardening-backlog.md`; v1 completion means staging-ready rescue baseline, not production certification.
 
 ### Pending Todos
 
-- Discuss and plan Phase 8 maintainer operations and hardening backlog.
+- Optional: run milestone audit/summary/cleanup before starting the next milestone.
 
 ### Blockers/Concerns
 
@@ -77,6 +79,7 @@ Recent decisions affecting current work:
 - [Phase 6]: Staging must verify external callbacks/origins for Google OAuth, Axinom webhooks, Zoom, storage CORS, and Vercel domains.
 - [Phase 6]: Strict service and live Axinom validation require real staging credentials.
 - [Phase 7]: Automated screenshot capture is blocked until Playwright or equivalent browser automation tooling is installed/configured.
+- [Phase 8]: Production hardening P0 items remain open by design: strict CI secret scanning, credential rotation decisions, durable video processing orchestration, backup/restore drills, and incident response.
 - [Quality]: `npm run lint` passes with inherited warnings; later phases should retire warnings as touched code is hardened.
 - [Tooling]: `gsd-sdk` was not available on PATH during Phase 1 verification, so Markdown tracking files were updated directly.
 
@@ -92,5 +95,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-05-06
-Stopped at: Phase 7 complete; ready for Phase 8.
-Resume file: .planning/phases/07-academic-frontend-redesign/07-VERIFICATION.md
+Stopped at: All v1 phases complete.
+Resume file: .planning/phases/08-maintainer-operations-and-hardening-backlog/08-VERIFICATION.md

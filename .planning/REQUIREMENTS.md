@@ -94,11 +94,11 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 
 ### Maintainer Operations
 
-- [ ] **OPS-01**: Maintainer docs explain the app's major subsystems, including auth, entitlement, DRM, video processing, storage, Zoom, Redis, database, support, and admin flows.
-- [ ] **OPS-02**: Vendor upgrade playbooks exist for Axinom, Zoom, Next.js, Prisma, Shaka, and deployment dependencies.
-- [ ] **OPS-03**: Operations docs define what client-side anti-recording controls can and cannot guarantee.
-- [ ] **OPS-04**: Admin health or checklist documentation identifies readiness of Axinom, Zoom, Redis, storage, database, OAuth, Sentry, and webhooks.
-- [ ] **OPS-05**: Remaining production-hardening items are captured after staging readiness is achieved.
+- [x] **OPS-01**: Maintainer docs explain the app's major subsystems, including auth, entitlement, DRM, video processing, storage, Zoom, Redis, database, support, and admin flows.
+- [x] **OPS-02**: Vendor upgrade playbooks exist for Axinom, Zoom, Next.js, Prisma, Shaka, and deployment dependencies.
+- [x] **OPS-03**: Operations docs define what client-side anti-recording controls can and cannot guarantee.
+- [x] **OPS-04**: Admin health or checklist documentation identifies readiness of Axinom, Zoom, Redis, storage, database, OAuth, Sentry, and webhooks.
+- [x] **OPS-05**: Remaining production-hardening items are captured after staging readiness is achieved.
 
 ## v2 Requirements
 
@@ -201,11 +201,11 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 | UI-05 | Phase 7 | Complete |
 | UI-06 | Phase 7 | Complete |
 | UI-07 | Phase 7 | Complete |
-| OPS-01 | Phase 8 | Pending |
-| OPS-02 | Phase 8 | Pending |
-| OPS-03 | Phase 8 | Pending |
-| OPS-04 | Phase 8 | Pending |
-| OPS-05 | Phase 8 | Pending |
+| OPS-01 | Phase 8 | Complete |
+| OPS-02 | Phase 8 | Complete |
+| OPS-03 | Phase 8 | Complete |
+| OPS-04 | Phase 8 | Complete |
+| OPS-05 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 66 total
@@ -214,4 +214,4 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-06 after Phase 7 verification*
+*Last updated: 2026-05-06 after Phase 8 verification*
