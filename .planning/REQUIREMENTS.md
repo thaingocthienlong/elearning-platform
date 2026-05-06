@@ -22,7 +22,7 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 - [x] **TEST-01**: Automated test tooling is installed and documented for route/service unit tests.
 - [x] **TEST-02**: Critical media entitlement allow/deny paths are covered by automated tests.
 - [x] **TEST-03**: DRM token and HLS authorization routes are covered by automated tests.
-- [ ] **TEST-04**: Zoom signature generation and meeting access checks are covered by automated tests or a documented smoke test.
+- [x] **TEST-04**: Zoom signature generation and meeting access checks are covered by automated tests or a documented smoke test.
 - [x] **TEST-05**: Support ticket identity and rate-limit protections are covered by automated tests.
 - [x] **TEST-06**: Webhook signature validation handles malformed signatures without 500 responses.
 - [ ] **TEST-07**: Staging smoke checks cover auth, course access, playback, DRM token issuance, HLS access, Zoom meeting launch, support ticket creation, Redis, storage, and Axinom webhook readiness.
@@ -55,12 +55,12 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 
 ### Zoom Meetings
 
-- [ ] **ZOOM-01**: Current authenticated meeting flow is documented, including session requirements, meeting number/passcode configuration, role selection, signature route, iframe/static page behavior, and watermark/user identity handling.
-- [ ] **ZOOM-02**: Zoom Meeting SDK integration is checked against official current documentation before upgrading.
-- [ ] **ZOOM-03**: Zoom signatures are generated server-side only and never expose SDK secrets to the browser.
-- [ ] **ZOOM-04**: Learner and admin/host meeting roles are validated so ordinary users cannot mint host-capable signatures.
-- [ ] **ZOOM-05**: The repo has one maintained Zoom SDK asset/source-of-truth path and documented upgrade procedure.
-- [ ] **ZOOM-06**: Meeting launch has a staging smoke test that preserves the current user flow after SDK cleanup or upgrade.
+- [x] **ZOOM-01**: Current authenticated meeting flow is documented, including session requirements, meeting number/passcode configuration, role selection, signature route, iframe/static page behavior, and watermark/user identity handling.
+- [x] **ZOOM-02**: Zoom Meeting SDK integration is checked against official current documentation before upgrading.
+- [x] **ZOOM-03**: Zoom signatures are generated server-side only and never expose SDK secrets to the browser.
+- [x] **ZOOM-04**: Learner and admin/host meeting roles are validated so ordinary users cannot mint host-capable signatures.
+- [x] **ZOOM-05**: The repo has one maintained Zoom SDK asset/source-of-truth path and documented upgrade procedure.
+- [x] **ZOOM-06**: Meeting launch has a staging smoke test that preserves the current user flow after SDK cleanup or upgrade.
 
 ### Database And Performance
 
@@ -172,13 +172,13 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 | DRM-07 | Phase 3 | Complete |
 | DRM-08 | Phase 3 | Complete |
 | DRM-09 | Phase 3 | Complete |
-| ZOOM-01 | Phase 4 | Pending |
-| ZOOM-02 | Phase 4 | Pending |
-| ZOOM-03 | Phase 4 | Pending |
-| ZOOM-04 | Phase 4 | Pending |
-| ZOOM-05 | Phase 4 | Pending |
-| ZOOM-06 | Phase 4 | Pending |
-| TEST-04 | Phase 4 | Pending |
+| ZOOM-01 | Phase 4 | Complete |
+| ZOOM-02 | Phase 4 | Complete |
+| ZOOM-03 | Phase 4 | Complete |
+| ZOOM-04 | Phase 4 | Complete |
+| ZOOM-05 | Phase 4 | Complete |
+| ZOOM-06 | Phase 4 | Complete |
+| TEST-04 | Phase 4 | Complete |
 | DATA-01 | Phase 5 | Pending |
 | DATA-02 | Phase 5 | Pending |
 | DATA-03 | Phase 5 | Pending |

@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-05-05)
 
 **Core value:** Maintainers can reliably run, secure, deploy, and evolve the platform without guessing how its DRM, Zoom, database, authentication, and streaming flows fit together.
-**Current focus:** Phase 4 - Zoom Meeting SDK Preservation and Upgrade Path
+**Current focus:** Phase 5 - Prisma/MongoDB Performance and Data Cleanup
 
 ## Current Position
 
-Phase: 4 of 8 (Zoom Meeting SDK Preservation and Upgrade Path)
+Phase: 5 of 8 (Prisma/MongoDB Performance and Data Cleanup)
 Plan: Not planned
-Status: Phase 4 context gathered; ready to plan
-Last activity: 2026-05-06 - Phase 4 Zoom discussion completed and context captured.
+Status: Phase 4 complete; ready to discuss and plan Phase 5
+Last activity: 2026-05-06 - Phase 4 Zoom signature, SDK asset, runbook, tests, and verification completed.
 
-Progress: [####------] 37%
+Progress: [#####-----] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: 5.4 min
-- Total execution time: 70 min
+- Total plans completed: 17
+- Average duration: 5.2 min
+- Total execution time: 89 min
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [####------] 37%
 | 1 | 4 | 13 min | 3.25 min |
 | 2 | 4 | 25 min | 6.25 min |
 | 3 | 5 | 32 min | 6.4 min |
+| 4 | 4 | 19 min | 4.75 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01, 03-02, 03-03, 03-04, 03-05
-- Trend: Baseline, core security, and Axinom validation phases complete
+- Last 5 plans: 03-05, 04-01, 04-02, 04-03, 04-04
+- Trend: Baseline, core security, Axinom validation, and Zoom preservation phases complete
 
 *Updated after each plan completion*
 
@@ -54,14 +55,18 @@ Recent decisions affecting current work:
 - [Phase 3]: Axinom v1 uses standard License Service Message mode, not local proxy mode.
 - [Phase 3]: Local Axinom validation must not call live APIs unless `--live` is explicitly supplied.
 - [Phase 3]: Axinom operational IDs and statuses belong in explicit `Video` fields, with legacy description parsing only as fallback.
+- [Phase 4]: Preserve the authenticated `/meeting` iframe flow and make Zoom signatures server-owned.
+- [Phase 4]: Learners receive Zoom role `0`; only existing app admins may receive role `1`.
+- [Phase 4]: Keep the current Zoom 5.0.4 iframe/CDN path until a docs-verified upgrade can be smoked in staging.
 
 ### Pending Todos
 
-- Plan Phase 4 Zoom Meeting SDK preservation, current official SDK upgrade path, role controls, and smoke-test boundaries.
+- Discuss and plan Phase 5 Prisma/MongoDB performance and data cleanup.
 
 ### Blockers/Concerns
 
-- [Phase 4]: Zoom SDK assets are duplicated and the retained source of truth must be established before upgrade.
+- [Phase 5]: Broad admin reads and ambiguous latest-row queries need profiling before optimization.
+- [Phase 6]: Real staging Zoom join still requires configured Zoom Meeting SDK credentials and an available test meeting.
 - [Quality]: `npm run lint` passes with inherited warnings; later phases should retire warnings as touched code is hardened.
 - [Tooling]: `gsd-sdk` was not available on PATH during Phase 1 verification, so Markdown tracking files were updated directly.
 
@@ -77,5 +82,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-05-06
-Stopped at: Phase 4 context gathered.
-Resume file: .planning/phases/04-zoom-meeting-sdk-preservation-and-upgrade-path/04-CONTEXT.md
+Stopped at: Phase 4 complete; ready for Phase 5.
+Resume file: .planning/phases/04-zoom-meeting-sdk-preservation-and-upgrade-path/04-VERIFICATION.md

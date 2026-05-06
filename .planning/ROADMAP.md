@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Installable Baseline, Docs, and Secret Hygiene** - Maintainers can install, configure, verify, and handle sensitive artifacts from a clean checkout.
 - [x] **Phase 2: Central Authorization and Core Security Fixes** - Media, support, admin, logging, and security-event flows enforce server-owned security rules consistently.
 - [x] **Phase 3: Axinom Trial Setup and DRM/Encoding Validation** - Maintainers can configure and exercise the official Axinom DRM/Encoding path through Shaka playback.
-- [ ] **Phase 4: Zoom Meeting SDK Preservation and Upgrade Path** - Meetings keep the current authenticated join flow while signatures, roles, and SDK assets are made maintainable.
+- [x] **Phase 4: Zoom Meeting SDK Preservation and Upgrade Path** - Meetings keep the current authenticated join flow while signatures, roles, and SDK assets are made maintainable.
 - [ ] **Phase 5: Prisma/MongoDB Performance and Data Cleanup** - Current MongoDB implementation is profiled, bounded, indexed, and optimized before any migration decision.
 - [ ] **Phase 6: Vercel Staging Deployment and Smoke Suite** - Staging can be deployed and accepted through documented env, callback, build, log, and smoke checks.
 - [ ] **Phase 7: Academic Frontend Redesign** - Existing routes and workflows receive a formal institute-style UI with responsive and screenshot coverage.
@@ -96,8 +96,13 @@ Plans:
   2. User meeting signatures are generated server-side only, never expose SDK secrets in the browser, and prevent ordinary learners from minting host-capable signatures.
   3. Maintainer can identify one retained Zoom SDK asset/source-of-truth path and follow a documented upgrade procedure based on official current documentation.
   4. User can launch a staging Zoom meeting through the preserved authenticated flow after SDK cleanup or upgrade, verified by automated tests or a documented smoke test.
-**Plans**: TBD
+**Plans**: 4 plans
 **UI hint**: yes
+Plans:
+- [x] 04-01-PLAN.md - Server-owned Zoom signature contract.
+- [x] 04-02-PLAN.md - Meeting page minimal payload and error states.
+- [x] 04-03-PLAN.md - Zoom SDK source of truth and upgrade runbook.
+- [x] 04-04-PLAN.md - Phase 4 gate, docs, and requirement closure.
 
 ### Phase 5: Prisma/MongoDB Performance and Data Cleanup
 **Goal**: Maintainers can operate the current Prisma/MongoDB implementation with bounded, profiled, indexed data access before considering migration.
@@ -158,7 +163,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 1. Installable Baseline, Docs, and Secret Hygiene | 4/4 | Complete | 2026-05-05 |
 | 2. Central Authorization and Core Security Fixes | 4/4 | Complete | 2026-05-05 |
 | 3. Axinom Trial Setup and DRM/Encoding Validation | 5/5 | Complete | 2026-05-05 |
-| 4. Zoom Meeting SDK Preservation and Upgrade Path | 0/TBD | Not started | - |
+| 4. Zoom Meeting SDK Preservation and Upgrade Path | 4/4 | Complete | 2026-05-06 |
 | 5. Prisma/MongoDB Performance and Data Cleanup | 0/TBD | Not started | - |
 | 6. Vercel Staging Deployment and Smoke Suite | 0/TBD | Not started | - |
 | 7. Academic Frontend Redesign | 0/TBD | Not started | - |
@@ -239,4 +244,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Roadmap created: 2026-05-05*
-*Last updated: 2026-05-05 after Phase 3 verification*
+*Last updated: 2026-05-06 after Phase 4 verification*

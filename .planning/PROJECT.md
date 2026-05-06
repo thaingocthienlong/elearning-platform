@@ -102,6 +102,8 @@ Axinom is central to the project. The current backend depends on an Axinom DRM f
 | Target staging readiness for the first roadmap | The maintainer needs reproducible setup and deploy confidence before production claims. | Pending |
 | Use official Axinom docs for DRM setup | The current Axinom trial integration is critical and inherited; setup must be reproducible without tribal knowledge. | Pending |
 | Preserve Zoom flow while upgrading SDK | Users depend on the current meeting behavior; modernization should not remove existing access/signature/watermark behavior. | Pending |
+| Preserve authenticated Zoom iframe flow with server-owned signatures | Phase 4 found the current flow can be hardened without replacing the user-visible join path. | Accepted in Phase 4 |
+| Do not force latest Zoom SDK without smokeable upgrade path | npm reports `@zoom/meetingsdk` 6.0.0, but the retained iframe currently uses Zoom CDN 5.0.4; upgrade requires official-doc review and staging smoke. | Accepted in Phase 4 |
 
 ## Evolution
 
