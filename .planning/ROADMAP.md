@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Axinom Trial Setup and DRM/Encoding Validation** - Maintainers can configure and exercise the official Axinom DRM/Encoding path through Shaka playback.
 - [x] **Phase 4: Zoom Meeting SDK Preservation and Upgrade Path** - Meetings keep the current authenticated join flow while signatures, roles, and SDK assets are made maintainable.
 - [x] **Phase 5: Prisma/MongoDB Performance and Data Cleanup** - Current MongoDB implementation is profiled, bounded, indexed, and optimized before any migration decision.
-- [ ] **Phase 6: Vercel Staging Deployment and Smoke Suite** - Staging can be deployed and accepted through documented env, callback, build, log, and smoke checks.
+- [x] **Phase 6: Vercel Staging Deployment and Smoke Suite** - Staging can be deployed and accepted through documented env, callback, build, log, and smoke checks.
 - [ ] **Phase 7: Academic Frontend Redesign** - Existing routes and workflows receive a formal institute-style UI with responsive and screenshot coverage.
 - [ ] **Phase 8: Maintainer Operations and Hardening Backlog** - Maintainers have subsystem, upgrade, readiness, and production-hardening guidance after staging readiness.
 
@@ -131,7 +131,12 @@ Plans:
   3. Maintainer can configure external callbacks and origins for Google OAuth, Axinom webhooks, Zoom, Azure/R2 CORS, and Vercel domains.
   4. Staging build verifies Prisma generation, lint, typecheck, tests, and Next build before acceptance.
   5. Staging smoke checks cover auth, course access, playback, DRM token issuance, HLS access, Zoom meeting launch, support ticket creation, Redis, storage, Axinom webhook readiness, logs, Sentry, and known production gaps.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [x] 06-01-PLAN.md - Vercel staging runbook.
+- [x] 06-02-PLAN.md - Callback, origin, and env matrix staging contract.
+- [x] 06-03-PLAN.md - Staging smoke checklist and verifier.
+- [x] 06-04-PLAN.md - Phase 6 gate and requirement closure.
 
 ### Phase 7: Academic Frontend Redesign
 **Goal**: Users experience the existing course, watch, admin, meeting, support, auth, and system workflows through a formal institute-style frontend without workflow regressions.
@@ -170,7 +175,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 3. Axinom Trial Setup and DRM/Encoding Validation | 5/5 | Complete | 2026-05-05 |
 | 4. Zoom Meeting SDK Preservation and Upgrade Path | 4/4 | Complete | 2026-05-06 |
 | 5. Prisma/MongoDB Performance and Data Cleanup | 4/4 | Complete | 2026-05-06 |
-| 6. Vercel Staging Deployment and Smoke Suite | 0/TBD | Not started | - |
+| 6. Vercel Staging Deployment and Smoke Suite | 4/4 | Complete | 2026-05-06 |
 | 7. Academic Frontend Redesign | 0/TBD | Not started | - |
 | 8. Maintainer Operations and Hardening Backlog | 0/TBD | Not started | - |
 
@@ -249,4 +254,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Roadmap created: 2026-05-05*
-*Last updated: 2026-05-06 after Phase 5 verification*
+*Last updated: 2026-05-06 after Phase 6 verification*

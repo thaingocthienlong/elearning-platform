@@ -24,6 +24,7 @@ Maintainers can reliably run, secure, deploy, and evolve the platform without gu
 - Existing storage integrations for Azure Blob input/output and Cloudflare R2/S3-compatible HLS object access - existing.
 - Existing Upstash Redis usage for cache, rate limiting, system mode, and session revocation - existing.
 - Existing Vercel-oriented deployment shape through Next.js App Router, `vercel.json`, Vercel Analytics, and Speed Insights - existing.
+- Phase 6 Vercel staging runbook, callback/origin contract, env matrix staging notes, and smoke checklist/verifier - validated.
 
 ### Active
 
@@ -39,7 +40,7 @@ Maintainers can reliably run, secure, deploy, and evolve the platform without gu
 - [ ] Redesign the frontend into a formal institute/academic style while preserving existing course, watch, admin, meeting, support, and authentication workflows.
 - [ ] Improve database performance by optimizing the current Prisma/MongoDB implementation first: profile query hotspots, fix redundant queries, add indexes where needed, limit broad admin reads, and cache read-heavy summaries.
 - [ ] Evaluate database migration only if profiling shows the current database is the bottleneck or staging requirements cannot be met safely with MongoDB.
-- [ ] Prepare a staging deployment path, including Vercel configuration, required external services, environment variables, smoke tests, and access expectations.
+- [x] Prepare a staging deployment path, including Vercel configuration, required external services, environment variables, smoke tests, and access expectations.
 
 ### Out of Scope
 
@@ -106,6 +107,7 @@ Axinom is central to the project. The current backend depends on an Axinom DRM f
 | Do not force latest Zoom SDK without smokeable upgrade path | npm reports `@zoom/meetingsdk` 6.0.0, but the retained iframe currently uses Zoom CDN 5.0.4; upgrade requires official-doc review and staging smoke. | Accepted in Phase 4 |
 | Optimize Prisma/MongoDB before migration | Phase 5 removed known query waste, added bounds/indexes, and documented migration deferral until staging evidence proves a blocker. | Accepted in Phase 5 |
 | Use singleton watermark settings | Append-only latest-row watermark settings created ambiguous reads and unbounded growth; the app now uses a `global` singleton scope. | Accepted in Phase 5 |
+| Represent unavailable live staging checks explicitly | Phase 6 cannot certify real Google, Axinom, Zoom, Redis, storage, SMTP, or Sentry behavior without tenant credentials; smoke rows use `blocked: missing credentials/service access` instead of false pass/fail claims. | Accepted in Phase 6 |
 
 ## Evolution
 
@@ -125,4 +127,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state.
 
 ---
-*Last updated: 2026-05-05 after initialization*
+*Last updated: 2026-05-06 after Phase 6 verification*

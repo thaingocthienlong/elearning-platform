@@ -25,7 +25,7 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 - [x] **TEST-04**: Zoom signature generation and meeting access checks are covered by automated tests or a documented smoke test.
 - [x] **TEST-05**: Support ticket identity and rate-limit protections are covered by automated tests.
 - [x] **TEST-06**: Webhook signature validation handles malformed signatures without 500 responses.
-- [ ] **TEST-07**: Staging smoke checks cover auth, course access, playback, DRM token issuance, HLS access, Zoom meeting launch, support ticket creation, Redis, storage, and Axinom webhook readiness.
+- [x] **TEST-07**: Staging smoke checks cover auth, course access, playback, DRM token issuance, HLS access, Zoom meeting launch, support ticket creation, Redis, storage, and Axinom webhook readiness.
 
 ### Security And Authorization
 
@@ -74,13 +74,13 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 
 ### Staging Deployment
 
-- [ ] **STAGE-01**: Maintainer has a staging deployment runbook for Vercel or the chosen staging host.
-- [ ] **STAGE-02**: Staging env var matrix covers database, auth, Redis, storage, Axinom, Zoom, SMTP/support, reCAPTCHA, Sentry, and public player URLs.
-- [ ] **STAGE-03**: Staging deployment documents external callback and origin configuration for Google OAuth, Axinom webhooks, Zoom, Azure/R2 CORS, and Vercel domains.
-- [ ] **STAGE-04**: Staging build verifies Prisma generation, lint, typecheck, tests, and Next build.
-- [ ] **STAGE-05**: Staging smoke test verifies key user and admin flows before a release is accepted.
-- [ ] **STAGE-06**: Staging logs and Sentry setup avoid exposing secrets while preserving useful failure context.
-- [ ] **STAGE-07**: Known production gaps are documented separately from staging readiness.
+- [x] **STAGE-01**: Maintainer has a staging deployment runbook for Vercel or the chosen staging host.
+- [x] **STAGE-02**: Staging env var matrix covers database, auth, Redis, storage, Axinom, Zoom, SMTP/support, reCAPTCHA, Sentry, and public player URLs.
+- [x] **STAGE-03**: Staging deployment documents external callback and origin configuration for Google OAuth, Axinom webhooks, Zoom, Azure/R2 CORS, and Vercel domains.
+- [x] **STAGE-04**: Staging build verifies Prisma generation, lint, typecheck, tests, and Next build.
+- [x] **STAGE-05**: Staging smoke test verifies key user and admin flows before a release is accepted.
+- [x] **STAGE-06**: Staging logs and Sentry setup avoid exposing secrets while preserving useful failure context.
+- [x] **STAGE-07**: Known production gaps are documented separately from staging readiness.
 
 ### Academic Frontend Redesign
 
@@ -186,14 +186,14 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 | DATA-05 | Phase 5 | Complete |
 | DATA-06 | Phase 5 | Complete |
 | DATA-07 | Phase 5 | Complete |
-| STAGE-01 | Phase 6 | Pending |
-| STAGE-02 | Phase 6 | Pending |
-| STAGE-03 | Phase 6 | Pending |
-| STAGE-04 | Phase 6 | Pending |
-| STAGE-05 | Phase 6 | Pending |
-| STAGE-06 | Phase 6 | Pending |
-| STAGE-07 | Phase 6 | Pending |
-| TEST-07 | Phase 6 | Pending |
+| STAGE-01 | Phase 6 | Complete |
+| STAGE-02 | Phase 6 | Complete |
+| STAGE-03 | Phase 6 | Complete |
+| STAGE-04 | Phase 6 | Complete |
+| STAGE-05 | Phase 6 | Complete |
+| STAGE-06 | Phase 6 | Complete |
+| STAGE-07 | Phase 6 | Complete |
+| TEST-07 | Phase 6 | Complete |
 | UI-01 | Phase 7 | Pending |
 | UI-02 | Phase 7 | Pending |
 | UI-03 | Phase 7 | Pending |
@@ -214,4 +214,4 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-06 after Phase 5 verification*
+*Last updated: 2026-05-06 after Phase 6 verification*
