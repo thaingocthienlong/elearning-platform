@@ -52,3 +52,28 @@ This matrix is the source of truth for environment variables used by the platfor
 | Public player/config | NEXT_PUBLIC_AX_WV_LS_URL | public | optional | required | src/hooks/player/useShakaPlayer.ts | Browser-exposed Axinom Widevine license service URL. |
 | Public player/config | NEXT_PUBLIC_AX_PR_LS_URL | public | optional | required | src/hooks/player/useShakaPlayer.ts | Browser-exposed Axinom PlayReady license service URL. |
 | Public player/config | NEXT_PUBLIC_AX_FP_LS_URL | public | optional | required | src/hooks/player/useShakaPlayer.ts | Browser-exposed Axinom FairPlay license service URL. |
+
+## Staging Validation
+
+Use this matrix with `docs/vercel-staging-runbook.md` before accepting a Vercel Preview or Custom Environment deployment.
+
+```bash
+npm run verify:setup
+npm run verify:services:strict
+npm run verify:axinom -- --strict
+npm run verify:staging
+```
+
+Staging-specific callback and origin values must be configured outside the repository:
+
+| Service | Staging configuration item | Required value shape |
+|---------|----------------------------|----------------------|
+| Auth | Google OAuth redirect URI | `<STAGING_ORIGIN>/api/auth/callback/google` |
+| Auth | NextAuth base URL | `NEXTAUTH_URL=<STAGING_ORIGIN>` |
+| Axinom | Webhook URL | `<STAGING_ORIGIN>/api/webhook/axinom` |
+| Zoom | Meeting SDK domain/origin allowlist | The exact staging origin or domain used by `/meeting` |
+| Storage | Azure Blob CORS | Staging origin allowed where browser upload/output reads are required |
+| Storage | Cloudflare R2/S3 CORS and asset origin | Staging origin and `NEXT_PUBLIC_ASSET_BASE` aligned with the playback bucket/prefix |
+| Observability | Sentry environment | Staging project or staging environment tag with redaction enabled |
+
+If real provider access is unavailable during setup, record the affected smoke row as `blocked: missing credentials/service access` in `docs/staging-smoke-checklist.md`.

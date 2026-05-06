@@ -22,6 +22,8 @@ const requiredScripts: Record<string, string> = {
   'verify:setup': 'tsx scripts/verify-setup.ts',
   'verify:services': 'tsx scripts/verify-services.ts',
   'verify:services:strict': 'tsx scripts/verify-services.ts --strict',
+  'verify:axinom': 'tsx scripts/verify-axinom-setup.ts',
+  'verify:staging': 'tsx scripts/verify-staging-smoke.ts',
   'secrets:inventory': 'tsx scripts/inventory-sensitive-files.ts',
   'secrets:scan': 'tsx scripts/scan-secrets.ts',
 };
