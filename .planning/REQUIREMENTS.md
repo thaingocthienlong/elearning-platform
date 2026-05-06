@@ -64,13 +64,13 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 
 ### Database And Performance
 
-- [ ] **DATA-01**: Current Prisma MongoDB provider choice is documented and setup docs no longer claim PostgreSQL as the implemented primary database.
-- [ ] **DATA-02**: Watch page query flow avoids redundant video queries and unnecessary broad reads.
-- [ ] **DATA-03**: Admin analytics queries use bounded ranges, pagination, aggregation, or short-lived caching to avoid broad application-side reductions.
-- [ ] **DATA-04**: MongoDB indexes are reviewed and updated for high-traffic session, entitlement, watch, video, admin, ticket, and security-event queries.
-- [ ] **DATA-05**: Ticket diagnostics and security events have documented retention or payload bounds to avoid unbounded document growth.
-- [ ] **DATA-06**: Watermark settings update/read behavior avoids ambiguous latest-row selection or unbounded history growth.
-- [ ] **DATA-07**: Database migration is evaluated only after profiling documents a concrete blocker that optimization cannot address.
+- [x] **DATA-01**: Current Prisma MongoDB provider choice is documented and setup docs no longer claim PostgreSQL as the implemented primary database.
+- [x] **DATA-02**: Watch page query flow avoids redundant video queries and unnecessary broad reads.
+- [x] **DATA-03**: Admin analytics queries use bounded ranges, pagination, aggregation, or short-lived caching to avoid broad application-side reductions.
+- [x] **DATA-04**: MongoDB indexes are reviewed and updated for high-traffic session, entitlement, watch, video, admin, ticket, and security-event queries.
+- [x] **DATA-05**: Ticket diagnostics and security events have documented retention or payload bounds to avoid unbounded document growth.
+- [x] **DATA-06**: Watermark settings update/read behavior avoids ambiguous latest-row selection or unbounded history growth.
+- [x] **DATA-07**: Database migration is evaluated only after profiling documents a concrete blocker that optimization cannot address.
 
 ### Staging Deployment
 
@@ -179,13 +179,13 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 | ZOOM-05 | Phase 4 | Complete |
 | ZOOM-06 | Phase 4 | Complete |
 | TEST-04 | Phase 4 | Complete |
-| DATA-01 | Phase 5 | Pending |
-| DATA-02 | Phase 5 | Pending |
-| DATA-03 | Phase 5 | Pending |
-| DATA-04 | Phase 5 | Pending |
-| DATA-05 | Phase 5 | Pending |
-| DATA-06 | Phase 5 | Pending |
-| DATA-07 | Phase 5 | Pending |
+| DATA-01 | Phase 5 | Complete |
+| DATA-02 | Phase 5 | Complete |
+| DATA-03 | Phase 5 | Complete |
+| DATA-04 | Phase 5 | Complete |
+| DATA-05 | Phase 5 | Complete |
+| DATA-06 | Phase 5 | Complete |
+| DATA-07 | Phase 5 | Complete |
 | STAGE-01 | Phase 6 | Pending |
 | STAGE-02 | Phase 6 | Pending |
 | STAGE-03 | Phase 6 | Pending |
@@ -214,4 +214,4 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-05 after Phase 3 verification*
+*Last updated: 2026-05-06 after Phase 5 verification*

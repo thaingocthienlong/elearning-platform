@@ -104,6 +104,8 @@ Axinom is central to the project. The current backend depends on an Axinom DRM f
 | Preserve Zoom flow while upgrading SDK | Users depend on the current meeting behavior; modernization should not remove existing access/signature/watermark behavior. | Pending |
 | Preserve authenticated Zoom iframe flow with server-owned signatures | Phase 4 found the current flow can be hardened without replacing the user-visible join path. | Accepted in Phase 4 |
 | Do not force latest Zoom SDK without smokeable upgrade path | npm reports `@zoom/meetingsdk` 6.0.0, but the retained iframe currently uses Zoom CDN 5.0.4; upgrade requires official-doc review and staging smoke. | Accepted in Phase 4 |
+| Optimize Prisma/MongoDB before migration | Phase 5 removed known query waste, added bounds/indexes, and documented migration deferral until staging evidence proves a blocker. | Accepted in Phase 5 |
+| Use singleton watermark settings | Append-only latest-row watermark settings created ambiguous reads and unbounded growth; the app now uses a `global` singleton scope. | Accepted in Phase 5 |
 
 ## Evolution
 

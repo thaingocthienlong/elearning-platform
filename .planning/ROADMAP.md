@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Central Authorization and Core Security Fixes** - Media, support, admin, logging, and security-event flows enforce server-owned security rules consistently.
 - [x] **Phase 3: Axinom Trial Setup and DRM/Encoding Validation** - Maintainers can configure and exercise the official Axinom DRM/Encoding path through Shaka playback.
 - [x] **Phase 4: Zoom Meeting SDK Preservation and Upgrade Path** - Meetings keep the current authenticated join flow while signatures, roles, and SDK assets are made maintainable.
-- [ ] **Phase 5: Prisma/MongoDB Performance and Data Cleanup** - Current MongoDB implementation is profiled, bounded, indexed, and optimized before any migration decision.
+- [x] **Phase 5: Prisma/MongoDB Performance and Data Cleanup** - Current MongoDB implementation is profiled, bounded, indexed, and optimized before any migration decision.
 - [ ] **Phase 6: Vercel Staging Deployment and Smoke Suite** - Staging can be deployed and accepted through documented env, callback, build, log, and smoke checks.
 - [ ] **Phase 7: Academic Frontend Redesign** - Existing routes and workflows receive a formal institute-style UI with responsive and screenshot coverage.
 - [ ] **Phase 8: Maintainer Operations and Hardening Backlog** - Maintainers have subsystem, upgrade, readiness, and production-hardening guidance after staging readiness.
@@ -114,7 +114,12 @@ Plans:
   3. Admin analytics and read-heavy summaries use bounded ranges, pagination, aggregation, indexes, or short-lived caching instead of broad application-side reductions.
   4. Ticket diagnostics, security events, and watermark settings have documented bounds or retention behavior that avoids unbounded document growth and ambiguous latest-row reads.
   5. Maintainer can review profiling evidence before any database migration is considered.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [x] 05-01-PLAN.md - Watch query cleanup and index review.
+- [x] 05-02-PLAN.md - Bounded admin analytics and security events.
+- [x] 05-03-PLAN.md - Ticket diagnostics and watermark singleton behavior.
+- [x] 05-04-PLAN.md - Phase 5 documentation, gate, and requirement closure.
 
 ### Phase 6: Vercel Staging Deployment and Smoke Suite
 **Goal**: Maintainers can deploy and accept a staging environment that exercises the real auth, media, DRM, Zoom, Redis, storage, webhook, and admin surfaces.
@@ -164,7 +169,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 2. Central Authorization and Core Security Fixes | 4/4 | Complete | 2026-05-05 |
 | 3. Axinom Trial Setup and DRM/Encoding Validation | 5/5 | Complete | 2026-05-05 |
 | 4. Zoom Meeting SDK Preservation and Upgrade Path | 4/4 | Complete | 2026-05-06 |
-| 5. Prisma/MongoDB Performance and Data Cleanup | 0/TBD | Not started | - |
+| 5. Prisma/MongoDB Performance and Data Cleanup | 4/4 | Complete | 2026-05-06 |
 | 6. Vercel Staging Deployment and Smoke Suite | 0/TBD | Not started | - |
 | 7. Academic Frontend Redesign | 0/TBD | Not started | - |
 | 8. Maintainer Operations and Hardening Backlog | 0/TBD | Not started | - |
@@ -244,4 +249,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Roadmap created: 2026-05-05*
-*Last updated: 2026-05-06 after Phase 4 verification*
+*Last updated: 2026-05-06 after Phase 5 verification*
