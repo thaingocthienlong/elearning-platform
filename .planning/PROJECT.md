@@ -25,6 +25,7 @@ Maintainers can reliably run, secure, deploy, and evolve the platform without gu
 - Existing Upstash Redis usage for cache, rate limiting, system mode, and session revocation - existing.
 - Existing Vercel-oriented deployment shape through Next.js App Router, `vercel.json`, Vercel Analytics, and Speed Insights - existing.
 - Phase 6 Vercel staging runbook, callback/origin contract, env matrix staging notes, and smoke checklist/verifier - validated.
+- Phase 7 formal institute-style frontend treatment for primary user routes, watch shell, meeting states, auth, support shell, navigation, and screenshot checklist - validated.
 
 ### Active
 
@@ -37,7 +38,7 @@ Maintainers can reliably run, secure, deploy, and evolve the platform without gu
 - [ ] Validate and repair the Axinom integration against official documentation, including entitlement JWT signing, license service URLs, encoding profile setup, webhook verification, env var naming, and failure handling.
 - [ ] Update Zoom Meeting SDK integration to the latest supported implementation while preserving the current authenticated meeting flow, SDK signature flow, meeting number/passcode configuration, and watermark/user identity behavior.
 - [ ] Reduce duplicated/generated Zoom assets and document the retained source of truth for SDK assets and upgrade procedure.
-- [ ] Redesign the frontend into a formal institute/academic style while preserving existing course, watch, admin, meeting, support, and authentication workflows.
+- [x] Redesign the frontend into a formal institute/academic style while preserving existing course, watch, admin, meeting, support, and authentication workflows.
 - [ ] Improve database performance by optimizing the current Prisma/MongoDB implementation first: profile query hotspots, fix redundant queries, add indexes where needed, limit broad admin reads, and cache read-heavy summaries.
 - [ ] Evaluate database migration only if profiling shows the current database is the bottleneck or staging requirements cannot be met safely with MongoDB.
 - [x] Prepare a staging deployment path, including Vercel configuration, required external services, environment variables, smoke tests, and access expectations.
@@ -108,6 +109,7 @@ Axinom is central to the project. The current backend depends on an Axinom DRM f
 | Optimize Prisma/MongoDB before migration | Phase 5 removed known query waste, added bounds/indexes, and documented migration deferral until staging evidence proves a blocker. | Accepted in Phase 5 |
 | Use singleton watermark settings | Append-only latest-row watermark settings created ambiguous reads and unbounded growth; the app now uses a `global` singleton scope. | Accepted in Phase 5 |
 | Represent unavailable live staging checks explicitly | Phase 6 cannot certify real Google, Axinom, Zoom, Redis, storage, SMTP, or Sentry behavior without tenant credentials; smoke rows use `blocked: missing credentials/service access` instead of false pass/fail claims. | Accepted in Phase 6 |
+| Redesign primary user surfaces before deep admin UI | Phase 7 user choice prioritized home, courses, course detail, watch, meeting, support/auth, while preserving dense admin behavior through shared tokens/nav. | Accepted in Phase 7 |
 
 ## Evolution
 
@@ -127,4 +129,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state.
 
 ---
-*Last updated: 2026-05-06 after Phase 6 verification*
+*Last updated: 2026-05-06 after Phase 7 verification*

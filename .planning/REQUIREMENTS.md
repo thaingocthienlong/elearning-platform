@@ -84,13 +84,13 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 
 ### Academic Frontend Redesign
 
-- [ ] **UI-01**: Frontend visual direction is redesigned into a formal institute/academic style while preserving existing routes and workflows.
-- [ ] **UI-02**: Course browsing and course detail pages support a credible academic learning experience with clear hierarchy and access state.
-- [ ] **UI-03**: Watch page preserves DRM playback, watermarking, sidebar/course navigation, and security controls while receiving the new visual system.
-- [ ] **UI-04**: Admin pages remain dense, scannable, and operational rather than marketing-style.
-- [ ] **UI-05**: Meeting page preserves the existing Zoom join flow while matching the academic visual system.
-- [ ] **UI-06**: Support/auth/system pages match the redesigned institute style and remain accessible on mobile and desktop.
-- [ ] **UI-07**: Visual regression or screenshot checks cover primary redesigned pages after implementation.
+- [x] **UI-01**: Frontend visual direction is redesigned into a formal institute/academic style while preserving existing routes and workflows.
+- [x] **UI-02**: Course browsing and course detail pages support a credible academic learning experience with clear hierarchy and access state.
+- [x] **UI-03**: Watch page preserves DRM playback, watermarking, sidebar/course navigation, and security controls while receiving the new visual system.
+- [x] **UI-04**: Admin pages remain dense, scannable, and operational rather than marketing-style.
+- [x] **UI-05**: Meeting page preserves the existing Zoom join flow while matching the academic visual system.
+- [x] **UI-06**: Support/auth/system pages match the redesigned institute style and remain accessible on mobile and desktop.
+- [x] **UI-07**: Visual regression or screenshot checks cover primary redesigned pages after implementation.
 
 ### Maintainer Operations
 
@@ -194,13 +194,13 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 | STAGE-06 | Phase 6 | Complete |
 | STAGE-07 | Phase 6 | Complete |
 | TEST-07 | Phase 6 | Complete |
-| UI-01 | Phase 7 | Pending |
-| UI-02 | Phase 7 | Pending |
-| UI-03 | Phase 7 | Pending |
-| UI-04 | Phase 7 | Pending |
-| UI-05 | Phase 7 | Pending |
-| UI-06 | Phase 7 | Pending |
-| UI-07 | Phase 7 | Pending |
+| UI-01 | Phase 7 | Complete |
+| UI-02 | Phase 7 | Complete |
+| UI-03 | Phase 7 | Complete |
+| UI-04 | Phase 7 | Complete |
+| UI-05 | Phase 7 | Complete |
+| UI-06 | Phase 7 | Complete |
+| UI-07 | Phase 7 | Complete |
 | OPS-01 | Phase 8 | Pending |
 | OPS-02 | Phase 8 | Pending |
 | OPS-03 | Phase 8 | Pending |
@@ -214,4 +214,4 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-06 after Phase 6 verification*
+*Last updated: 2026-05-06 after Phase 7 verification*

@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Zoom Meeting SDK Preservation and Upgrade Path** - Meetings keep the current authenticated join flow while signatures, roles, and SDK assets are made maintainable.
 - [x] **Phase 5: Prisma/MongoDB Performance and Data Cleanup** - Current MongoDB implementation is profiled, bounded, indexed, and optimized before any migration decision.
 - [x] **Phase 6: Vercel Staging Deployment and Smoke Suite** - Staging can be deployed and accepted through documented env, callback, build, log, and smoke checks.
-- [ ] **Phase 7: Academic Frontend Redesign** - Existing routes and workflows receive a formal institute-style UI with responsive and screenshot coverage.
+- [x] **Phase 7: Academic Frontend Redesign** - Existing routes and workflows receive a formal institute-style UI with responsive and screenshot coverage.
 - [ ] **Phase 8: Maintainer Operations and Hardening Backlog** - Maintainers have subsystem, upgrade, readiness, and production-hardening guidance after staging readiness.
 
 ## Phase Details
@@ -148,7 +148,12 @@ Plans:
   3. User can use the watch page with DRM playback, watermarking, sidebar/course navigation, and security controls preserved in the new visual system.
   4. Admin users can scan and operate dense admin pages without marketing-style layout getting in the way.
   5. Meeting, support, auth, and system pages match the redesigned style and pass mobile, desktop, accessibility, and visual regression or screenshot checks.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [x] 07-01-PLAN.md - UI contract, tokens, and navigation.
+- [x] 07-02-PLAN.md - Home, course catalog, and course detail.
+- [x] 07-03-PLAN.md - Watch, meeting, auth, and support surfaces.
+- [x] 07-04-PLAN.md - Phase 7 gate and requirement closure.
 **UI hint**: yes
 
 ### Phase 8: Maintainer Operations and Hardening Backlog
@@ -176,7 +181,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 4. Zoom Meeting SDK Preservation and Upgrade Path | 4/4 | Complete | 2026-05-06 |
 | 5. Prisma/MongoDB Performance and Data Cleanup | 4/4 | Complete | 2026-05-06 |
 | 6. Vercel Staging Deployment and Smoke Suite | 4/4 | Complete | 2026-05-06 |
-| 7. Academic Frontend Redesign | 0/TBD | Not started | - |
+| 7. Academic Frontend Redesign | 4/4 | Complete | 2026-05-06 |
 | 8. Maintainer Operations and Hardening Backlog | 0/TBD | Not started | - |
 
 ## Coverage
@@ -254,4 +259,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Roadmap created: 2026-05-05*
-*Last updated: 2026-05-06 after Phase 6 verification*
+*Last updated: 2026-05-06 after Phase 7 verification*

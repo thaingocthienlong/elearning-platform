@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** Maintainers can reliably run, secure, deploy, and evolve the platform without guessing how its DRM, Zoom, database, authentication, and streaming flows fit together.
-**Current focus:** Phase 7 - Academic Frontend Redesign
+**Current focus:** Phase 8 - Maintainer Operations and Hardening Backlog
 
 ## Current Position
 
-Phase: 7 of 8 (Academic Frontend Redesign)
+Phase: 8 of 8 (Maintainer Operations and Hardening Backlog)
 Plan: Not planned
-Status: Phase 6 complete; ready to discuss and plan Phase 7
-Last activity: 2026-05-06 - Phase 6 Vercel staging runbook, env/callback contract, smoke checklist, verifier, tests, and verification completed.
+Status: Phase 7 complete; ready to discuss and plan Phase 8
+Last activity: 2026-05-06 - Phase 7 academic frontend redesign, UI contract, screenshot checklist, tests, and verification completed.
 
-Progress: [########--] 75%
+Progress: [#########-] 87%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
-- Average duration: 4.8 min
-- Total execution time: 121 min
+- Total plans completed: 29
+- Average duration: 4.7 min
+- Total execution time: 137 min
 
 **By Phase:**
 
@@ -33,10 +33,11 @@ Progress: [########--] 75%
 | 4 | 4 | 19 min | 4.75 min |
 | 5 | 4 | 20 min | 5 min |
 | 6 | 4 | 12 min | 3 min |
+| 7 | 4 | 16 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-04, 06-01, 06-02, 06-03, 06-04
-- Trend: Baseline, security, Axinom, Zoom, MongoDB performance, and staging smoke contract phases complete
+- Last 5 plans: 06-04, 07-01, 07-02, 07-03, 07-04
+- Trend: Baseline, security, Axinom, Zoom, MongoDB performance, staging smoke contract, and academic frontend redesign phases complete
 
 *Updated after each plan completion*
 
@@ -64,16 +65,18 @@ Recent decisions affecting current work:
 - [Phase 5]: Admin analytics uses bounded 30-day summaries and a short-lived 60-second cache.
 - [Phase 5]: Watermark settings use a `global` singleton scope instead of append-only latest-row updates.
 - [Phase 6]: Staging readiness is documented as a Vercel Preview/Custom Environment runbook plus smoke checklist, with unavailable live-provider checks marked `blocked: missing credentials/service access`.
+- [Phase 7]: Academic redesign prioritizes primary user surfaces and preserves admin density; screenshot rows exist but automated capture is blocked until browser automation tooling is installed.
 
 ### Pending Todos
 
-- Discuss and plan Phase 7 academic frontend redesign.
+- Discuss and plan Phase 8 maintainer operations and hardening backlog.
 
 ### Blockers/Concerns
 
 - [Phase 6]: Real staging Zoom join still requires configured Zoom Meeting SDK credentials and an available test meeting.
 - [Phase 6]: Staging must verify external callbacks/origins for Google OAuth, Axinom webhooks, Zoom, storage CORS, and Vercel domains.
 - [Phase 6]: Strict service and live Axinom validation require real staging credentials.
+- [Phase 7]: Automated screenshot capture is blocked until Playwright or equivalent browser automation tooling is installed/configured.
 - [Quality]: `npm run lint` passes with inherited warnings; later phases should retire warnings as touched code is hardened.
 - [Tooling]: `gsd-sdk` was not available on PATH during Phase 1 verification, so Markdown tracking files were updated directly.
 
@@ -89,5 +92,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-05-06
-Stopped at: Phase 6 complete; ready for Phase 7.
-Resume file: .planning/phases/06-vercel-staging-deployment-and-smoke-suite/06-VERIFICATION.md
+Stopped at: Phase 7 complete; ready for Phase 8.
+Resume file: .planning/phases/07-academic-frontend-redesign/07-VERIFICATION.md
