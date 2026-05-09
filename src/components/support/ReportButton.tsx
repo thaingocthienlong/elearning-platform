@@ -40,7 +40,7 @@ export function ReportButton() {
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={setOpen} modal={false}>
             <DialogTrigger asChild>
                 <Button
                     variant="default"
@@ -55,7 +55,10 @@ export function ReportButton() {
                     <span className="sm:hidden">{t('report')}</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="flex max-h-[90vh] w-[95vw] max-w-[500px] flex-col gap-0 overflow-hidden border-border/80 bg-card p-0 sm:rounded-lg">
+            <DialogContent
+                onInteractOutside={(event) => event.preventDefault()}
+                className="flex max-h-[90vh] w-[95vw] max-w-[500px] flex-col gap-0 overflow-hidden border-border/80 bg-card p-0 sm:rounded-lg"
+            >
                 <div className="p-6 pb-2">
                     <DialogHeader className="space-y-3">
                         <p className="academic-kicker">Support Desk</p>
