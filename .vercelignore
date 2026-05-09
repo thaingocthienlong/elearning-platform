@@ -1,0 +1,53 @@
+# Dependencies and build outputs
+node_modules
+**/node_modules
+.next
+out
+build
+coverage
+
+# Local environment, credentials, and provider artifacts
+.env*
+!.env.example
+.vercel
+.codex
+.browser-profile
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*.der.b64
+*.hex
+*.cpix.xml
+keys.json
+KIDs.json
+job.json
+azure.txt
+source_dump.txt
+mosaic-service-account-config*.env
+scripts/keystore.json
+wv_pssh.hex
+packager.env
+payload.json
+
+# Local media and inherited packager/vendor workspaces
+*.mp4
+*.mkv
+*.mov
+*.avi
+Shaka Packager Script
+scripts/packager
+archive/zoom-sdk-quarantine
+
+# Local planning/session artifacts not needed at runtime
+.planning
+.agent
+chat.txt
+task.md
+test-plan.md
+docs/**/*.png
+docs/**/*.jpg
+docs/**/*.jpeg
