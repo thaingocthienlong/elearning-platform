@@ -1,18 +1,17 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, GraduationCap } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { UserMenu } from '@/components/UserMenu';
 import LanguageToggle from '@/components/LanguageToggle';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
-    const { t } = useLanguage();
 
     // Don't show back button on homepage
     const showBackButton = pathname !== '/';
@@ -35,14 +34,15 @@ export default function Navbar() {
                             <ChevronLeft className="h-5 w-5" />
                         </Button>
                     )}
-                    <Link href="/" className="flex min-w-0 items-center gap-3">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-md border border-primary/20 bg-primary text-primary-foreground">
-                            <GraduationCap className="h-5 w-5" />
-                        </span>
-                        <span className="min-w-0">
-                            <span className="block truncate text-sm font-semibold leading-tight sm:text-base">{t('appTitle')}</span>
-                            <span className="hidden text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:block">Academic Portal</span>
-                        </span>
+                    <Link href="/" className="flex min-w-0 items-center" aria-label="Viện Phương Nam">
+                        <Image
+                            src="https://i.ibb.co/twbq42gB/Logo-VPN.png"
+                            alt="Viện Phương Nam"
+                            width={44}
+                            height={44}
+                            className="h-11 w-11 object-contain"
+                            priority
+                        />
                     </Link>
                 </div>
 
