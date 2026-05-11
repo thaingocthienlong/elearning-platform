@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useSession } from 'next-auth/react';
@@ -23,14 +24,19 @@ export default function Home() {
       <main className="academic-container py-8 sm:py-12">
         <section className="grid gap-6 lg:items-stretch">
           <div className="academic-panel flex min-h-[420px] flex-col justify-between overflow-hidden">
-            <div className="space-y-6 px-5 py-8 sm:px-8">
-              <div className="max-w-3xl space-y-4">
-                <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
-                  Nền Tảng Học Trực Tuyến Viện Phương Nam
+            <div className="flex flex-1 items-center justify-center px-5 py-12 sm:px-8">
+              <div className="flex flex-col items-center gap-5 text-center">
+                <Image
+                  src="/favicon.ico"
+                  alt="Viện Phương Nam"
+                  width={144}
+                  height={144}
+                  className="h-28 w-28 object-contain sm:h-36 sm:w-36"
+                  priority
+                />
+                <h1 className="text-2xl font-semibold tracking-wide text-foreground sm:text-4xl">
+                  VIỆN PHƯƠNG NAM
                 </h1>
-                <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-                  Truy cập khóa học, xem video bảo mật và tham gia các buổi học trực tuyến trong một hệ thống dành cho học viên đã được cấp quyền.
-                </p>
               </div>
             </div>
             <div className="border-t border-border/70 bg-muted/40 px-5 py-4 sm:px-8">
