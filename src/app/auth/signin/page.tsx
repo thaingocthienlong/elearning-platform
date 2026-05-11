@@ -23,8 +23,8 @@ function SignInContent() {
     };
 
     return (
-        <div className="design-page flex min-h-[calc(100vh-2.75rem)] items-center justify-center bg-[#f5f5f7] px-4 py-12">
-            <Card className="w-full max-w-md rounded-[18px] border-border bg-white shadow-none">
+        <div className="design-page flex min-h-[calc(100vh-2.75rem)] items-center justify-center bg-[#f5f5f7] px-4 py-12 dark:bg-[#15171a]">
+            <Card className="w-full max-w-md rounded-[18px] border-border bg-card shadow-none">
                 <CardHeader className="text-center">
                     <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
                         <GraduationCap className="h-6 w-6" />

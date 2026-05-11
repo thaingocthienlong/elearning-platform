@@ -57,7 +57,7 @@ export function ReportButton() {
             </DialogTrigger>
             <DialogContent
                 onInteractOutside={(event) => event.preventDefault()}
-                className="flex max-h-[90vh] w-[95vw] max-w-[500px] flex-col gap-0 overflow-hidden border-border bg-white p-0 shadow-none sm:rounded-[18px]"
+                className="flex max-h-[90vh] w-[95vw] max-w-[500px] flex-col gap-0 overflow-hidden border-border bg-card p-0 shadow-none sm:rounded-[18px]"
             >
                 <div className="p-6 pb-2">
                     <DialogHeader className="space-y-3">

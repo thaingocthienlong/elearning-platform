@@ -85,7 +85,7 @@ export default function WatchPageClient({
                 <div className="flex-1 overflow-y-auto bg-background p-4 md:p-6">
                     <div className="mx-auto flex max-w-5xl flex-col gap-4">
                         {!isVideoFullscreen && (
-                            <div className="flex flex-col gap-3 rounded-lg border border-border bg-white p-4 shadow-none sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-none sm:flex-row sm:items-center sm:justify-between">
                                 <div className="min-w-0">
                                     <p className="text-[14px] text-muted-foreground">{t('secureLecturePlayback')}</p>
                                     <h1 className="mt-1 truncate text-[21px] font-semibold leading-[1.19]">{courseTitle}</h1>
@@ -132,7 +132,7 @@ export default function WatchPageClient({
                                     onFullscreenChange={setIsVideoFullscreen}
                                 />
                                 {/* Chat Log Viewer */}
-                                <div className="rounded-lg border border-border bg-white p-4 shadow-none">
+                                <div className="rounded-lg border border-border bg-card p-4 shadow-none">
                                     <ChatLogViewer chatLog={chatLog} />
                                 </div>
                             </>

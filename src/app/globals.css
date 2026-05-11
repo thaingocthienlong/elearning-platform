@@ -106,12 +106,12 @@
   }
 
   .design-tile-light {
-    @apply w-full rounded-none border-0 bg-white text-foreground shadow-none;
+    @apply w-full rounded-none border-0 bg-white text-foreground shadow-none dark:bg-background;
     padding-block: clamp(48px, 7vw, 80px);
   }
 
   .design-tile-parchment {
-    @apply w-full rounded-none border-0 bg-[#f5f5f7] text-foreground shadow-none;
+    @apply w-full rounded-none border-0 bg-[#f5f5f7] text-foreground shadow-none dark:bg-[#15171a];
     padding-block: clamp(48px, 7vw, 80px);
   }
 
@@ -141,7 +141,7 @@
   }
 
   .design-utility-card {
-    @apply rounded-[18px] border border-border bg-white p-6 shadow-none;
+    @apply rounded-[18px] border border-border bg-card p-6 shadow-none;
   }
 
   .academic-page {
@@ -149,7 +149,7 @@
   }
 
   .academic-band {
-    @apply border-b border-border/70 bg-[#f5f5f7]/90;
+    @apply border-b border-border/70 bg-[#f5f5f7]/90 dark:bg-[#15171a]/90;
   }
 
   .academic-container {

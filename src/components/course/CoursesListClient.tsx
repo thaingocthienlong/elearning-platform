@@ -30,7 +30,7 @@ export default function CoursesListClient({ courses }: CoursesListClientProps) {
                             <h1 className="design-heading">{t('myCourses')}</h1>
                             <p className="mt-3 max-w-2xl text-[17px] leading-[1.47] text-muted-foreground">{t('coursesEnrolled')}</p>
                         </div>
-                        <div className="flex min-h-11 items-center gap-3 rounded-full border border-border bg-white px-5 py-3 text-[17px]">
+                        <div className="flex min-h-11 items-center gap-3 rounded-full border border-border bg-card px-5 py-3 text-[17px]">
                             <LibraryBig className="h-5 w-5 text-primary" />
                             <span className="font-semibold">{courses.length}</span>
                             <span className="text-muted-foreground">{t('available')}</span>
@@ -40,7 +40,7 @@ export default function CoursesListClient({ courses }: CoursesListClientProps) {
             </section>
 
             <div className="design-container py-8">
-                <div className="mb-8 rounded-[18px] border border-border bg-white p-4 text-[15px]">
+                <div className="mb-8 rounded-[18px] border border-border bg-card p-4 text-[15px]">
                     <BrowserBanner />
                 </div>
 

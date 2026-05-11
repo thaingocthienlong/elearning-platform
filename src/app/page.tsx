@@ -78,14 +78,14 @@ export default function Home() {
                     )}
               </div>
             </div>
-            <div className="relative min-h-[360px] overflow-hidden rounded-none bg-[#f5f5f7] sm:min-h-[520px]">
+            <div className="relative min-h-[360px] overflow-hidden rounded-none bg-[#f5f5f7] dark:bg-[#15171a] sm:min-h-[520px]">
               <div
                 aria-hidden="true"
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: "url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80')" }}
               />
               <div className="absolute inset-0 bg-black/10" />
-              <div className="absolute bottom-0 left-0 right-0 bg-white/85 p-6 backdrop-blur-md sm:p-8">
+              <div className="absolute bottom-0 left-0 right-0 bg-white/85 p-6 backdrop-blur-md dark:bg-card/85 sm:p-8">
                 <div className="flex items-start gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                     <ShieldCheck className="h-5 w-5" />

@@ -105,8 +105,8 @@ export default function MeetingPage() {
 
     if (status === 'loading') {
         return (
-            <div className="design-page flex items-center justify-center bg-[#f5f5f7] p-6">
-                <div className="w-full max-w-md rounded-[18px] border border-border bg-white p-6 text-center shadow-none">
+            <div className="design-page flex items-center justify-center bg-[#f5f5f7] p-6 dark:bg-[#15171a]">
+                <div className="w-full max-w-md rounded-[18px] border border-border bg-card p-6 text-center shadow-none">
                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
                     <h1 className="mt-4 text-[21px] font-semibold">{t('loadingMeetingAccess')}</h1>
                     <p className="mt-2 text-[15px] text-muted-foreground">{t('checkingMeetingSession')}</p>
@@ -117,8 +117,8 @@ export default function MeetingPage() {
 
     if (error) {
         return (
-            <div className="design-page flex items-center justify-center bg-[#f5f5f7] p-6">
-                <div className="w-full max-w-md rounded-[18px] border border-border bg-white p-6 text-center shadow-none">
+            <div className="design-page flex items-center justify-center bg-[#f5f5f7] p-6 dark:bg-[#15171a]">
+                <div className="w-full max-w-md rounded-[18px] border border-border bg-card p-6 text-center shadow-none">
                     <AlertCircle className="mx-auto h-8 w-8 text-destructive" />
                     <h1 className="mt-4 text-[21px] font-semibold">{t('meetingUnavailable')}</h1>
                     <p className="mt-2 text-[15px] text-muted-foreground">{error}</p>
@@ -130,8 +130,8 @@ export default function MeetingPage() {
 
     if (!iframeSrc) {
         return (
-            <div className="design-page flex items-center justify-center bg-[#f5f5f7] p-6">
-                <div className="w-full max-w-md rounded-[18px] border border-border bg-white p-6 text-center shadow-none">
+            <div className="design-page flex items-center justify-center bg-[#f5f5f7] p-6 dark:bg-[#15171a]">
+                <div className="w-full max-w-md rounded-[18px] border border-border bg-card p-6 text-center shadow-none">
                     <Video className="mx-auto h-8 w-8 text-primary" />
                     <h1 className="mt-4 text-[21px] font-semibold">{t('preparingMeetingRoom')}</h1>
                     <p className="mt-2 text-[15px] text-muted-foreground">{t('generatingZoomSignature')}</p>

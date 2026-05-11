@@ -27,10 +27,10 @@ export default function CourseCard({ course, index }: CourseCardProps) {
     return (
         <div
             {...prefetchProps}
-            className="group flex min-h-[360px] flex-col overflow-hidden rounded-[18px] border border-border bg-white shadow-none transition-colors duration-300 animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards hover:border-primary/50"
+            className="group flex min-h-[360px] flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-none transition-colors duration-300 animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards hover:border-primary/50"
             style={{ animationDelay: `${index * 100}ms` }}
         >
-            <div className="relative overflow-hidden bg-[#f5f5f7] aspect-video">
+            <div className="relative overflow-hidden bg-[#f5f5f7] dark:bg-[#15171a] aspect-video">
                 {course.thumbnail ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -48,7 +48,7 @@ export default function CourseCard({ course, index }: CourseCardProps) {
 
             <div className="flex h-full flex-1 flex-col gap-5 p-6">
                 <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-[#f5f5f7] text-sm font-semibold text-foreground">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-[#f5f5f7] text-sm font-semibold text-foreground dark:bg-[#15171a]">
                         {index + 1}
                     </div>
                     <div className="min-w-0 flex-1">

@@ -46,7 +46,7 @@ export default function CourseDetailClient({ course, isEnrolled }: CourseDetailC
                             </div>
                         </div>
                         {!canWatch && (
-                            <div className="rounded-[18px] border border-border bg-white p-5 text-[15px] text-muted-foreground">
+                            <div className="rounded-[18px] border border-border bg-card p-5 text-[15px] text-muted-foreground">
                                 {t('contactAdminForCourses')}
                             </div>
                         )}
@@ -55,7 +55,7 @@ export default function CourseDetailClient({ course, isEnrolled }: CourseDetailC
             </section>
 
             <div className="design-container max-w-6xl py-8">
-                <div className="mb-8 rounded-[18px] border border-border bg-white p-4 text-[15px]">
+                <div className="mb-8 rounded-[18px] border border-border bg-card p-4 text-[15px]">
                     <BrowserBanner />
                 </div>
 
@@ -63,11 +63,11 @@ export default function CourseDetailClient({ course, isEnrolled }: CourseDetailC
                     {course.Video.map((video, index) => (
                         <Card
                             key={video.id}
-                            className="group flex flex-col gap-4 rounded-[18px] border-border bg-white p-5 shadow-none transition-colors animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards hover:border-primary/50 sm:flex-row sm:items-center"
+                            className="group flex flex-col gap-4 rounded-[18px] border-border bg-card p-5 shadow-none transition-colors animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards hover:border-primary/50 sm:flex-row sm:items-center"
                             style={{ animationDelay: `${index * 50}ms` }}
                         >
                             <div className="flex min-w-0 flex-1 items-center gap-4">
-                                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-border bg-[#f5f5f7] text-sm font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-border bg-[#f5f5f7] text-sm font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground dark:bg-[#15171a]">
                                     {canWatch ? <BookOpen className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -103,7 +103,7 @@ export default function CourseDetailClient({ course, isEnrolled }: CourseDetailC
                         </Card>
                     ))}
                     {course.Video.length === 0 && (
-                        <div className="flex items-center gap-3 rounded-[18px] border border-border bg-white p-5 text-[15px] text-muted-foreground">
+                        <div className="flex items-center gap-3 rounded-[18px] border border-border bg-card p-5 text-[15px] text-muted-foreground">
                             <CheckCircle2 className="h-5 w-5 text-primary" />
                             {t('courseMaterialsUnavailable')}
                         </div>
