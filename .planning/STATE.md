@@ -94,6 +94,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-06
-Stopped at: All v1 phases complete.
-Resume file: .planning/phases/08-maintainer-operations-and-hardening-backlog/08-VERIFICATION.md
+Last session: 2026-05-11
+Stopped at: Phase 7 UI-SPEC approved after DESIGN.md re-baseline.
+Resume file: .planning/phases/07-academic-frontend-redesign/UI-SPEC.md
