@@ -83,11 +83,24 @@ export async function syncVideoWithAxinom(videoId: string): Promise<SyncResult> 
         const axinomVideo = await getVideoDetails(axinomVideoId);
         let updated = false;
 
+        await prisma.video.update({
+            where: { id: videoId },
+            data: {
+                axinomVideoId,
+                axinomEncodingStatus: axinomVideo.encodingState,
+                axinomOutputLocation: axinomVideo.outputLocation,
+                axinomSyncedAt: new Date(),
+                updatedAt: new Date()
+            }
+        });
+
         // Check if DRM video is ready
         if (axinomVideo.encodingState === 'READY') {
             const keyIds = [
                 ...new Set(
-                    axinomVideo.videoStreams.nodes.map((s: { keyId: string }) => s.keyId)
+                    axinomVideo.videoStreams.nodes
+                        .map((s: { keyId: string }) => s.keyId)
+                        .filter(Boolean)
                 )
             ] as string[];
 

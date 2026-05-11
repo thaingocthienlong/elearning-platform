@@ -31,7 +31,11 @@ type Video = {
     dashUrl: string | null;
     hlsUrl: string | null;
     hlsUrlClear: string | null;
+    axinomVideoId: string | null;
     axinomIdClear: string | null;
+    axinomEncodingStatus: string | null;
+    axinomOutputLocation: string | null;
+    axinomSyncedAt: string | null;
 };
 
 export default function AdminVideosPage() {
@@ -68,8 +72,7 @@ export default function AdminVideosPage() {
         currentPage,
         totalPages,
         nextPage,
-        prevPage,
-        setPageSize
+        prevPage
     } = useTablePagination(filteredVideos, 10);
 
     // Chat Upload dialog state
@@ -102,10 +105,14 @@ export default function AdminVideosPage() {
             });
             const result = await res.json();
 
-            if (result.success) {
+            if (res.ok && result.success) {
                 // Refresh list to show updates
                 await fetchVideos();
-                toast.success('Video synced successfully');
+                toast.success(
+                    result.updated
+                        ? 'Video status updated and playback URLs synced'
+                        : `Video status updated: ${result.status}`
+                );
             } else {
                 toast.error(`Sync failed: ${result.error || result.status}`);
             }
@@ -117,11 +124,15 @@ export default function AdminVideosPage() {
         }
     };
 
-    const getAxinomId = (desc: string | null) => {
-        if (!desc) return null;
-        const match = desc.match(/axinom-id:([a-f0-9-]+)/i);
+    const getLegacyAxinomId = (desc: string | null) => {
+        const match = desc?.match(/axinom-id:([a-f0-9-]+)/i);
         return match ? match[1] : null;
     };
+
+    const getPrimaryAxinomId = (video: Video) => video.axinomVideoId || getLegacyAxinomId(video.description);
+
+    const isReadyStatus = (statusValue: string | null) =>
+        statusValue === 'READY' || statusValue === 'COMPLETED' || statusValue === 'Finished';
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -281,7 +292,9 @@ export default function AdminVideosPage() {
                                 </thead>
                                 <tbody>
                                     {paginatedData.map((video) => {
-                                        const axinomId = getAxinomId(video.description);
+                                        const axinomId = getPrimaryAxinomId(video);
+                                        const drmReady = Boolean(video.dashUrl && video.hlsUrl) || isReadyStatus(video.axinomEncodingStatus);
+                                        const canUpdateStatus = Boolean(axinomId);
                                         return (
                                             <tr key={video.id} className="border-t hover:bg-muted/50">
                                                 <td className="p-4 font-medium">{video.title}</td>
@@ -289,14 +302,19 @@ export default function AdminVideosPage() {
                                                     {new Date(video.createdAt).toLocaleDateString()}
                                                 </td>
                                                 <td className="p-4 font-mono text-xs text-muted-foreground">
-                                                    {axinomId || 'N/A'}
+                                                    <div className="space-y-1">
+                                                        <div>{axinomId || 'N/A'}</div>
+                                                        {video.axinomIdClear && (
+                                                            <div>clear: {video.axinomIdClear}</div>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="flex flex-col gap-1">
                                                         {/* DRM Status */}
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-xs text-muted-foreground w-12">DRM:</span>
-                                                            {video.dashUrl && video.hlsUrl ? (
+                                                            {drmReady ? (
                                                                 <Badge className="bg-green-500 hover:bg-green-600 text-xs">
                                                                     <CheckCircle className="w-3 h-3 mr-1" /> Ready
                                                                 </Badge>
@@ -306,6 +324,14 @@ export default function AdminVideosPage() {
                                                                 </Badge>
                                                             )}
                                                         </div>
+                                                        {video.axinomEncodingStatus && (
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xs text-muted-foreground w-12">State:</span>
+                                                                <Badge variant="outline" className="text-xs">
+                                                                    {video.axinomEncodingStatus}
+                                                                </Badge>
+                                                            </div>
+                                                        )}
                                                         {/* Clear Status */}
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-xs text-muted-foreground w-12">Clear:</span>
@@ -347,17 +373,18 @@ export default function AdminVideosPage() {
                                                         <Upload className="w-4 h-4 mr-1" /> Chat
                                                     </Button>
 
-                                                    {!video.published && axinomId && (
+                                                    {canUpdateStatus && (
                                                         <Button
                                                             size="sm"
                                                             onClick={() => handleSync(video.id)}
                                                             disabled={syncingId === video.id}
+                                                            title="Update Axinom status and sync manifest URLs"
                                                         >
                                                             {syncingId === video.id ? (
                                                                 <Loader2 className="w-4 h-4 animate-spin" />
                                                             ) : (
                                                                 <>
-                                                                    <RefreshCw className="w-4 h-4 mr-1" /> Check Status
+                                                                    <RefreshCw className="w-4 h-4 mr-1" /> Update Status
                                                                 </>
                                                             )}
                                                         </Button>

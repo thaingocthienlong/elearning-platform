@@ -22,12 +22,16 @@ export async function GET() {
                 dashUrl: true,
                 hlsUrl: true,
                 hlsUrlClear: true,
-                axinomIdClear: true
+                axinomVideoId: true,
+                axinomIdClear: true,
+                axinomEncodingStatus: true,
+                axinomOutputLocation: true,
+                axinomSyncedAt: true,
             }
         });
 
         return NextResponse.json(videos);
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: 'Failed to fetch videos' }, { status: 500 });
     }
 }

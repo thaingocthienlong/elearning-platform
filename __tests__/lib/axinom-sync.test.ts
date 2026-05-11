@@ -91,4 +91,41 @@ describe('syncVideoWithAxinom', () => {
       })
     );
   });
+
+  test('persists Axinom status even when video is not ready yet', async () => {
+    mockedPrisma.video.findUnique.mockResolvedValue({
+      id: 'video-1',
+      axinomVideoId: 'explicit-axinom-id',
+      description: null,
+      axinomIdClear: null,
+    });
+    global.fetch = jest.fn().mockResolvedValue({
+      json: jest.fn().mockResolvedValue({
+        data: {
+          video: {
+            encodingState: 'PROCESSING',
+            dashManifestPath: null,
+            hlsManifestPath: null,
+            outputLocation: 'https://cdn.example/output',
+            videoStreams: {
+              nodes: [],
+            },
+          },
+        },
+      }),
+    }) as jest.Mock;
+
+    const result = await syncVideoWithAxinom('video-1');
+
+    expect(result).toEqual({ success: true, status: 'PROCESSING', updated: false });
+    expect(mockedPrisma.video.update).toHaveBeenCalledWith({
+      where: { id: 'video-1' },
+      data: expect.objectContaining({
+        axinomVideoId: 'explicit-axinom-id',
+        axinomEncodingStatus: 'PROCESSING',
+        axinomOutputLocation: 'https://cdn.example/output',
+        axinomSyncedAt: expect.any(Date),
+      }),
+    });
+  });
 });
