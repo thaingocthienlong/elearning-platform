@@ -85,17 +85,17 @@ export default function WatchPageClient({
                 <div className="flex-1 overflow-y-auto bg-background p-4 md:p-6">
                     <div className="mx-auto flex max-w-5xl flex-col gap-4">
                         {!isVideoFullscreen && (
-                            <div className="academic-panel flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-col gap-3 rounded-lg border border-border bg-white p-4 shadow-none sm:flex-row sm:items-center sm:justify-between">
                                 <div className="min-w-0">
-                                    <p className="academic-kicker">Secure Lecture Playback</p>
-                                    <h1 className="mt-1 truncate text-xl font-semibold">{courseTitle}</h1>
+                                    <p className="text-[14px] text-muted-foreground">{t('secureLecturePlayback')}</p>
+                                    <h1 className="mt-1 truncate text-[21px] font-semibold leading-[1.19]">{courseTitle}</h1>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    <Badge variant="secondary" className="rounded-md">DRM</Badge>
-                                    <Badge variant="outline" className="rounded-md border-primary/30 text-primary">Watermarked</Badge>
+                                    <Badge variant="secondary" className="rounded-full">DRM</Badge>
+                                    <Badge variant="outline" className="rounded-full border-primary/30 text-primary">{t('watermarked')}</Badge>
                                     {viewLimit !== null && (
-                                        <Badge variant="outline" className="rounded-md">
-                                            {viewCount}/{viewLimit} views
+                                        <Badge variant="outline" className="rounded-full">
+                                            {viewCount}/{viewLimit} {t('views')}
                                         </Badge>
                                     )}
                                 </div>
@@ -132,7 +132,7 @@ export default function WatchPageClient({
                                     onFullscreenChange={setIsVideoFullscreen}
                                 />
                                 {/* Chat Log Viewer */}
-                                <div className="academic-panel p-4">
+                                <div className="rounded-lg border border-border bg-white p-4 shadow-none">
                                     <ChatLogViewer chatLog={chatLog} />
                                 </div>
                             </>

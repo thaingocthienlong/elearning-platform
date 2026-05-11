@@ -16,10 +16,10 @@ export default function LanguageToggle() {
       variant="ghost"
       size="sm"
       onClick={toggleLanguage}
-      className="gap-2"
+      className="h-8 gap-2 rounded-md px-2 text-xs text-white hover:bg-white/10 hover:text-white"
       title={`${t('switchTo')} ${language === 'en' ? t('languageName', { name: 'Vietnamese' }) : t('languageName', { name: 'English' })}`}
     >
-      <Languages className="h-4 w-4" />
+      <Languages className="h-3.5 w-3.5" />
       <span className="font-medium hidden sm:inline">{language === 'en' ? 'EN' : 'VI'}</span>
     </Button>
   );

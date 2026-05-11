@@ -46,7 +46,7 @@ export function ReportButton() {
                     variant="default"
                     size="sm"
                     id="tour-report-btn"
-                    className="fixed bottom-6 left-6 z-40 border border-primary/20 bg-primary shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700 hover:bg-primary/90 md:z-50"
+                    className="fixed bottom-6 left-6 z-40 h-11 rounded-full border border-primary/20 bg-primary px-5 text-primary-foreground shadow-none animate-in fade-in slide-in-from-bottom-4 duration-700 hover:bg-primary/90 md:z-50"
                 >
                     <span className="hidden sm:inline-flex items-center">
                         <MessageSquare className="h-4 w-4" />
@@ -57,11 +57,11 @@ export function ReportButton() {
             </DialogTrigger>
             <DialogContent
                 onInteractOutside={(event) => event.preventDefault()}
-                className="flex max-h-[90vh] w-[95vw] max-w-[500px] flex-col gap-0 overflow-hidden border-border/80 bg-card p-0 sm:rounded-lg"
+                className="flex max-h-[90vh] w-[95vw] max-w-[500px] flex-col gap-0 overflow-hidden border-border bg-white p-0 shadow-none sm:rounded-[18px]"
             >
                 <div className="p-6 pb-2">
                     <DialogHeader className="space-y-3">
-                        <p className="academic-kicker">Support Desk</p>
+                        <p className="text-[15px] text-muted-foreground">{t('supportDesk')}</p>
                         <DialogTitle className="text-xl">{t('reportAnIssue')}</DialogTitle>
                         <DialogDescription className="text-sm">
                             {t('reportDescription')}
@@ -79,7 +79,7 @@ export function ReportButton() {
                             className={`flex-1 pb-2 text-sm font-medium transition-colors ${activeTab === 'history' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                             onClick={() => setActiveTab('history')}
                         >
-                            My Tickets
+                            {t('myTickets')}
                         </button>
                     </div>
                 </div>

@@ -17,6 +17,9 @@ export const translations = {
     // Homepage
     appTitle: 'Phuong Nam Institute',
     appDescription: 'PARTNER TRUST IS THE FOUNDATION OF PHUONG NAM’S STRENGTH.',
+    portalLead: 'Secure course access, protected video, and live learning in one institute portal.',
+    portalMediaTitle: 'Protected learning environment',
+    portalMediaBody: 'Course materials, Zoom sessions, support, and DRM playback stay behind authenticated access.',
     myCourses: 'My Courses',
     adminDashboard: 'Admin Dashboard',
     signIn: 'Sign In',
@@ -34,6 +37,7 @@ export const translations = {
     sessionRevoked: 'Session Temporarily Unavailable',
 
     sessionRevokedMessage: 'Your session was recently revoked for security reasons. Please wait a moment and try again.',
+    instituteAccess: 'Institute access',
     logout: 'Logout',
     loggingOut: 'Logging out...',
     toggleTheme: 'Toggle theme',
@@ -45,6 +49,19 @@ export const translations = {
 
     // Courses
     coursesEnrolled: 'Courses you are enrolled in',
+    courseRegistry: 'Course catalog',
+    available: 'available',
+    instituteCourse: 'Institute course',
+    courseOutline: 'Course outline',
+    openAccess: 'Open access',
+    enrolled: 'Enrolled',
+    lesson: 'Lesson',
+    courseMaterialsUnavailable: 'Course materials are not published yet.',
+    secureLecturePlayback: 'Secure lecture playback',
+    watermarked: 'Watermarked',
+    views: 'views',
+    courseVideos: 'Course videos',
+    courseContents: 'Course contents',
     noCoursesEnrolled: 'You are not enrolled in any courses yet.',
     contactAdminForCourses: 'Contact an administrator to get enrolled in courses.',
     viewCourse: 'View Course',
@@ -195,6 +212,16 @@ export const translations = {
     ticketSubmitted: 'Ticket Submitted',
     ticketSubmittedDesc: 'Thank you for your report. We have received your ticket and will look into it shortly.',
     closingIn: 'Closing in {seconds}s...',
+    supportDesk: 'Support desk',
+    myTickets: 'My tickets',
+
+    // Meeting
+    loadingMeetingAccess: 'Loading meeting access',
+    checkingMeetingSession: 'Checking your institute session before opening Zoom.',
+    meetingUnavailable: 'Meeting unavailable',
+    returnToPortal: 'Return to portal',
+    preparingMeetingRoom: 'Preparing secure meeting room',
+    generatingZoomSignature: 'Generating a server-owned Zoom signature for your session.',
 
     // Video Player
     viewLimitExceeded: 'View limit exceeded! You have watched this video {current}/{limit} times.',
@@ -257,6 +284,9 @@ export const translations = {
     // Homepage
     appTitle: 'Viện Phương Nam',
     appDescription: 'NIỀM TIN ĐỐI TÁC LÀ SỨC MẠNH PHƯƠNG NAM.',
+    portalLead: 'Truy cập khóa học, video bảo mật và lớp trực tuyến trong một cổng học tập.',
+    portalMediaTitle: 'Môi trường học tập được bảo vệ',
+    portalMediaBody: 'Tài liệu, lớp Zoom, hỗ trợ và video DRM chỉ mở sau khi xác thực.',
     myCourses: 'Khóa Học Của Tôi',
     adminDashboard: 'Bảng Điều Khiển Quản Trị',
     signIn: 'Đăng Nhập',
@@ -274,6 +304,7 @@ export const translations = {
     sessionRevoked: 'Phiên Tạm Thời Không Khả Dụng',
 
     sessionRevokedMessage: 'Phiên đăng nhập đã bị thu hồi vì lý do bảo mật. Vui lòng đợi một phút và thử lại.',
+    instituteAccess: 'Truy Cập Học Tập',
     logout: 'Đăng Xuất',
     loggingOut: 'Đang đăng xuất...',
     toggleTheme: 'Đổi giao diện',
@@ -285,6 +316,19 @@ export const translations = {
 
     // Courses
     coursesEnrolled: 'Các khóa học đã đăng ký',
+    courseRegistry: 'Danh mục khóa học',
+    available: 'khả dụng',
+    instituteCourse: 'Khóa học',
+    courseOutline: 'Đề cương khóa học',
+    openAccess: 'Mở truy cập',
+    enrolled: 'Đã đăng ký',
+    lesson: 'Bài',
+    courseMaterialsUnavailable: 'Tài liệu khóa học chưa được xuất bản.',
+    secureLecturePlayback: 'Phát bài học bảo mật',
+    watermarked: 'Có watermark',
+    views: 'lượt xem',
+    courseVideos: 'Video khóa học',
+    courseContents: 'Nội dung khóa học',
     noCoursesEnrolled: 'Chưa đăng ký khóa học nào.',
     contactAdminForCourses: 'Liên hệ quản trị viên để được đăng ký vào các khóa học.',
     viewCourse: 'Xem Khóa Học',
@@ -435,6 +479,16 @@ export const translations = {
     ticketSubmitted: 'Đã Gửi Yêu Cầu',
     ticketSubmittedDesc: 'Cảm ơn đã báo cáo. Chúng tôi đã nhận được yêu cầu và sẽ xem xét sớm.',
     closingIn: 'Đóng sau {seconds}s...',
+    supportDesk: 'Hỗ Trợ',
+    myTickets: 'Yêu Cầu Của Tôi',
+
+    // Meeting
+    loadingMeetingAccess: 'Đang kiểm tra quyền vào lớp',
+    checkingMeetingSession: 'Đang xác minh phiên học trước khi mở Zoom.',
+    meetingUnavailable: 'Lớp học chưa khả dụng',
+    returnToPortal: 'Quay lại cổng học tập',
+    preparingMeetingRoom: 'Đang chuẩn bị phòng học bảo mật',
+    generatingZoomSignature: 'Đang tạo chữ ký Zoom từ máy chủ cho phiên học.',
 
     // Video Player
     viewLimitExceeded: 'Đã vượt quá giới hạn xem! Bạn đã xem video này {current}/{limit} lần.',

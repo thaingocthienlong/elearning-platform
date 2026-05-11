@@ -1,7 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { CheckCircle, PlayCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface VideoSidebarProps {
     courseTitle: string;
@@ -16,10 +19,12 @@ interface VideoSidebarProps {
 }
 
 export default function VideoSidebar({ courseTitle, videos, currentVideoId, onVideoClick }: VideoSidebarProps) {
+    const { t } = useLanguage();
+
     return (
         <div className="flex h-full w-full flex-col bg-card">
             <div className="hidden border-b p-4 md:block">
-                <p className="academic-kicker">Course Contents</p>
+                <p className="text-[14px] text-muted-foreground">{t('courseContents')}</p>
                 <h3 className="mt-2 line-clamp-2 text-lg font-semibold">{courseTitle}</h3>
             </div>
             <ScrollArea className="flex-1">

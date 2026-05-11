@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import VideoSidebar from './VideoSidebar';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Video {
     id: string;
@@ -24,6 +25,7 @@ export default function VideoSidebarWrapper({
     currentVideoId,
 }: VideoSidebarWrapperProps) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const { t } = useLanguage();
 
     return (
         <>
@@ -44,7 +46,7 @@ export default function VideoSidebarWrapper({
                     onClick={() => setMobileMenuOpen(true)}
                 >
                     <Menu className="h-5 w-5" />
-                    Course Videos
+                    {t('courseVideos')}
                 </Button>
             </div>
 

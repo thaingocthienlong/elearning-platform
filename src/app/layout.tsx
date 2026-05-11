@@ -58,7 +58,7 @@ export default function RootLayout({
           <ConsoleLoggerInit />
           <Providers>
             <Navbar />
-            <div className="pt-16 min-h-screen">
+            <div className="min-h-screen pt-11">
               {children}
             </div>
             <ReportButton />

@@ -23,13 +23,13 @@ function SignInContent() {
     };
 
     return (
-        <div className="academic-page flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-8">
-            <Card className="w-full max-w-md border-border/80">
+        <div className="design-page flex min-h-[calc(100vh-2.75rem)] items-center justify-center bg-[#f5f5f7] px-4 py-12">
+            <Card className="w-full max-w-md rounded-[18px] border-border bg-white shadow-none">
                 <CardHeader className="text-center">
-                    <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
                         <GraduationCap className="h-6 w-6" />
                     </div>
-                    <p className="academic-kicker">Institute Access</p>
+                    <p className="text-[15px] text-muted-foreground">{t('instituteAccess')}</p>
                     <CardTitle className="text-2xl">{t('welcomeBack')}</CardTitle>
                     <CardDescription>
                         {t('enterEmailToSignIn')}

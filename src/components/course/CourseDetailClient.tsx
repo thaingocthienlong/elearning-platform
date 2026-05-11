@@ -32,21 +32,21 @@ export default function CourseDetailClient({ course, isEnrolled }: CourseDetailC
     const canWatch = isEnrolled || isCourseOpen;
 
     return (
-        <div className="academic-page">
-            <section className="academic-band">
-                <div className="academic-container max-w-6xl py-8">
-                    <p className="academic-kicker">Course Outline</p>
+        <div className="design-page">
+            <section className="design-tile-parchment">
+                <div className="design-container max-w-6xl">
+                    <p className="text-[17px] text-muted-foreground">{t('courseOutline')}</p>
                     <div className="mt-3 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
                         <div className="max-w-3xl">
-                            <h1 className="text-3xl font-semibold tracking-tight">{course.title}</h1>
-                            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                            <h1 className="design-heading">{course.title}</h1>
+                            <div className="mt-4 flex flex-wrap items-center gap-2 text-[15px] text-muted-foreground">
                                 <span>{t('videosCount', { count: course.Video.length })}</span>
-                                {isCourseOpen && <Badge className="rounded-md bg-primary/10 text-primary hover:bg-primary/10">Open access</Badge>}
-                                {isEnrolled && <Badge variant="secondary" className="rounded-md">Enrolled</Badge>}
+                                {isCourseOpen && <Badge className="rounded-full bg-primary/10 text-primary hover:bg-primary/10">{t('openAccess')}</Badge>}
+                                {isEnrolled && <Badge variant="secondary" className="rounded-full">{t('enrolled')}</Badge>}
                             </div>
                         </div>
                         {!canWatch && (
-                            <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+                            <div className="rounded-[18px] border border-border bg-white p-5 text-[15px] text-muted-foreground">
                                 {t('contactAdminForCourses')}
                             </div>
                         )}
@@ -54,25 +54,25 @@ export default function CourseDetailClient({ course, isEnrolled }: CourseDetailC
                 </div>
             </section>
 
-            <div className="academic-container max-w-6xl py-6">
-                <div className="mb-6 rounded-lg border border-primary/15 bg-primary/5 p-3 text-sm">
+            <div className="design-container max-w-6xl py-8">
+                <div className="mb-8 rounded-[18px] border border-border bg-white p-4 text-[15px]">
                     <BrowserBanner />
                 </div>
 
-                <div className="grid gap-3">
+                <div className="grid gap-4">
                     {course.Video.map((video, index) => (
                         <Card
                             key={video.id}
-                            className="group flex flex-col gap-3 border-border/80 p-4 transition-colors animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards hover:border-primary/40 sm:flex-row sm:items-center"
+                            className="group flex flex-col gap-4 rounded-[18px] border-border bg-white p-5 shadow-none transition-colors animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards hover:border-primary/50 sm:flex-row sm:items-center"
                             style={{ animationDelay: `${index * 50}ms` }}
                         >
                             <div className="flex min-w-0 flex-1 items-center gap-4">
-                                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md border border-primary/20 bg-primary/10 text-sm font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-border bg-[#f5f5f7] text-sm font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                                     {canWatch ? <BookOpen className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Lesson {index + 1}</p>
-                                    <h3 className="truncate text-base font-semibold sm:text-lg">{video.title}</h3>
+                                    <p className="text-[14px] text-muted-foreground">{t('lesson')} {index + 1}</p>
+                                    <h3 className="truncate text-[17px] font-semibold leading-[1.24]">{video.title}</h3>
                                 </div>
                             </div>
                             <div className="flex-shrink-0 sm:ml-4">
@@ -103,9 +103,9 @@ export default function CourseDetailClient({ course, isEnrolled }: CourseDetailC
                         </Card>
                     ))}
                     {course.Video.length === 0 && (
-                        <div className="academic-panel flex items-center gap-3 p-5 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-3 rounded-[18px] border border-border bg-white p-5 text-[15px] text-muted-foreground">
                             <CheckCircle2 className="h-5 w-5 text-primary" />
-                            Course materials are not published yet.
+                            {t('courseMaterialsUnavailable')}
                         </div>
                     )}
                 </div>

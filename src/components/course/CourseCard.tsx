@@ -27,10 +27,10 @@ export default function CourseCard({ course, index }: CourseCardProps) {
     return (
         <div
             {...prefetchProps}
-            className="group flex min-h-[320px] flex-col overflow-hidden rounded-lg border border-border/80 bg-card shadow-sm transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards hover:border-primary/40 hover:shadow-md"
+            className="group flex min-h-[360px] flex-col overflow-hidden rounded-[18px] border border-border bg-white shadow-none transition-colors duration-300 animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards hover:border-primary/50"
             style={{ animationDelay: `${index * 100}ms` }}
         >
-            <div className="relative overflow-hidden border-b border-border/70 bg-muted aspect-video">
+            <div className="relative overflow-hidden bg-[#f5f5f7] aspect-video">
                 {course.thumbnail ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -46,14 +46,14 @@ export default function CourseCard({ course, index }: CourseCardProps) {
                 )}
             </div>
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-5">
+            <div className="flex h-full flex-1 flex-col gap-5 p-6">
                 <div className="flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-primary/20 bg-primary/10 text-sm font-semibold text-primary">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-[#f5f5f7] text-sm font-semibold text-foreground">
                         {index + 1}
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Institute Course</p>
-                        <h3 className="mt-1 line-clamp-2 text-lg font-semibold leading-6 transition-colors group-hover:text-primary">
+                        <p className="text-[14px] font-normal text-muted-foreground">{t('instituteCourse')}</p>
+                        <h3 className="mt-2 line-clamp-2 text-[21px] font-semibold leading-[1.19] transition-colors group-hover:text-primary">
                             {course.title}
                         </h3>
                     </div>

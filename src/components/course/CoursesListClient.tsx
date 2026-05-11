@@ -21,31 +21,31 @@ export default function CoursesListClient({ courses }: CoursesListClientProps) {
     const { t } = useLanguage();
 
     return (
-        <div className="academic-page">
-            <section className="academic-band">
-                <div className="academic-container py-8" data-tour="my-courses">
-                    <p className="academic-kicker">Course Registry</p>
-                    <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="design-page">
+            <section className="design-tile-parchment">
+                <div className="design-container" data-tour="my-courses">
+                    <p className="text-[17px] text-muted-foreground">{t('courseRegistry')}</p>
+                    <div className="mt-4 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <h1 className="text-3xl font-semibold tracking-tight">{t('myCourses')}</h1>
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{t('coursesEnrolled')}</p>
+                            <h1 className="design-heading">{t('myCourses')}</h1>
+                            <p className="mt-3 max-w-2xl text-[17px] leading-[1.47] text-muted-foreground">{t('coursesEnrolled')}</p>
                         </div>
-                        <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm">
+                        <div className="flex min-h-11 items-center gap-3 rounded-full border border-border bg-white px-5 py-3 text-[17px]">
                             <LibraryBig className="h-5 w-5 text-primary" />
                             <span className="font-semibold">{courses.length}</span>
-                            <span className="text-muted-foreground">available</span>
+                            <span className="text-muted-foreground">{t('available')}</span>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <div className="academic-container py-6">
-                <div className="mb-6 rounded-lg border border-primary/15 bg-primary/5 p-3 text-sm">
+            <div className="design-container py-8">
+                <div className="mb-8 rounded-[18px] border border-border bg-white p-4 text-[15px]">
                     <BrowserBanner />
                 </div>
 
                 {courses.length === 0 ? (
-                    <Card className="border-dashed">
+                    <Card className="rounded-[18px] border-dashed shadow-none">
                         <CardContent className="pt-6">
                             <EmptyState
                                 title={t('noCoursesEnrolled')}
@@ -54,7 +54,7 @@ export default function CoursesListClient({ courses }: CoursesListClientProps) {
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                         {courses.map((course, index) => (
                             <CourseCard key={course.id} course={course} index={index} />
                         ))}

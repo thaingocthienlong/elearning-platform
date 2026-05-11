@@ -5,10 +5,12 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, Video } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function MeetingPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
+    const { t } = useLanguage();
     const [iframeSrc, setIframeSrc] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -64,7 +66,7 @@ export default function MeetingPage() {
                     body: JSON.stringify({})
                 });
 
-                if (!res.ok) throw new Error("Meeting is unavailable");
+                if (!res.ok) throw new Error(t('meetingUnavailable'));
                 const {
                     signature,
                     sdkKey,
@@ -94,20 +96,20 @@ export default function MeetingPage() {
 
             } catch (err: any) {
                 console.error(err);
-                setError(err.message || 'Meeting is unavailable');
+                setError(err.message || t('meetingUnavailable'));
             }
         };
 
         initMeeting();
-    }, [status]); // Only depend on status, not session - prevents rejoin on tab switch
+    }, [status, session?.user?.email, session?.user?.name, t]);
 
     if (status === 'loading') {
         return (
-            <div className="academic-page flex items-center justify-center p-6">
-                <div className="academic-panel w-full max-w-md p-6 text-center">
+            <div className="design-page flex items-center justify-center bg-[#f5f5f7] p-6">
+                <div className="w-full max-w-md rounded-[18px] border border-border bg-white p-6 text-center shadow-none">
                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-                    <h1 className="mt-4 text-xl font-semibold">Loading meeting access</h1>
-                    <p className="mt-2 text-sm text-muted-foreground">Checking your institute session before opening Zoom.</p>
+                    <h1 className="mt-4 text-[21px] font-semibold">{t('loadingMeetingAccess')}</h1>
+                    <p className="mt-2 text-[15px] text-muted-foreground">{t('checkingMeetingSession')}</p>
                 </div>
             </div>
         );
@@ -115,12 +117,12 @@ export default function MeetingPage() {
 
     if (error) {
         return (
-            <div className="academic-page flex items-center justify-center p-6">
-                <div className="academic-panel w-full max-w-md p-6 text-center">
+            <div className="design-page flex items-center justify-center bg-[#f5f5f7] p-6">
+                <div className="w-full max-w-md rounded-[18px] border border-border bg-white p-6 text-center shadow-none">
                     <AlertCircle className="mx-auto h-8 w-8 text-destructive" />
-                    <h1 className="mt-4 text-xl font-semibold">Meeting unavailable</h1>
-                    <p className="mt-2 text-sm text-muted-foreground">{error}</p>
-                    <Button className="mt-5" onClick={() => router.push('/')}>Return to portal</Button>
+                    <h1 className="mt-4 text-[21px] font-semibold">{t('meetingUnavailable')}</h1>
+                    <p className="mt-2 text-[15px] text-muted-foreground">{error}</p>
+                    <Button className="mt-5" onClick={() => router.push('/')}>{t('returnToPortal')}</Button>
                 </div>
             </div>
         );
@@ -128,11 +130,11 @@ export default function MeetingPage() {
 
     if (!iframeSrc) {
         return (
-            <div className="academic-page flex items-center justify-center p-6">
-                <div className="academic-panel w-full max-w-md p-6 text-center">
+            <div className="design-page flex items-center justify-center bg-[#f5f5f7] p-6">
+                <div className="w-full max-w-md rounded-[18px] border border-border bg-white p-6 text-center shadow-none">
                     <Video className="mx-auto h-8 w-8 text-primary" />
-                    <h1 className="mt-4 text-xl font-semibold">Preparing secure meeting room</h1>
-                    <p className="mt-2 text-sm text-muted-foreground">Generating a server-owned Zoom signature for your session.</p>
+                    <h1 className="mt-4 text-[21px] font-semibold">{t('preparingMeetingRoom')}</h1>
+                    <p className="mt-2 text-[15px] text-muted-foreground">{t('generatingZoomSignature')}</p>
                     <Loader2 className="mx-auto mt-5 h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
             </div>
