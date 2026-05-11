@@ -21,7 +21,7 @@ Overall: 17/24
 
 The redesigned frontend largely satisfies the formal institute direction: shared academic tokens exist, primary routes use restrained panels and operational layouts, cards stay compact, and the watch/meeting flows preserve their functional priorities. The strongest remaining visual risk is language and content consistency. Several primary user surfaces still mix English system copy with Vietnamese/localized copy, while the latest homepage simplification now underuses the "usable portal first" contract by making the first screen mostly logo plus actions.
 
-Automated screenshot verification could not be completed in this session. Playwright MCP is available, but browser launch failed because the Chromium executable is not installed under `ms-playwright`. This review therefore treats screenshot coverage as blocked, consistent with the Phase 7 verification notes.
+Automated screenshot verification was partially completed after installing the Playwright Chromium build required by the active browser tool. Public homepage and sign-in surfaces were checked on desktop/mobile. Authenticated routes still need seeded credentials or a local test session before they can be marked pass.
 
 ## Findings
 
@@ -121,7 +121,7 @@ Install Playwright browsers or configure an equivalent browser automation path, 
 
 ## Automated UI Verification
 
-Attempted:
+Initial attempt:
 
 ```text
 mcp__playwright__.playwright_navigate
@@ -129,14 +129,36 @@ URL: https://elearning.vienphuongnam.com.vn/
 Viewport: 1440x900
 ```
 
-Result:
+Initial result:
 
 ```text
-Blocked: Chromium headless shell executable is not installed in ms-playwright.
+Blocked: Chromium headless shell executable was not installed in ms-playwright.
 ```
 
-Status:
-`blocked: missing browser automation tooling`
+Resolution:
+Installed matching Playwright Chromium build v1200 with:
+
+```text
+npx playwright@1.57.0 install chromium
+```
+
+Verified:
+
+| Surface | Viewport | Result | Evidence |
+|---------|----------|--------|----------|
+| `/` | Desktop 1440x900 | Pass | `screenshots/home-desktop-vpn-logo-2026-05-11T11-42-54-820Z.png` |
+| `/` | Mobile 390x844 | Pass | `screenshots/home-mobile-vpn-logo-2026-05-11T11-43-05-119Z.png` |
+| `/auth/signin` | Mobile 390x844 | Pass with copy finding | `screenshots/signin-mobile-mixed-copy-2026-05-11T11-43-16-240Z.png` |
+
+Observed public-page text:
+
+```text
+Homepage: Đổi giao diện, VI, VIỆN PHƯƠNG NAM, Đăng nhập, Báo Cáo Vấn Đề
+Sign-in: Đổi giao diện, Institute Access, Chào mừng trở lại, Nhập email để đăng nhập vào tài khoản, Đăng nhập với Google, Báo Lỗi
+```
+
+Remaining status:
+Authenticated course, watch, meeting-ready, and support-history states still require a test account/session and representative data.
 
 ## Top Fixes
 
