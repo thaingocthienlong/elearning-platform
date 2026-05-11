@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zoom Meeting</title>
+    <!-- Use standard Zoom 5.0.4 CSS -->
+    <link type="text/css" rel="stylesheet" href="/lib/zoom/css/bootstrap.css" />
+    <link type="text/css" rel="stylesheet" href="/lib/zoom/css/react-select.css" />
+    <link type="text/css" rel="stylesheet" href="/lib/zoom/css/zoom-patch.css" />
+
+    <!-- FORCE DESKTOP UI: Override User Agent to prevent Zoom from switching to Mobile Mode -->
+    <script>
+        Object.defineProperty(navigator, 'userAgent', {
+            get: function () {
+                return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+            }
+        });
+    </script>
+
+    <style>
+        body,
+        html {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: black;
+        }
+
+        #zmmtg-root {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* =========================================
+           UI CUSTOMIZATIONS (NOW GUARANTEED TO WORK)
+           ========================================= */
+
+        /* 1. Show View Options (Top Right) */
+        .meeting-info-container,
+        .zoom-meetingsdk-meeting-header {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            top: 0 !important;
+        }
+
+        @media (max-width: 768px) {
+
+            .meeting-info-container,
+            .zoom-meetingsdk-meeting-header {
+                /* Force desktop-like header on mobile */
+                top: 0 !important;
+                width: 100% !important;
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                justify-content: flex-end !important;
+                pointer-events: auto !important;
+            }
+
+            /* Force the View/FullScreen widget (View Button) to show on mobile */
+            .meeting-info-container__full-screen,
+            .full-screen-widget__button,
+            .full-screen-icon {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+        }
+
+        .meeting-info-container__full-screen,
+        .full-screen-widget__button {
+            display: block !important;
+            visibility: visible !important;
+        }
+
+        /* 2. Hide Meeting Info (ID/Passcode) */
+        /* Hide the wrapper that contains the "i" icon */
+        .meeting-info-icon__icon-wrap,
+        .meeting-info-content {
+            display: none !important;
+        }
+
+        /* 3. Footer Control Hiding */
+        /* Hide Participants Button by ID and Class */
+        #participant,
+        .footer-button__button[aria-label="Participants"],
+        .footer-button__button[title="Participants"],
+        .footer-button__participants-icon,
+        .participants-section-container,
+        #participants-ul {
+            display: none !important;
+        }
+
+        /* Hide Invite Button */
+        .footer-button__button[aria-label="Invite"],
+        .footer-button__button[title="Invite"] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="zmmtg-root"></div>
+
+    <!-- Watermark Overlay (Inside Iframe for perfect positioning) -->
+    <div id="watermark-overlay"
+        style="position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden;"></div>
+
+    <!-- 1. Load React 16.14.0 (Required for Zoom 5.0.4) -->
+    <script src="https://unpkg.com/react@16.14.0/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@16.14.0/umd/react-dom.production.min.js"></script>
+
+    <!-- 2. Load Redux/Lodash -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.2.1/redux.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/redux-thunk/2.4.2/redux-thunk.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+
+    <!-- 3. Load Zoom SDK 5.0.4 -->
+    <script src="https://source.zoom.us/5.0.4/zoom-meeting-5.0.4.min.js"></script>
+
+    <script>
+        // Parse URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const meetingNumber = urlParams.get('mn');
+        const password = urlParams.get('pwd');
+        const signature = urlParams.get('signature'); // Changed from 'sig'
+        const sdkKey = urlParams.get('sdkKey');     // Changed from 'key'
+        const userName = urlParams.get('userName') || 'Guest'; // Changed from 'name'
+        const userEmail = urlParams.get('email') || '';
+        // Get custom watermark text from URL (Fullname - Phone), fallback to email or confidential
+        const watermarkText = urlParams.get('watermarkText') || userEmail || 'CONFIDENTIAL';
+
+        // Watermark customization settings from admin panel
+        const wmColor = urlParams.get('wmColor') || '#FFFFFF';
+        const wmOpacity = parseFloat(urlParams.get('wmOpacity') || '0.2');
+        const wmSize = parseFloat(urlParams.get('wmSize') || '2.5'); // percentage of video width
+
+        // Global Exports for Zoom
+        window.Redux = Redux;
+        window.ReduxThunk = window.ReduxThunk?.default || window.ReduxThunk; // Handle UMD weirdness
+        window._ = _;
+
+        // Initialize Zoom
+        ZoomMtg.setZoomJSLib('https://source.zoom.us/5.0.4/lib', '/av');
+        ZoomMtg.preLoadWasm();
+        ZoomMtg.prepareWebSDK();
+        ZoomMtg.i18n.load('vi-VN');
+        ZoomMtg.i18n.reload('vi-VN');
+
+        // Robust Exit Listener: Detect when user leaves/ends meeting
+        ZoomMtg.inMeetingServiceListener('onMeetingStatus', function (data) {
+            console.log('Zoom Meeting Status Change:', data);
+            // Status 3 = Meeting Disconnected (User left or Host ended)
+            if (data.meetingStatus === 3) {
+                console.warn('Meeting ended/left. Forcing redirect to homepage...');
+                // Force top-level window redirect, bypassing iframe
+                window.parent.location.href = '/';
+            }
+        });
+
+        ZoomMtg.init({
+            leaveUrl: window.location.origin + '/meeting/exit', // Parent origin + exit handler
+            patchJsMedia: true,
+            isSupportAV: true,
+            disablePreview: false,
+            success: function () {
+                ZoomMtg.join({
+                    signature: signature,
+                    meetingNumber: meetingNumber,
+                    userName: userName,
+                    sdkKey: sdkKey,
+                    userEmail: userEmail,
+                    passWord: password,
+                    success: function (res) {
+                        console.log('Joined meeting successfully');
+                        startWatermarkTracking();
+                    },
+                    error: function (res) {
+                        console.error('Join error', res);
+                    }
+                });
+            },
+            error: function (res) {
+                console.error('Init error', res);
+            }
+        });
+
+        // Watermark Tracking Logic
+        function startWatermarkTracking() {
+            let overlay = document.getElementById('watermark-overlay');
+            // watermarkText is global now, derived from URL params
+
+            function createOverlay() {
+                const el = document.createElement('div');
+                el.id = 'watermark-overlay';
+                el.style.position = 'fixed';
+                el.style.top = '0';
+                el.style.left = '0';
+                el.style.width = '100%';
+                el.style.height = '100%';
+                el.style.pointerEvents = 'none';
+                el.style.zIndex = '2147483647';
+                el.style.overflow = 'hidden';
+                document.body.appendChild(el);
+                return el;
+            }
+
+            // Anti-Tamper: Restore overlay if deleted
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.removedNodes) {
+                        mutation.removedNodes.forEach((node) => {
+                            if (node.id === 'watermark-overlay') {
+                                console.warn('Watermark tampering detected! Restoring...');
+                                overlay = createOverlay();
+                            }
+                        });
+                    }
+                });
+            });
+
+            observer.observe(document.body, { childList: true });
+
+            function track() {
+                // Self-Healing: Check if overlay exists in DOM
+                if (!document.getElementById('watermark-overlay')) {
+                    overlay = createOverlay();
+                }
+
+                const targets = [
+                    '.sharee-container__viewport',
+                    '.gallery-video-container__video-frame',
+                    '.speaker-active-container__video-frame',
+                    '.main-video-container',
+                    '.video-avatar__avatar'
+                ];
+
+                // Clear current watermarks
+                if (overlay) {
+                    overlay.innerHTML = '';
+                    // Force visibility styles against tampering
+                    overlay.style.display = 'block';
+                    overlay.style.visibility = 'visible';
+                    overlay.style.opacity = '1';
+                }
+
+                targets.forEach((selector, typeIndex) => {
+                    const elements = document.querySelectorAll(selector);
+                    elements.forEach((el, index) => {
+                        const rect = el.getBoundingClientRect();
+                        if (rect.width > 0 && rect.height > 0) {
+                            const wm = document.createElement('div');
+                            wm.style.position = 'absolute';
+                            wm.style.top = rect.top + 'px';
+                            wm.style.left = rect.left + 'px';
+                            wm.style.width = rect.width + 'px';
+                            wm.style.height = rect.height + 'px';
+                            wm.style.pointerEvents = 'none';
+                            wm.style.display = 'flex';
+                            wm.style.alignItems = 'center';
+                            wm.style.justifyContent = 'center';
+                            wm.style.zIndex = '2147483647';
+
+                            // Dynamic Font Sizing based on admin settings
+                            // wmSize is a percentage of video width (e.g., 2.5 = 2.5%)
+                            const dynamicFontSize = Math.max(10, rect.width * (wmSize / 100));
+
+                            const text = document.createElement('div');
+                            text.innerText = watermarkText;
+                            text.style.opacity = wmOpacity.toString();
+                            text.style.color = wmColor;
+                            text.style.fontSize = dynamicFontSize + 'px';
+                            text.style.fontWeight = 'bold';
+                            text.style.transform = 'rotate(-30deg)';
+                            text.style.whiteSpace = 'nowrap';
+                            text.style.textShadow = '0 0 5px rgba(0,0,0,0.5)';
+                            text.style.userSelect = 'none';
+
+                            wm.appendChild(text);
+                            if (overlay) overlay.appendChild(wm);
+                        }
+                    });
+                });
+
+                requestAnimationFrame(track);
+            }
+            track();
+        }
+    </script>
+</body>
+
+</html>

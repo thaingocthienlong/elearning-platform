@@ -1,0 +1,206 @@
+/* 
+ * FIX: Zoom SDK 5.0.4 Red X Patch
+ * Comprehensive override for all missing icons/emojis injected by Zoom.
+ * Mapped to Bootstrap 3.3.7 Glyphicons.
+ */
+
+/* --- Base Override Strategy --- */
+/* Hide the "❌" text by making it transparent or zero-size, then overlay a Glyphicon */
+
+/* 1. Chat Send Button */
+.chat-rtf-box__send,
+.chat-rtf-box__send--disabled {
+    color: transparent !important;
+    position: relative;
+    width: 40px;
+    height: 30px;
+}
+
+.chat-rtf-box__send::after,
+.chat-rtf-box__send--disabled::after {
+    content: "\e171";
+    /* Send / Paper Plane */
+    font-family: 'Glyphicons Halflings';
+    color: #337ab7;
+    font-size: 16px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    visibility: visible;
+}
+
+.chat-rtf-box__send--disabled::after {
+    color: #ccc;
+}
+
+
+/* 2. Generic Icon Wrapper (Reactions, Header Buttons, Chat Tools) */
+.reaction-simple-picker__content-wrapper,
+.chat-header__operate button,
+.particpant-header__close-right,
+.chat-rtf-box__format,
+.chat-file-transfer,
+.chat-container__dropdown {
+    color: transparent !important;
+    /* Hide X */
+    font-size: 0 !important;
+    /* Collapse text nodes like "Raise Hand" if mixed */
+    position: relative;
+    display: inline-block;
+    width: 24px;
+    /* Fixed touch target */
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    border: none;
+    background: transparent;
+}
+
+/* Common Pseudo-element for icon injection */
+.reaction-simple-picker__content-wrapper::after,
+.chat-header__operate button::after,
+.particpant-header__close-right::after,
+.chat-rtf-box__format::after,
+.chat-file-transfer::after,
+.chat-container__dropdown::after {
+    font-family: 'Glyphicons Halflings';
+    font-size: 14px;
+    /* Restore visible size */
+    color: #555;
+    /* Default Zoom grey */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    visibility: visible;
+    display: block;
+}
+
+/* --- Specific Icon Mappings --- */
+
+/* Reactions: Thumbs Up */
+[data-tooltip="Thumbs Up"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e125";
+    color: #337ab7;
+}
+
+/* Reactions: Heart */
+[data-tooltip="Heart"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e005";
+    color: #d9534f;
+}
+
+/* Reactions: Clap (Star fallback) */
+[data-tooltip="Clap"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e006";
+    color: #f0ad4e;
+}
+
+/* Reactions: Joy (User/Face fallback) */
+[data-tooltip="Joy"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e008";
+    color: #f0ad4e;
+}
+
+/* Reactions: Open Mouth (Bullhorn fallback) */
+[data-tooltip="Open Mouth"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e122";
+    color: #f0ad4e;
+}
+
+/* Reactions: Tada (Gift fallback) */
+[data-tooltip="Tada"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e102";
+    color: #5cb85c;
+}
+
+/* Reactions: More */
+[data-tooltip="More"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e234";
+}
+
+/* Option Horizontal */
+
+/* Non-verbal: Yes/No */
+[data-tooltip="Yes"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e013";
+    color: #5cb85c;
+}
+
+/* OK Check */
+[data-tooltip="No"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e014";
+    color: #d9534f;
+}
+
+/* Remove Cross */
+
+/* Non-verbal: Speed */
+[data-tooltip="Slow down"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e069";
+}
+
+/* Backward */
+[data-tooltip="Speed up"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e076";
+}
+
+/* Forward */
+[data-tooltip="I'm away"] .reaction-simple-picker__content-wrapper::after {
+    content: "\e023";
+}
+
+/* Time/Clock */
+
+/* Raise Hand (Special Handling for text) */
+[data-a-l="5-2-0"] .reaction-simple-picker__content-wrapper {
+    width: auto !important;
+    padding-left: 20px;
+}
+
+[data-a-l="5-2-0"] .reaction-simple-picker__content-wrapper::after {
+    content: "\270b Raise Hand";
+    /* Unicode Hand + Text */
+    font-family: sans-serif;
+    /* Back to normal font for text */
+    width: 100px;
+    text-align: left;
+}
+
+/* Window Flow Controls */
+.chat-header__operate button[aria-label="Pop Out"]::after {
+    content: "\e164";
+}
+
+/* New Window */
+.particpant-header__close-right::after,
+.chat-header__operate button[aria-label="Close"]::after {
+    content: "\e014";
+}
+
+/* Remove/Close */
+
+/* Chat Toolbar Strings */
+.chat-rtf-box__format::after {
+    content: "\e047";
+}
+
+/* Font/A icon */
+.chat-file-transfer::after {
+    content: "\e142";
+}
+
+/* Paperclip */
+.chat-container__dropdown::after {
+    content: "\e008";
+}
+
+/* Emoji face fallback */
+
+/* Hover States */
+.reaction-simple-picker__block:hover .reaction-simple-picker__content-wrapper::after,
+.chat-header__operate button:hover::after,
+.particpant-header__close-right:hover::after {
+    color: #337ab7;
+}
