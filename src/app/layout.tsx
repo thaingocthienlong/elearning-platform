@@ -3,8 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ReportButton } from "@/components/support/ReportButton";
 import { Providers } from "@/components/Providers";
-import LanguageToggle from "@/components/LanguageToggle";
-import { UserMenu } from "@/components/UserMenu";
 import { Toaster } from "sonner";
 import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -27,6 +25,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "E-Learning - Viện Phương Nam",
   description: "Hệ thống học tập trực tuyến Viện Phương Nam",
+  icons: {
+    icon: "https://i.ibb.co/twbq42gB/Logo-VPN.png",
+    shortcut: "https://i.ibb.co/twbq42gB/Logo-VPN.png",
+    apple: "https://i.ibb.co/twbq42gB/Logo-VPN.png",
+  },
 };
 
 export const viewport: Viewport = {

@@ -27,7 +27,7 @@ export default function Home() {
             <div className="flex flex-1 items-center justify-center px-5 py-12 sm:px-8">
               <div className="flex flex-col items-center gap-5 text-center">
                 <Image
-                  src="/favicon.ico"
+                  src="https://i.ibb.co/twbq42gB/Logo-VPN.png"
                   alt="Viện Phương Nam"
                   width={144}
                   height={144}
