@@ -40,7 +40,6 @@ export default function Home() {
                   VIỆN PHƯƠNG NAM
                 </h1>
               </div>
-              <p className="design-lead max-w-xl">{t('portalLead')}</p>
               <div className="mt-8 flex min-h-12 flex-col gap-3 sm:flex-row sm:items-center">
                 {status === 'loading'
                   ? <div className="h-11 w-40 animate-pulse rounded-full bg-muted" />
@@ -93,7 +92,6 @@ export default function Home() {
                   </div>
                   <div>
                     <h2 className="text-[21px] font-semibold leading-tight">{t('portalMediaTitle')}</h2>
-                    <p className="mt-2 max-w-lg text-[17px] leading-[1.47] text-muted-foreground">{t('portalMediaBody')}</p>
                   </div>
                 </div>
               </div>
