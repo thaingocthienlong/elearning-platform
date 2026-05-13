@@ -17,6 +17,7 @@ import IPRConsentOverlay from '@/components/course/IPRConsentOverlay';
 import { useSessionValidator } from '@/hooks/useSessionValidator';
 import ChatLogViewer from '@/components/course/ChatLogViewer';
 import { Badge } from '@/components/ui/badge';
+import { selectWatchPlaybackSources } from '@/lib/playback-routing';
 
 interface WatchPageClientProps {
     videoId: string;
@@ -56,15 +57,15 @@ export default function WatchPageClient({
 }: WatchPageClientProps & { chatLog?: any }) {
     const { t } = useLanguage();
     const [isIPRAccepted, setIsIPRAccepted] = useState(false);
-    const [isIOSorSafari] = useState(() => {
-        if (typeof navigator === 'undefined') return false;
-        const ua = navigator.userAgent;
-        const isIOS = /iPhone|iPad|iPod/.test(ua);
-        const isMac = /Mac OS/.test(ua) && !/iPhone|iPad|iPod/.test(ua);
-        const isSafari = /Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua);
-
-        return isIOS || (isMac && isSafari);
-    });
+    const [playbackSources] = useState(() =>
+        selectWatchPlaybackSources({
+            userAgent: typeof navigator === 'undefined' ? '' : navigator.userAgent,
+            dashUrl,
+            hlsUrl,
+            hlsUrlClear,
+            drmToken,
+        })
+    );
     const [isVideoFullscreen, setIsVideoFullscreen] = useState(false);
 
     // SSE-based session monitoring - instant logout if revoked by admin
@@ -121,14 +122,15 @@ export default function WatchPageClient({
                         ) : (
                             <>
                                 <DRMPlayerWrapper
-                                    dashUrl={isIOSorSafari ? null : dashUrl}
-                                    hlsUrl={isIOSorSafari && hlsUrlClear ? hlsUrlClear : hlsUrl}
-                                    drmToken={isIOSorSafari && hlsUrlClear ? '' : drmToken}
+                                    dashUrl={playbackSources.dashUrl}
+                                    hlsUrl={playbackSources.hlsUrl}
+                                    drmToken={playbackSources.drmToken}
                                     videoId={videoId}
                                     viewCount={viewCount}
                                     viewLimit={viewLimit}
                                     watermarkText={watermarkText}
                                     requireHD={false}
+                                    isClearHlsFallback={playbackSources.isClearHlsFallback}
                                     onFullscreenChange={setIsVideoFullscreen}
                                 />
                                 {/* Chat Log Viewer */}
