@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useSession } from 'next-auth/react';
 import { usePrefetch } from '@/hooks/usePrefetch';
-import { BookOpen, CalendarDays, LayoutDashboard, LogIn, ShieldCheck } from 'lucide-react';
+import { BookOpen, CalendarDays, LayoutDashboard, LogIn } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Home() {
@@ -25,9 +25,9 @@ export default function Home() {
     <div className="design-page">
       <main>
         <section className="design-tile-light min-h-[calc(100vh-2.75rem)] overflow-hidden">
-          <div className="design-container grid min-h-[calc(100vh-10rem)] items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="mx-auto flex max-w-2xl flex-col items-center text-center lg:items-start lg:text-left">
-              <div className="mb-7 flex flex-col items-center gap-5 lg:items-start">
+          <div className="design-container flex min-h-[calc(100vh-10rem)] items-center justify-center">
+            <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+              <div className="mb-7 flex flex-col items-center gap-5">
                 <Image
                   src="https://i.ibb.co/twbq42gB/Logo-VPN.png"
                   alt="Viện Phương Nam"
@@ -76,24 +76,6 @@ export default function Home() {
                         </Button>
                       </Link>
                     )}
-              </div>
-            </div>
-            <div className="relative min-h-[360px] overflow-hidden rounded-none bg-[#f5f5f7] dark:bg-[#15171a] sm:min-h-[520px]">
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80')" }}
-              />
-              <div className="absolute inset-0 bg-black/10" />
-              <div className="absolute bottom-0 left-0 right-0 bg-white/85 p-6 backdrop-blur-md dark:bg-card/85 sm:p-8">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                    <ShieldCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-[21px] font-semibold leading-tight">{t('portalMediaTitle')}</h2>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
