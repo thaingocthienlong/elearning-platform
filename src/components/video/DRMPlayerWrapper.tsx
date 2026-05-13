@@ -104,10 +104,6 @@ export default function DRMPlayerWrapper({
                     return;
                 }
 
-                // Clear HLS mode for Mac/iOS (no FairPlay cert)
-                if (config.drmType === 'fairplay' && !config.requiresL1) {
-                }
-
                 const browserInfo = getBrowserInfo();
                 setDrmConfig(config);
 
