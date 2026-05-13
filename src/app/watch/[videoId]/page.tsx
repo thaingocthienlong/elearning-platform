@@ -124,6 +124,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 dashUrl={video.dashUrl ?? null}
                 hlsUrl={video.hlsUrl ?? null}
                 hlsUrlClear={video.hlsUrlClear ?? null}
+                isFairPlayConfigured={Boolean(process.env.AXINOM_FAIRPLAY_CERT_URL)}
                 chatLog={(video as any).chatLog}
             />
         </SecurityWrapper>

@@ -15,6 +15,8 @@ interface DRMPlayerWrapperProps {
     viewLimit: number | null;
     watermarkText: string;
     requireHD?: boolean;
+    isClearHlsFallback?: boolean;
+    isFairPlayConfigured?: boolean;
     onFullscreenChange?: (isFullscreen: boolean) => void;
 }
 
@@ -27,6 +29,8 @@ export default function DRMPlayerWrapper({
     viewLimit,
     watermarkText,
     requireHD = false,
+    isClearHlsFallback = false,
+    isFairPlayConfigured = false,
     onFullscreenChange,
 }: DRMPlayerWrapperProps) {
     const [drmConfig, setDrmConfig] = useState<DRMConfig | null>(null);
@@ -46,7 +50,13 @@ export default function DRMPlayerWrapper({
                 const caps = await detectDRMCapabilities();
 
                 // Get optimal configuration
-                const config = getOptimalDRMConfig(dashUrl, hlsUrl, requireHD);
+                const config = getOptimalDRMConfig(
+                    dashUrl,
+                    hlsUrl,
+                    requireHD,
+                    isClearHlsFallback,
+                    isFairPlayConfigured
+                );
 
                 if (!config) {
                     toast.error('No compatible DRM manifest available for your device');
@@ -130,7 +140,16 @@ export default function DRMPlayerWrapper({
         };
 
         initDRM();
-    }, [dashUrl, hlsUrl, requireHD, robustnessOverride, videoId, hasAttemptedL1]);
+    }, [
+        dashUrl,
+        hlsUrl,
+        requireHD,
+        isClearHlsFallback,
+        isFairPlayConfigured,
+        robustnessOverride,
+        videoId,
+        hasAttemptedL1,
+    ]);
 
     // Callback for when black screen is detected
     const handleBlackScreenDetected = () => {
@@ -182,7 +201,7 @@ export default function DRMPlayerWrapper({
             watermarkText={watermarkText}
             drmType={drmConfig.drmType}
             robustness={drmConfig.robustness}
-            fairplayCertUrl={drmConfig.drmType === 'fairplay' ? '/api/drm/fairplay-cert' : undefined}
+            fairplayCertUrl={drmConfig.drmType === 'fairplay' && !drmConfig.isClearPlayback ? '/api/drm/fairplay-cert' : undefined}
             onBlackScreenDetected={drmConfig.robustness === 'HW_SECURE_ALL' ? handleBlackScreenDetected : undefined}
             onFullscreenChange={onFullscreenChange}
         />

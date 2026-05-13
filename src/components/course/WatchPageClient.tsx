@@ -36,6 +36,7 @@ interface WatchPageClientProps {
     dashUrl: string | null;
     hlsUrl: string | null;
     hlsUrlClear: string | null;
+    isFairPlayConfigured: boolean;
     chatLog?: any;
 }
 
@@ -53,6 +54,7 @@ export default function WatchPageClient({
     dashUrl,
     hlsUrl,
     hlsUrlClear,
+    isFairPlayConfigured,
     chatLog,
 }: WatchPageClientProps & { chatLog?: any }) {
     const { t } = useLanguage();
@@ -132,6 +134,7 @@ export default function WatchPageClient({
                                     watermarkText={watermarkText}
                                     requireHD={false}
                                     isClearHlsFallback={playbackSources.isClearHlsFallback}
+                                    isFairPlayConfigured={isFairPlayConfigured}
                                     onFullscreenChange={setIsVideoFullscreen}
                                 />
                                 {/* Chat Log Viewer */}
