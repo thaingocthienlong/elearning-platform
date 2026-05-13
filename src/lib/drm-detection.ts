@@ -19,6 +19,7 @@ export interface DRMConfig {
   protocol: 'DASH' | 'HLS';
   robustness?: string;
   requiresL1: boolean;
+  isClearPlayback?: boolean;
 }
 
 /**
@@ -124,10 +125,11 @@ export async function detectDRMCapabilities(): Promise<DRMCapabilities> {
 export function getOptimalDRMConfig(
   dashUrl: string | null,
   hlsUrl: string | null,
-  requireHD: boolean = false
+  requireHD: boolean = false,
+  isClearHlsFallback: boolean = false,
+  isFairPlayConfigured: boolean = false
 ): DRMConfig | null {
   const ua = navigator.userAgent;
-  const platform = navigator.platform;
 
   // IMPORTANT: Check browser BEFORE platform to avoid misrouting
 
@@ -138,35 +140,63 @@ export function getOptimalDRMConfig(
       return null;
     }
 
-    // TODO: FairPlay requires certificate - using clear HLS for now
-    console.warn('⚠️ FairPlay certificate not available - using clear HLS');
+    if (isClearHlsFallback) {
+      console.warn('⚠️ Using clear HLS fallback on iOS');
+      return {
+        drmType: 'fairplay',
+        manifestUrl: hlsUrl,
+        protocol: 'HLS',
+        requiresL1: false,
+        isClearPlayback: true,
+      };
+    }
+
+    if (!isFairPlayConfigured) {
+      console.warn('FairPlay is not configured and no clear HLS fallback is available for iOS');
+      return null;
+    }
+
     return {
-      drmType: 'fairplay', // Will be handled as clear in Player
+      drmType: 'fairplay',
       manifestUrl: hlsUrl,
       protocol: 'HLS',
-      requiresL1: false,
+      requiresL1: true,
     };
   }
 
   // 2. Safari on Mac - FairPlay (when cert available)
-  if (/Safari/.test(ua) && !/Chrome|Chromium/.test(ua)) {
+  if (/Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua)) {
     if (!hlsUrl) {
       console.warn('HLS manifest required for Safari but not available');
       return null;
     }
 
-    // TODO: FairPlay requires certificate - using clear HLS for now
-    console.warn('⚠️ FairPlay certificate not available - using clear HLS on Safari');
+    if (isClearHlsFallback) {
+      console.warn('⚠️ Using clear HLS fallback on Safari');
+      return {
+        drmType: 'fairplay',
+        manifestUrl: hlsUrl,
+        protocol: 'HLS',
+        requiresL1: false,
+        isClearPlayback: true,
+      };
+    }
+
+    if (!isFairPlayConfigured) {
+      console.warn('FairPlay is not configured and no clear HLS fallback is available for Safari');
+      return null;
+    }
+
     return {
       drmType: 'fairplay',
       manifestUrl: hlsUrl,
       protocol: 'HLS',
-      requiresL1: false,
+      requiresL1: true,
     };
   }
 
-  // 3. Microsoft Edge - PlayReady (hardware DRM)
-  if (/Edg/.test(ua)) {
+  // 3. Microsoft Edge on Windows - PlayReady (hardware DRM)
+  if (/Edg/.test(ua) && /Windows/.test(ua)) {
     if (!dashUrl) {
       console.warn('DASH manifest required for PlayReady but not available');
       return null;
