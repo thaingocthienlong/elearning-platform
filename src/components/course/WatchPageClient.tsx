@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import VideoSidebarWrapper from '@/components/course/VideoSidebarWrapper';
 import { toast } from 'sonner';
@@ -57,14 +57,15 @@ export default function WatchPageClient({
 }: WatchPageClientProps & { chatLog?: any }) {
     const { t } = useLanguage();
     const [isIPRAccepted, setIsIPRAccepted] = useState(false);
-    const [playbackSources] = useState(() =>
+    const playbackSources = useMemo(() =>
         selectWatchPlaybackSources({
             userAgent: typeof navigator === 'undefined' ? '' : navigator.userAgent,
             dashUrl,
             hlsUrl,
             hlsUrlClear,
             drmToken,
-        })
+        }),
+        [dashUrl, hlsUrl, hlsUrlClear, drmToken]
     );
     const [isVideoFullscreen, setIsVideoFullscreen] = useState(false);
 
