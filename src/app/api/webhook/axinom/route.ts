@@ -177,6 +177,25 @@ export async function POST(request: NextRequest) {
 
         // 5. Fetch video details from Axinom
         const axinomVideo = await getVideoDetails(payload.videoId);
+        const isClearEncode = video.axinomIdClear === payload.videoId;
+
+        if (isClearEncode) {
+            await prisma.video.update({
+                where: { id: video.id },
+                data: {
+                    hlsUrlClear: axinomVideo.hlsManifestPath,
+                    axinomSyncedAt: new Date(),
+                    updatedAt: new Date()
+                }
+            });
+
+            return NextResponse.json({
+                success: true,
+                message: 'Clear encoding webhook processed successfully',
+                videoId: video.id,
+                axinomVideoId: payload.videoId
+            });
+        }
 
         // 6. Extract unique key IDs
         const keyIds = [

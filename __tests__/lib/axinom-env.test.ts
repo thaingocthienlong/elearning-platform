@@ -23,6 +23,7 @@ describe('validateAxinomEnv', () => {
         expect.stringContaining('AXINOM_COM_KEY_ID'),
         expect.stringContaining('AXINOM_COM_KEY_SECRET'),
         expect.stringContaining('AXINOM_ENCODING_CLIENT_ID'),
+        expect.stringContaining('AXINOM_ENCODING_PROFILE_CLEAR'),
       ])
     );
   });

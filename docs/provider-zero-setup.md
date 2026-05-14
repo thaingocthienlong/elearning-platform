@@ -212,8 +212,8 @@ DRM processing profile:
 9. Fill the Key Service **Management API URL**, **Tenant ID**, encrypted **Management Key**, and encrypted **Key Seed ID** from **My Mosaic** -> **DRM** -> **Key Service**. Axinom notes that the Key Seed is usually created automatically during DRM setup.
 10. Save the profile.
 11. Copy the saved profile database ID from the Management System URL, details panel, GraphQL query, or admin metadata view into `AXINOM_ENCODING_PROFILE_DRM`.
-12. If this project must keep a clear fallback, repeat the profile step with **DRM Protection** disabled, title it `STAGING_CLEAR`, save it, and copy its ID into `AXINOM_ENCODING_PROFILE_CLEAR`.
-13. If clear fallback is not approved, leave `AXINOM_ENCODING_PROFILE_CLEAR` unset and document that clear encoding is intentionally blocked.
+12. Repeat the profile step with **DRM Protection** disabled, title it `STAGING_CLEAR`, save it, and copy its ID into `AXINOM_ENCODING_PROFILE_CLEAR`.
+13. Treat `AXINOM_ENCODING_PROFILE_CLEAR` as required for new admin uploads; processing fails without it so Safari/iOS do not silently publish without `hlsUrlClear`.
 
 Webhook setup:
 

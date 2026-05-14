@@ -28,34 +28,32 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Video not found or missing blob key' }, { status: 404 });
         }
 
+        const drmProfileId = process.env.AXINOM_ENCODING_PROFILE_DRM?.trim() || process.env.AX_PROFILE_ID?.trim();
+        const clearProfileId = process.env.AXINOM_ENCODING_PROFILE_CLEAR?.trim();
+
+        if (!drmProfileId) {
+            throw new Error('AXINOM_ENCODING_PROFILE_DRM or AX_PROFILE_ID is required to submit DRM encoding');
+        }
+
+        if (!clearProfileId) {
+            throw new Error('AXINOM_ENCODING_PROFILE_CLEAR is required to submit Safari clear HLS encoding');
+        }
+
         const result = await encodeVideoViaService({
             videoTitle: video.title,
             sourceLocation: video.r2Key,
+            profileId: drmProfileId,
         });
 
         console.log('DRM encoding job created:', result.axinomVideoId);
 
-        // Also trigger clear (non-DRM) encoding for iOS/Safari
-        let clearResult = null;
-        const clearProfileId = process.env.AXINOM_ENCODING_PROFILE_CLEAR;
+        const clearResult = await encodeVideoViaService({
+            videoTitle: video.title,
+            sourceLocation: video.r2Key,
+            profileId: clearProfileId,
+        });
 
-        console.log('Clear profile ID from env:', clearProfileId);
-
-        if (clearProfileId) {
-            try {
-                console.log('Starting clear encoding job...');
-                clearResult = await encodeVideoViaService({
-                    videoTitle: video.title,
-                    sourceLocation: video.r2Key,
-                    profileId: clearProfileId,
-                });
-                console.log('Clear encoding job created:', clearResult.axinomVideoId);
-            } catch (error) {
-                console.error('Clear encoding job failed (non-critical):', error);
-            }
-        } else {
-            console.warn('AXINOM_ENCODING_PROFILE_CLEAR not set - skipping clear encoding');
-        }
+        console.log('Clear encoding job created:', clearResult.axinomVideoId);
 
         await prisma.video.update({
             where: { id: videoId },

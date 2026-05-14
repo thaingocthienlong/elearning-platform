@@ -90,7 +90,7 @@ Create a Mosaic service account with Encoding permission. Record:
 | Service account client ID | `AXINOM_ENCODING_CLIENT_ID` | Used by `src/lib/axinom-video-service.ts`. |
 | Service account client secret | `AXINOM_ENCODING_CLIENT_SECRET` | Server secret. |
 | DRM processing profile ID | `AXINOM_ENCODING_PROFILE_DRM` | Used for protected output. |
-| Clear processing profile ID | `AXINOM_ENCODING_PROFILE_CLEAR` | Optional unless clear HLS fallback is required. |
+| Clear processing profile ID | `AXINOM_ENCODING_PROFILE_CLEAR` | Required for new admin video processing so Safari/iOS have the clear HLS fallback path. |
 | Encoding API base URL | `AXINOM_ENCODING_API_URL` | Default examples use `https://vip-eu-west-1.axinom.com`. |
 | Video Service GraphQL URL | `AXINOM_VIDEO_SERVICE_URL` | Default examples use `https://video.service.eu.axinom.net/graphql`. |
 

@@ -32,6 +32,10 @@ jest.mock('@/lib/prisma', () => ({
 
 const mockedGetServerSession = getServerSession as jest.Mock;
 const mockedPrisma = prisma as unknown as {
+  video: {
+    findFirst: jest.Mock;
+    update: jest.Mock;
+  };
   securityEvent: {
     deleteMany: jest.Mock;
     create: jest.Mock;
@@ -51,6 +55,16 @@ function webhookRequest(body: string, signature?: string) {
   }) as never;
 }
 
+function signedAxinomWebhookRequest(payload: unknown) {
+  const body = JSON.stringify(payload);
+  const signature = crypto
+    .createHmac('sha256', process.env.AXINOM_WEBHOOK_SECRET ?? '')
+    .update(body)
+    .digest('hex');
+
+  return webhookRequest(body, signature);
+}
+
 function deleteRequest(body: unknown) {
   return new Request('http://localhost.test/api/admin/security-events', {
     method: 'DELETE',
@@ -62,6 +76,83 @@ function deleteRequest(body: unknown) {
     body: JSON.stringify(body),
   }) as never;
 }
+
+describe('Axinom clear encoding webhook handling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.AXINOM_WEBHOOK_SECRET = 'webhook-secret';
+    process.env.AXINOM_ENCODING_CLIENT_ID = 'client-id';
+    process.env.AXINOM_ENCODING_CLIENT_SECRET = 'client-secret';
+    mockedPrisma.video.findFirst.mockResolvedValue({
+      id: 'video-1',
+      axinomVideoId: 'drm-axinom-id',
+      axinomIdClear: 'clear-axinom-id',
+      dashUrl: 'https://cdn.example/drm/manifest.mpd',
+      hlsUrl: 'https://cdn.example/drm/manifest.m3u8',
+      drmKeyId: 'drm-key-id',
+    });
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        json: jest.fn().mockResolvedValue({
+          data: {
+            authenticateServiceAccount: {
+              accessToken: 'token',
+            },
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        json: jest.fn().mockResolvedValue({
+          data: {
+            video: {
+              dashManifestPath: null,
+              hlsManifestPath: 'https://cdn.example/clear/master.m3u8',
+              outputLocation: 'https://cdn.example/clear',
+              videoStreams: {
+                nodes: [],
+              },
+            },
+          },
+        }),
+      }) as jest.Mock;
+  });
+
+  test('clear encode completion updates only the clear HLS URL', async () => {
+    const response = await axinomWebhookPost(
+      signedAxinomWebhookRequest({
+        eventType: 'VideoEncodingFinished',
+        videoId: 'clear-axinom-id',
+        title: 'Safari clear test',
+        sourceLocation: 'uploads/video-1/source.mp4',
+        publishLocation: 'https://cdn.example/clear',
+        timestamp: new Date().toISOString(),
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedPrisma.video.update).toHaveBeenCalledWith({
+      where: { id: 'video-1' },
+      data: expect.objectContaining({
+        hlsUrlClear: 'https://cdn.example/clear/master.m3u8',
+        axinomSyncedAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+      }),
+    });
+    expect(mockedPrisma.video.update).not.toHaveBeenCalledWith({
+      where: { id: 'video-1' },
+      data: expect.objectContaining({
+        axinomVideoId: 'clear-axinom-id',
+      }),
+    });
+    expect(mockedPrisma.video.update).not.toHaveBeenCalledWith({
+      where: { id: 'video-1' },
+      data: expect.objectContaining({
+        hlsUrl: 'https://cdn.example/clear/master.m3u8',
+      }),
+    });
+  });
+});
 
 describe('webhook signature safety', () => {
   beforeEach(() => {

@@ -85,4 +85,12 @@ describe('env documentation contract', () => {
       expect(findMatrixRow(envMatrix, variableName)).toContain('public');
     }
   });
+
+  test('marks the Axinom clear profile as required for staging uploads', () => {
+    const envMatrix = readText(envMatrixPath);
+    const clearProfileRow = findMatrixRow(envMatrix, 'AXINOM_ENCODING_PROFILE_CLEAR');
+
+    expect(clearProfileRow).toContain('| optional | required |');
+    expect(clearProfileRow).toContain('clear HLS fallback');
+  });
 });
