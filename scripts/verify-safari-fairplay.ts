@@ -1,5 +1,11 @@
 #!/usr/bin/env tsx
+import path from 'node:path';
+import dotenv from 'dotenv';
+
 import { getSafariFairPlayReadiness } from '../src/lib/safari-fairplay-readiness';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local'), override: true });
 
 const readiness = getSafariFairPlayReadiness({
   AXINOM_FAIRPLAY_CERT_URL: process.env.AXINOM_FAIRPLAY_CERT_URL,
