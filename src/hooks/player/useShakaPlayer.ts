@@ -4,6 +4,7 @@ import {
     applyAxinomMessageHeader,
     resolveAxinomLicenseServerUrl,
 } from '@/lib/shaka-axinom';
+import { FAIRPLAY_KEY_SYSTEM } from '@/lib/drm-detection';
 
 interface UseShakaPlayerProps {
     videoRef: React.RefObject<HTMLVideoElement>;
@@ -65,7 +66,7 @@ export function useShakaPlayer({
                     drmConfig.drm!.servers!['com.microsoft.playready'] =
                         resolveAxinomLicenseServerUrl('playready', licenseServerUrl)!;
                 } else if (drmType === 'fairplay') {
-                    drmConfig.drm!.servers!['com.apple.fps.1_0'] =
+                    drmConfig.drm!.servers![FAIRPLAY_KEY_SYSTEM] =
                         resolveAxinomLicenseServerUrl('fairplay', licenseServerUrl)!;
                 }
 
@@ -86,7 +87,7 @@ export function useShakaPlayer({
                         const certArrayBuffer = await certResponse.arrayBuffer();
                         drmConfig.drm!.advanced = {
                             ...drmConfig.drm!.advanced,
-                            'com.apple.fps.1_0': {
+                            [FAIRPLAY_KEY_SYSTEM]: {
                                 serverCertificate: new Uint8Array(certArrayBuffer),
                             },
                         };

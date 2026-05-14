@@ -1,4 +1,4 @@
-import { getOptimalDRMConfig } from '@/lib/drm-detection';
+import { detectDRMCapabilities, getOptimalDRMConfig } from '@/lib/drm-detection';
 
 function setUserAgent(userAgent: string) {
   Object.defineProperty(window.navigator, 'userAgent', {
@@ -107,5 +107,35 @@ describe('DRM playback routing', () => {
       robustness: 'HW_SECURE_ALL',
       requiresL1: true,
     });
+  });
+
+  test('detects Safari FairPlay through the Modern EME key system', async () => {
+    const requestMediaKeySystemAccess = jest.fn((keySystem: string) => {
+      if (keySystem === 'com.apple.fps') {
+        return Promise.resolve({});
+      }
+
+      return Promise.reject(new Error(`unsupported key system: ${keySystem}`));
+    });
+
+    Object.defineProperty(window.navigator, 'requestMediaKeySystemAccess', {
+      value: requestMediaKeySystemAccess,
+      configurable: true,
+    });
+
+    await expect(detectDRMCapabilities()).resolves.toMatchObject({
+      fairplay: true,
+      recommendedDRM: 'fairplay',
+      supportedSystems: ['fairplay'],
+    });
+
+    expect(requestMediaKeySystemAccess).toHaveBeenCalledWith(
+      'com.apple.fps',
+      expect.arrayContaining([
+        expect.objectContaining({
+          initDataTypes: ['skd'],
+        }),
+      ])
+    );
   });
 });

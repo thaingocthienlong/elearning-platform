@@ -53,3 +53,24 @@ describe('staging deployment documentation contract', () => {
     expect(checklist).toContain('Production Gaps Not Closed By This Checklist');
   });
 });
+
+describe('Safari FairPlay staging docs', () => {
+  test('Axinom staging checklist documents real macOS Safari FairPlay verification', () => {
+    const checklist = readText('docs/axinom-staging-checklist.md');
+
+    expect(checklist).toContain('## 6B. macOS Safari FairPlay Smoke');
+    expect(checklist).toContain('npm run verify:safari-fairplay');
+    expect(checklist).toContain('Use real macOS Safari for acceptance');
+    expect(checklist).toContain('Playwright WebKit is not a FairPlay acceptance substitute');
+    expect(checklist).toContain('Do not paste license tokens, certificate contents, Communication Key values, or DRM content keys');
+  });
+
+  test('staging smoke checklist has Safari-specific FairPlay and fallback rows', () => {
+    const checklist = readText('docs/staging-smoke-checklist.md');
+
+    expect(checklist).toContain('SAFARI-DRM-01');
+    expect(checklist).toContain('SAFARI-FALLBACK-01');
+    expect(checklist).toContain('real macOS Safari');
+    expect(checklist).toContain('clear HLS fallback');
+  });
+});

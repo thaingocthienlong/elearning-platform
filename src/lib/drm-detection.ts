@@ -22,6 +22,8 @@ export interface DRMConfig {
   isClearPlayback?: boolean;
 }
 
+export const FAIRPLAY_KEY_SYSTEM = 'com.apple.fps';
+
 /**
  * Detect all DRM capabilities using EME API
  */
@@ -44,6 +46,16 @@ export async function detectDRMCapabilities(): Promise<DRMCapabilities> {
 
   const videoConfig = [{
     initDataTypes: ['cenc'],
+    videoCapabilities: [{
+      contentType: 'video/mp4;codecs="avc1.42E01E"',
+    }],
+    audioCapabilities: [{
+      contentType: 'audio/mp4;codecs="mp4a.40.2"',
+    }],
+  }];
+
+  const fairPlayConfig = [{
+    initDataTypes: ['skd'],
     videoCapabilities: [{
       contentType: 'video/mp4;codecs="avc1.42E01E"',
     }],
@@ -98,7 +110,7 @@ export async function detectDRMCapabilities(): Promise<DRMCapabilities> {
 
   // Check FairPlay
   try {
-    await navigator.requestMediaKeySystemAccess('com.apple.fps.1_0', videoConfig);
+    await navigator.requestMediaKeySystemAccess(FAIRPLAY_KEY_SYSTEM, fairPlayConfig);
     capabilities.fairplay = true;
     capabilities.supportedSystems.push('fairplay');
     capabilities.supportsHardwareDRM = true; // FairPlay always uses hardware
