@@ -91,6 +91,41 @@ Expected after Encoding completion:
 5. Confirm manifest and media segment requests do not include `X-AxDRM-Message`.
 6. Confirm playback starts for a supported DRM/browser combination.
 
+## 6B. macOS Safari FairPlay Smoke
+
+Use real macOS Safari for acceptance. Playwright WebKit is useful for browser automation checks, but Playwright WebKit is not a FairPlay acceptance substitute because it is not branded Safari and media behavior varies by operating system.
+
+Before opening the watch page, run:
+
+```bash
+npm run verify:safari-fairplay
+```
+
+Expected FairPlay-ready result:
+
+```text
+Safari FairPlay readiness: ready
+Mode: fairplay-drm
+Checked: AXINOM_FAIRPLAY_CERT_URL, NEXT_PUBLIC_AX_FP_LS_URL
+```
+
+If the verifier reports `blocked`, Safari acceptance must use `hlsUrlClear` from the clear processing profile instead of claiming FairPlay DRM playback.
+
+Real-device FairPlay smoke steps:
+
+1. Use a Mac with current Safari and no custom browser automation patches.
+2. Sign in as an entitled staging learner.
+3. Open `/watch/<videoId>` for a video row with `hlsUrl`, `drmKeyId`, and no `hlsUrlClear` fallback selected.
+4. Accept the IPR consent prompt.
+5. In Safari Web Inspector, confirm the HLS manifest request loads.
+6. Confirm the FairPlay license request goes to the Axinom FairPlay License Service URL.
+7. Confirm the license request includes `X-AxDRM-Message`.
+8. Confirm manifest and media segment requests do not include `X-AxDRM-Message`.
+9. Press play and confirm the video element `currentTime` advances for at least 10 seconds.
+10. Record evidence as sanitized status, browser version, video row ID, public Axinom operational status fields, and HTTP status codes only.
+
+Do not paste license tokens, certificate contents, Communication Key values, or DRM content keys into docs, screenshots, tickets, or chat.
+
 ## 7. Expected Failures
 
 Record failures by symptom and path, not by secret value:
