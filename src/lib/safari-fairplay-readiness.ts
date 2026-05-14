@@ -81,19 +81,19 @@ export function getSafariPlaybackExpectation({
     };
   }
 
+  if (hlsUrlClear) {
+    return {
+      appleBrowser: true,
+      expectedMode: 'clear-hls-fallback',
+      reason: 'Safari should use clear HLS fallback because clear HLS is available for Apple playback.',
+    };
+  }
+
   if (fairPlayReady && hlsUrl) {
     return {
       appleBrowser: true,
       expectedMode: 'fairplay-drm',
       reason: 'Safari has protected HLS and FairPlay env is configured.',
-    };
-  }
-
-  if (!fairPlayReady && hlsUrlClear) {
-    return {
-      appleBrowser: true,
-      expectedMode: 'clear-hls-fallback',
-      reason: 'Safari should use clear HLS fallback because FairPlay env is not configured.',
     };
   }
 

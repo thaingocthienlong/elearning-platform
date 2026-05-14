@@ -72,7 +72,37 @@ describe('Safari FairPlay readiness', () => {
     ).toEqual({
       appleBrowser: true,
       expectedMode: 'clear-hls-fallback',
-      reason: 'Safari should use clear HLS fallback because FairPlay env is not configured.',
+      reason: 'Safari should use clear HLS fallback because clear HLS is available for Apple playback.',
+    });
+  });
+
+  test('expects clear HLS fallback for macOS Safari when protected and clear HLS both exist', () => {
+    expect(
+      getSafariPlaybackExpectation({
+        userAgent: SAFARI_MAC,
+        hlsUrl: 'https://media.example/protected/master.m3u8',
+        hlsUrlClear: 'https://media.example/clear/master.m3u8',
+        fairPlayReady: true,
+      })
+    ).toEqual({
+      appleBrowser: true,
+      expectedMode: 'clear-hls-fallback',
+      reason: 'Safari should use clear HLS fallback because clear HLS is available for Apple playback.',
+    });
+  });
+
+  test('expects clear HLS fallback for macOS Safari when FairPlay is ready but protected HLS is missing', () => {
+    expect(
+      getSafariPlaybackExpectation({
+        userAgent: SAFARI_MAC,
+        hlsUrl: null,
+        hlsUrlClear: 'https://media.example/clear/master.m3u8',
+        fairPlayReady: true,
+      })
+    ).toEqual({
+      appleBrowser: true,
+      expectedMode: 'clear-hls-fallback',
+      reason: 'Safari should use clear HLS fallback because clear HLS is available for Apple playback.',
     });
   });
 
