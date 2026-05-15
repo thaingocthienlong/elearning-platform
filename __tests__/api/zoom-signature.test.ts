@@ -111,7 +111,7 @@ describe('Zoom signature route', () => {
     expect(payload.role).toBe(0);
   });
 
-  test('allows admin users to receive host-capable role', async () => {
+  test('keeps admin users on attendee role until a host ZAK flow exists', async () => {
     mockedGetServerSession.mockResolvedValue({
       user: { email: 'admin@example.test', name: 'Admin One', role: 'ADMIN' },
     });
@@ -131,11 +131,11 @@ describe('Zoom signature route', () => {
     const body = await response.json();
     const payload = decodeJwtPayload(body.signature);
 
-    expect(body.role).toBe(1);
+    expect(body.role).toBe(0);
     expect(body.watermarkText).toBe('Admin Name - 555-0100');
     expect(body.zoomWatermarkColor).toBe('#FF0000');
     expect(body.zoomWatermarkOpacity).toBe(0.4);
     expect(body.zoomWatermarkSizePercent).toBe(3);
-    expect(payload.role).toBe(1);
+    expect(payload.role).toBe(0);
   });
 });

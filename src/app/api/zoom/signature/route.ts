@@ -31,7 +31,9 @@ export async function POST(req: Request) {
             );
         }
 
-        const role = session.user.role === 'ADMIN' ? 1 : 0;
+        // This iframe flow joins the configured meeting as a non-login participant.
+        // Starting or joining as host requires a separate ZAK-backed Zoom flow.
+        const role = 0;
 
         const iat = Math.round(new Date().getTime() / 1000) - 30;
         const exp = iat + 60 * 60 * 2;

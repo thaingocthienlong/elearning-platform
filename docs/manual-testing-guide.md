@@ -299,8 +299,8 @@ Steps:
 
 Expected result:
 
-- Admin may receive host-capable role only when server-side role rules allow it.
-- Ordinary users cannot mint role `1`.
+- Admin receives attendee role `0` in the retained iframe join flow.
+- No user can mint role `1` until a reviewed ZAK-backed host/start flow exists.
 
 ### ZOOM-03: Missing Zoom Configuration
 

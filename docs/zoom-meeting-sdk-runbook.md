@@ -8,7 +8,7 @@ The user flow is:
 
 1. Authenticated user opens `/meeting`.
 2. `src/app/meeting/page.tsx` requests `/api/zoom/signature` with a minimal request body.
-3. `src/app/api/zoom/signature/route.ts` validates the NextAuth session, loads server-owned meeting config, derives the Zoom role, signs the Meeting SDK JWT, and returns browser-safe launch data.
+3. `src/app/api/zoom/signature/route.ts` validates the NextAuth session, loads server-owned meeting config, signs an attendee-role Meeting SDK JWT, and returns browser-safe launch data.
 4. `/meeting` builds an iframe URL for `public/zoom-meeting.html`.
 5. `public/zoom-meeting.html` initializes Zoom Client View and applies the app watermark overlay.
 

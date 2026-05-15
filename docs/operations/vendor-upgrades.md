@@ -72,7 +72,7 @@ Upgrade steps:
 1. Check `npm view @zoom/meetingsdk version` and Zoom release notes.
 2. Review whether the current iframe/CDN path or package-driven path is the supported source of truth.
 3. Keep `/api/zoom/signature` server-owned and role-controlled.
-4. Keep learners on role `0`; only admins may receive role `1`.
+4. Keep the retained iframe flow on attendee role `0`; add a reviewed ZAK-backed path before enabling host role `1`.
 5. Update `docs/zoom-meeting-sdk-runbook.md` with SDK version, asset path, and smoke evidence.
 6. Smoke `/meeting` with a learner and admin on staging.
 

@@ -113,7 +113,7 @@ Primary files/docs:
 - `public/zoom-meeting.html`
 - `docs/zoom-meeting-sdk-runbook.md`
 
-The current meeting flow is an authenticated iframe launch. The server owns the meeting number/passcode/signature response. Learners receive Zoom role `0`; only admins may receive role `1`.
+The current meeting flow is an authenticated iframe launch. The server owns the meeting number/passcode/signature response. All users receive Zoom attendee role `0`; host/start behavior requires a separate ZAK-backed flow.
 
 Operational checks:
 
