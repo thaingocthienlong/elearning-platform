@@ -88,6 +88,12 @@ Official docs:
 - https://nextjs.org/docs/app/guides/upgrading
 - https://nextjs.org/docs/app/guides/upgrading/version-16
 
+Current baseline after the 2026-05-15 framework refresh:
+
+- `next` and `eslint-config-next`: `16.2.6`
+- `react` and `react-dom`: `18.3.1`
+- Node.js requirement: `>=20.9.0`; repo `.nvmrc` remains `20.11.1`.
+
 Upgrade steps:
 
 1. Read the version-specific guide before changing `next`, `react`, `react-dom`, or `eslint-config-next`.

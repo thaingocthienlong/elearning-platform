@@ -20,7 +20,7 @@ function getRateLimiter() {
   return ratelimit;
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
   // console.log(`Middleware Global Debug: Request for ${path}`);
 
@@ -43,7 +43,7 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(url);
     }
   } catch (e) {
-    console.error('Middleware system mode check failed:', e);
+    console.error('Proxy system mode check failed:', e);
     // Fail open (allow access) or closed?
     // Fail open to courses to prevent total lockout if Redis is down
   }
@@ -123,7 +123,7 @@ export async function middleware(req: NextRequest) {
     } catch (error) {
       // Fail open if Redis is unavailable - server-side getServerSession will validate
       // This ensures the app remains functional even if cache is down
-      console.error('Middleware session revocation check error:', error);
+      console.error('Proxy session revocation check error:', error);
     }
 
     // Session cookie exists and not revoked, allow the request to proceed

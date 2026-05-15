@@ -26,7 +26,7 @@
 ## Frameworks
 
 **Core:**
-- Next.js 16.0.7 - App Router web application; configured in `next.config.ts` and scripts in `package.json`.
+- Next.js 16.2.6 - App Router web application; configured in `next.config.ts` and scripts in `package.json`.
 - React 18.3.1 / React DOM 18.3.1 - UI runtime for `src/app/` and `src/components/`.
 - Prisma 5.22.0 / `@prisma/client` 5.22.0 - Database client generated on `postinstall`; schema in `prisma/schema.prisma`; singleton client in `src/lib/prisma.ts`.
 - NextAuth.js 4.24.13 - Authentication and database sessions via `src/lib/auth.ts` and `src/app/api/auth/[...nextauth]/route.ts`.
@@ -37,7 +37,7 @@
 
 **Build/Dev:**
 - TypeScript 5 - Compiler settings in `tsconfig.json`; path alias `@/*` maps to `src/*`.
-- ESLint 9 with `eslint-config-next` 16.0.7 - Configured in `eslint.config.mjs`; `npm run lint` runs `eslint`.
+- ESLint 9 with `eslint-config-next` 16.2.6 - Configured in `eslint.config.mjs`; `npm run lint` runs `eslint`.
 - Prettier 3.6.2 with `prettier-plugin-tailwindcss` 0.7.1 - Configured in `.prettierrc`.
 - Tailwind CSS 3.4.16 - Configured in `tailwind.config.ts`; shadcn-style UI metadata in `components.json`.
 - PostCSS / Autoprefixer - Configured in `postcss.config.mjs`.
@@ -47,7 +47,7 @@
 ## Key Dependencies
 
 **Critical:**
-- `next` 16.0.7 - Web framework and API route runtime for `src/app/`.
+- `next` 16.2.6 - Web framework and API route runtime for `src/app/`.
 - `react` 18.3.1 and `react-dom` 18.3.1 - Component runtime.
 - `@prisma/client` 5.22.0 and `prisma` 5.22.0 - MongoDB data access; `src/lib/prisma.ts` is the shared client.
 - `next-auth` 4.24.13 and `@next-auth/prisma-adapter` 1.0.7 - Google OAuth, database-backed sessions, and Prisma persistence in `src/lib/auth.ts`.

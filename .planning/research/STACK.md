@@ -19,7 +19,7 @@ The first stack goal is reproducibility: a clean checkout should install, genera
 |------------|--------------|-------------------------|---------|-----|
 | Node.js | README says 18+ | Pin `>=20.9.0`; prefer Node 20 LTS until dependency upgrades are planned | Local, Vercel build, Next.js runtime | Next.js 16 requires Node 20.9+; Prisma 7 requires stricter Node 20.19+/22.12+, so stay on Prisma 5 for now. |
 | npm | lockfile v3 | Keep npm and `npm ci` | Reproducible installs | Existing lockfile is npm-based; do not introduce pnpm/yarn during rescue. |
-| Next.js | `16.0.7` | Keep 16.x, patch within 16 only after smoke tests | App Router UI and route handlers | Current app is already App Router/Vercel-shaped; official docs require explicit ESLint CLI because `next build` no longer runs lint. |
+| Next.js | `16.2.6` | Keep 16.x, patch within 16 only after smoke tests | App Router UI and route handlers | Current app is already App Router/Vercel-shaped; official docs require explicit ESLint CLI because `next build` no longer runs lint. |
 | React | `18.3.1` | Keep React 18 | UI runtime | Avoid React 19 migration until Zoom/Shaka client components and effects have tests. |
 | TypeScript | `^5` | Keep TypeScript 5; add `typecheck` script | Static checks | Required by Next 16 and critical for brownfield rescue. |
 | Tailwind/Radix/shadcn | Present | Keep | UI components | Existing admin/client UI already uses this stack. |
