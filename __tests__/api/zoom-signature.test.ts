@@ -4,6 +4,7 @@
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { POST as zoomSignaturePost } from '@/app/api/zoom/signature/route';
+import { GET as zoomDiagnosticsGet } from '@/app/api/zoom/diagnostics/route';
 
 jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
@@ -137,5 +138,62 @@ describe('Zoom signature route', () => {
     expect(body.zoomWatermarkOpacity).toBe(0.4);
     expect(body.zoomWatermarkSizePercent).toBe(3);
     expect(payload.role).toBe(0);
+  });
+});
+
+describe('Zoom diagnostics route', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = {
+      ...originalEnv,
+      ZOOM_MEETING_SDK_KEY: 'sdk-key',
+      ZOOM_MEETING_SDK_SECRET: 'sdk-secret',
+      NEXT_PUBLIC_ZOOM_MEETING_ID: '987654321',
+      NEXT_PUBLIC_ZOOM_PASSCODE: 'public-passcode',
+      VERCEL_GIT_COMMIT_SHA: '1234567890abcdef',
+      VERCEL_ENV: 'preview',
+    };
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
+  });
+
+  test('returns admin-only Zoom deployment diagnostics without secrets', async () => {
+    mockedGetServerSession.mockResolvedValue({
+      user: { email: 'admin@example.test', role: 'ADMIN' },
+    });
+
+    const response = await zoomDiagnosticsGet(
+      new Request('https://staging.example.test/api/zoom/diagnostics', {
+        headers: { 'x-forwarded-host': 'elearning.example.test' },
+      }) as never
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+
+    expect(body.meetingNumber).toBe('987654321');
+    expect(body.sdkKeyFingerprint).toEqual(expect.any(String));
+    expect(body.sdkKeyFingerprint).not.toBe('sdk-key');
+    expect(body.configured).toMatchObject({
+      sdkKey: true,
+      sdkSecret: true,
+      meetingNumber: true,
+      passcode: true,
+    });
+    expect(body.tokenClaims).toMatchObject({
+      mn: '987654321',
+      role: 0,
+      tokenWindowSeconds: 7200,
+      hasTokenExp: true,
+    });
+    expect(body.requestHost).toBe('elearning.example.test');
+    expect(body.deployment).toMatchObject({
+      vercelCommit: '1234567890ab',
+      vercelEnv: 'preview',
+    });
+    expect(JSON.stringify(body)).not.toContain('sdk-secret');
+    expect(JSON.stringify(body)).not.toContain('public-passcode');
   });
 });
