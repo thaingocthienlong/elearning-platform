@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zoom Meeting</title>
-    <!-- Use standard Zoom 5.0.4 CSS -->
-    <link type="text/css" rel="stylesheet" href="/lib/zoom/css/bootstrap.css" />
-    <link type="text/css" rel="stylesheet" href="/lib/zoom/css/react-select.css" />
+    <!-- Use current Zoom Client View CSS -->
+    <link type="text/css" rel="stylesheet" href="https://source.zoom.us/6.0.2/css/bootstrap.css" />
+    <link type="text/css" rel="stylesheet" href="https://source.zoom.us/6.0.2/css/react-select.css" />
     <link type="text/css" rel="stylesheet" href="/lib/zoom/css/zoom-patch.css" />
 
     <!-- FORCE DESKTOP UI: Override User Agent to prevent Zoom from switching to Mobile Mode -->
@@ -114,17 +114,17 @@
     <div id="watermark-overlay"
         style="position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden;"></div>
 
-    <!-- 1. Load React 16.14.0 (Required for Zoom 5.0.4) -->
-    <script src="https://unpkg.com/react@16.14.0/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@16.14.0/umd/react-dom.production.min.js"></script>
+    <!-- 1. Load React runtime expected by Zoom 6.0.2 -->
+    <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 
     <!-- 2. Load Redux/Lodash -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.2.1/redux.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/redux-thunk/2.4.2/redux-thunk.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
 
-    <!-- 3. Load Zoom SDK 5.0.4 -->
-    <script src="https://source.zoom.us/5.0.4/zoom-meeting-5.0.4.min.js"></script>
+    <!-- 3. Load Zoom SDK 6.0.2 -->
+    <script src="https://source.zoom.us/6.0.2/zoom-meeting-6.0.2.min.js"></script>
 
     <script>
         // Parse URL params
@@ -149,7 +149,7 @@
         window._ = _;
 
         // Initialize Zoom
-        ZoomMtg.setZoomJSLib('https://source.zoom.us/5.0.4/lib', '/av');
+        ZoomMtg.setZoomJSLib('https://source.zoom.us/6.0.2/lib', '/av');
         ZoomMtg.preLoadWasm();
         ZoomMtg.prepareWebSDK();
         ZoomMtg.i18n.load('vi-VN');

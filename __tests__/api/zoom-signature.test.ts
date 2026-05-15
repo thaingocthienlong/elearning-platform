@@ -193,6 +193,7 @@ describe('Zoom diagnostics route', () => {
       vercelCommit: '1234567890ab',
       vercelEnv: 'preview',
     });
+    expect(body.zoomWebSdkVersion).toBe('6.0.2');
     expect(JSON.stringify(body)).not.toContain('sdk-secret');
     expect(JSON.stringify(body)).not.toContain('public-passcode');
   });

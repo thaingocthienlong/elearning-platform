@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-const ZOOM_WEB_SDK_VERSION = '5.0.4';
+const ZOOM_WEB_SDK_VERSION = '6.0.2';
 const ATTENDEE_ROLE = 0;
 const TOKEN_WINDOW_SECONDS = 60 * 60 * 2;
 
