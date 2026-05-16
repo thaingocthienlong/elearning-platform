@@ -51,6 +51,14 @@ export function useShakaPlayer({
             // Skip DRM config for clear HLS (FairPlay without certificate)
             const isClearPlayback = drmType === 'fairplay' && !fairplayCertUrl;
 
+            if (isClearPlayback) {
+                newPlayer.configure({
+                    streaming: {
+                        preferNativeHls: true,
+                    },
+                });
+            }
+
             if (licenseServerUrl && !isClearPlayback) {
                 const drmConfig: shaka.extern.PlayerConfiguration = {
                     drm: {
