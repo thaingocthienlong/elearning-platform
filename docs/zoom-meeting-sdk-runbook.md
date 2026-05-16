@@ -99,6 +99,25 @@ Use a staging environment with real Zoom SDK values and a test meeting.
 
 If real credentials or meeting availability are missing, record the smoke as `requires staging credentials`; do not mark automated signature/API tests optional.
 
+## Two-device session revocation smoke test
+
+Use this check after changing session revocation, SSE, or the Zoom iframe bridge.
+
+1. Sign in on iPhone Safari as a learner and open `/meeting`.
+2. Confirm the learner joins the Zoom meeting and the iframe shows active meeting UI.
+3. On Windows Chrome, sign in as the same learner and open `/meeting`.
+4. Confirm the Windows Chrome session can join the meeting.
+5. Watch the iPhone Safari device for up to 15 seconds.
+6. Pass condition: iPhone Safari leaves the Zoom meeting or redirects to `/auth/signin?error=SessionRevoked`.
+7. Fail condition: iPhone Safari continues hearing or seeing the meeting after 15 seconds while Windows Chrome remains active.
+
+If the fail condition occurs, inspect:
+
+- `POST /api/session/fingerprint` response on Windows Chrome.
+- Redis key `session_revoked:<old-session-token>` without printing the token value in shared logs.
+- `/api/session/events` connection status on iPhone Safari.
+- Browser console message from `public/zoom-meeting.html` around `platform:leave-meeting`.
+
 ## Rollback
 
 If an SDK upgrade breaks join behavior:
