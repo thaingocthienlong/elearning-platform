@@ -10,6 +10,36 @@ const activeConnections = new Map<string, ReadableStreamDefaultController>();
 // Track connection count for monitoring
 let totalConnections = 0;
 
+type SSEController = Pick<ReadableStreamDefaultController, 'close' | 'enqueue'>;
+
+type RevocationRedis = {
+    get: (key: string) => Promise<unknown>;
+} | null;
+
+export async function notifyIfSessionRevoked(
+    redis: RevocationRedis,
+    revokedKey: string,
+    controller: SSEController,
+    connectionId: string,
+    reason: string = 'Session was revoked'
+) {
+    if (!redis) {
+        return false;
+    }
+
+    try {
+        const isRevoked = await redis.get(revokedKey);
+        if (isRevoked === 'true') {
+            sendRevokedEvent(controller, connectionId, reason);
+            return true;
+        }
+    } catch {
+        // Redis read failures leave the SSE stream alive; client fallback validation still runs.
+    }
+
+    return false;
+}
+
 /**
  * SSE endpoint for session events (revocation, etc.)
  * Clients connect once and receive push notifications
@@ -60,20 +90,21 @@ export async function GET(req: NextRequest) {
             const revokedKey = `session_revoked:${sessionToken}`;
             const redis = getRedisClient();
 
-            // Check if already revoked on connection
-            if (redis) {
-                redis.get(revokedKey).then((isRevoked) => {
-                    if (isRevoked === 'true') {
-                        sendRevokedEvent(controller, connectionId, 'Session was revoked');
-                    }
-                }).catch(() => {
-                    // Ignore Redis errors on initial check
-                });
-            }
-
             // Send keepalive ping every 30 seconds
-            const pingInterval = setInterval(() => {
+            const pingInterval = setInterval(async () => {
                 try {
+                    const revoked = await notifyIfSessionRevoked(
+                        redis,
+                        revokedKey,
+                        controller,
+                        connectionId,
+                        'Session was revoked'
+                    );
+                    if (revoked) {
+                        clearInterval(pingInterval);
+                        return;
+                    }
+
                     const pingEvent = `event: ping\ndata: ${JSON.stringify({
                         timestamp: new Date().toISOString()
                     })}\n\n`;
@@ -83,6 +114,20 @@ export async function GET(req: NextRequest) {
                     cleanup(connectionId, pingInterval);
                 }
             }, 30000);
+
+            notifyIfSessionRevoked(
+                redis,
+                revokedKey,
+                controller,
+                connectionId,
+                'Session was revoked'
+            ).then((revoked) => {
+                if (revoked) {
+                    clearInterval(pingInterval);
+                }
+            }).catch(() => {
+                // Connection remains open; client fallback validation still protects active pages.
+            });
 
             // Cleanup when client disconnects
             req.signal.addEventListener('abort', () => {
@@ -112,7 +157,7 @@ export async function GET(req: NextRequest) {
  * Helper to send revoked event and close connection
  */
 function sendRevokedEvent(
-    controller: ReadableStreamDefaultController,
+    controller: SSEController,
     connectionId: string,
     reason: string
 ) {

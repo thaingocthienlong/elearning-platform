@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, Video } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import {
+    SESSION_REVOKED_EVENT,
+    type SessionRevokedDetail,
+} from '@/hooks/useSessionSSE';
 
 export default function MeetingPage() {
     const { data: session, status } = useSession();
@@ -13,10 +17,33 @@ export default function MeetingPage() {
     const { t } = useLanguage();
     const [iframeSrc, setIframeSrc] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+    const hasRequestedIframeLeave = useRef(false);
 
     // Refs to prevent re-initialization on tab switch
     const hasInitialized = useRef(false);
     const initialUserEmail = useRef<string | null>(null);
+
+    useEffect(() => {
+        const handleSessionRevoked = (event: Event) => {
+            if (hasRequestedIframeLeave.current) return;
+
+            hasRequestedIframeLeave.current = true;
+            const reason = (event as CustomEvent<SessionRevokedDetail>).detail?.reason ||
+                'Session revoked';
+
+            iframeRef.current?.contentWindow?.postMessage(
+                { type: 'platform:leave-meeting', reason },
+                window.location.origin
+            );
+        };
+
+        window.addEventListener(SESSION_REVOKED_EVENT, handleSessionRevoked);
+
+        return () => {
+            window.removeEventListener(SESSION_REVOKED_EVENT, handleSessionRevoked);
+        };
+    }, []);
 
     // Session validation effect - detect user changes and require auth
     useEffect(() => {
@@ -145,6 +172,7 @@ export default function MeetingPage() {
     return (
         <div className="fixed inset-0 bg-black overflow-hidden z-[100]">
             <iframe
+                ref={iframeRef}
                 src={iframeSrc}
                 allow="camera; microphone; fullscreen; display-capture; autoplay"
                 className="w-full h-full border-none"

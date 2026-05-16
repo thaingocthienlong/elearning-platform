@@ -11,6 +11,21 @@ interface SSEState {
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_BASE_DELAY = 1000; // 1 second, exponential backoff
 
+export const SESSION_REVOKED_EVENT = 'session:revoked';
+
+export interface SessionRevokedDetail {
+    reason: string;
+}
+
+export function notifySessionRevoked(reason: string) {
+    if (typeof window === 'undefined') return;
+
+    window.dispatchEvent(new CustomEvent<SessionRevokedDetail>(
+        SESSION_REVOKED_EVENT,
+        { detail: { reason } }
+    ));
+}
+
 /**
  * Hook for SSE-based session monitoring
  * Receives push notifications for session revocation - no polling needed
@@ -25,6 +40,8 @@ export function useSessionSSE(enabled: boolean = true, fallbackPollingMs: number
     const fallbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const handleRevocation = useCallback(async (reason: string) => {
+        notifySessionRevoked(reason);
+
         if (process.env.NODE_ENV === 'development') {
             console.log('🔴 Session revoked via SSE:', reason);
         }
