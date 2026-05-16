@@ -82,7 +82,6 @@ export async function POST(req: NextRequest) {
     const sessionsToRevoke = otherSessions.filter(
       (staleSession) =>
         staleSession.sessionToken &&
-        staleSession.fingerprint &&
         staleSession.fingerprint !== fingerprint,
     );
 

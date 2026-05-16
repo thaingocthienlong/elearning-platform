@@ -57,15 +57,22 @@ const mockedIsSessionRevoked = isSessionRevoked as jest.Mock;
 const mockedRevokeSession = revokeSession as jest.Mock;
 
 function nextRequest(url: string, init: RequestInit & { token?: string } = {}) {
+  const { token, signal, ...requestInit } = init;
   const headers = new Headers(init.headers);
-  if (init.token) {
-    headers.set("cookie", `next-auth.session-token=${init.token}`);
+  if (token) {
+    headers.set("cookie", `next-auth.session-token=${token}`);
   }
 
-  return new NextRequest(url, {
-    ...init,
+  const nextInit: ConstructorParameters<typeof NextRequest>[1] = {
+    ...requestInit,
     headers,
-  });
+  };
+
+  if (signal) {
+    nextInit.signal = signal;
+  }
+
+  return new NextRequest(url, nextInit);
 }
 
 describe("session revocation flow", () => {
@@ -123,7 +130,7 @@ describe("session revocation flow", () => {
       ...currentSession,
       fingerprint: "chrome-fingerprint",
     });
-    mockedPrisma.session.deleteMany.mockResolvedValue({ count: 1 });
+    mockedPrisma.session.deleteMany.mockResolvedValue({ count: 2 });
 
     const response = await postFingerprint(
       nextRequest("http://localhost.test/api/session/fingerprint", {
@@ -148,14 +155,20 @@ describe("session revocation flow", () => {
         userAgent: "Chrome",
       },
     });
-    expect(mockedRevokeSession).toHaveBeenCalledTimes(1);
-    expect(mockedRevokeSession).toHaveBeenCalledWith(
+    expect(mockedRevokeSession).toHaveBeenCalledTimes(2);
+    expect(mockedRevokeSession).toHaveBeenNthCalledWith(
+      1,
       "old-token",
+      "Signed in on another device",
+    );
+    expect(mockedRevokeSession).toHaveBeenNthCalledWith(
+      2,
+      "unknown-token",
       "Signed in on another device",
     );
     expect(mockedPrisma.session.deleteMany).toHaveBeenCalledWith({
       where: {
-        id: { in: ["old-session"] },
+        id: { in: ["old-session", "unknown-session"] },
       },
     });
   });
