@@ -1,6 +1,7 @@
 'use client';
 
 import { SessionProvider, useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { useSessionFingerprint } from '@/hooks/useSessionFingerprint';
 import { useSessionSSE } from '@/hooks/useSessionSSE';
@@ -20,9 +21,11 @@ function SessionFingerprintTracker({ children }: { children: React.ReactNode }) 
  */
 function SessionMonitor({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
+  const pathname = usePathname();
+  const isMeetingPath = pathname?.startsWith('/meeting') ?? false;
 
   // Only monitor if authenticated
-  useSessionSSE(status === 'authenticated');
+  useSessionSSE(status === 'authenticated', isMeetingPath ? 15000 : 300000);
 
   return <>{children}</>;
 }
