@@ -1,11 +1,42 @@
 import { NextAuthOptions } from 'next-auth';
+import type { Adapter, AdapterUser } from 'next-auth/adapters';
 import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import { revokeAllSessionsForUser } from '@/lib/session-revocation';
 
+const prismaAdapter = PrismaAdapter(prisma);
+
+type NewAdapterUser = Omit<AdapterUser, 'id' | 'role'> &
+    Partial<Pick<AdapterUser, 'role'>>;
+
+async function createUserWithWhitelistName(
+    user: NewAdapterUser
+): Promise<AdapterUser> {
+    const email = user.email.toLowerCase();
+    const whitelisted = await prisma.allowedEmail.findUnique({
+        where: { email },
+    });
+
+    const createUser = prismaAdapter.createUser;
+    if (!createUser) {
+        throw new Error('Prisma adapter is missing createUser');
+    }
+
+    return createUser({
+        ...user,
+        email,
+        name: whitelisted?.fullname || user.name,
+    });
+}
+
+const authAdapter: Adapter = {
+    ...prismaAdapter,
+    createUser: createUserWithWhitelistName,
+};
+
 export const authOptions: NextAuthOptions = {
-    adapter: PrismaAdapter(prisma),
+    adapter: authAdapter,
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -19,7 +50,7 @@ export const authOptions: NextAuthOptions = {
         updateAge: 24 * 60 * 60, // 24 hours
     },
     callbacks: {
-        async signIn({ user, account, profile }) {
+        async signIn({ user }) {
             if (!user.email) {
                 return false;
             }
@@ -75,20 +106,7 @@ export const authOptions: NextAuthOptions = {
                 return false;
             }
 
-            // Allow new user creation if whitelisted
-            // Note: For new users, name will be set by NextAuth from Google profile initially,
-            // but we can override it here if we want to be strict, or let the next sign-in catch it.
-            // However, NextAuth creates the user AFTER this callback returns true.
-            // To force the name for NEW users, we might need to handle the creation event or use the `profile` callback
-            // (but `profile` callback doesn't have access to DB easily without creating circular deps or complexity).
-            // A simpler approach for new users: relying on the fact that Google name is usually okay, 
-            // OR we can't easily update it BEFORE creation. 
-            // But wait, if we return true, NextAuth creates the user.
-            // The `events.createUser` callback is better for this, but `signIn` is blocking.
-
-            // Let's just return true here. If they really want to enforce it immediately for new users,
-            // we'd need to hook into `events` or accept that first login might have Google name until next refresh.
-            // BUT, for existing users (which is the main case), the logic above handles it.
+            // The adapter create path stores whitelist fullname on first login.
             return true;
         },
         async session({ session, user }) {
