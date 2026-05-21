@@ -1,6 +1,7 @@
 import {
   SHAKA_AXINOM_LICENSE_URL_DEFAULTS,
   applyAxinomMessageHeader,
+  createAxinomDrmConfiguration,
   resolveAxinomLicenseServerUrl,
   shouldAttachAxinomMessage,
 } from '@/lib/shaka-axinom';
@@ -57,5 +58,22 @@ describe('shaka Axinom helpers', () => {
 
     expect(licenseRequest.headers).toEqual({ 'X-AxDRM-Message': 'token' });
     expect(manifestRequest.headers).toEqual({});
+  });
+
+  test('keeps PlayReady on the standard key system instead of Shaka recommendation 3000', () => {
+    const config = createAxinomDrmConfiguration({
+      drmType: 'playready',
+      licenseServerUrl: 'https://tenant.example/playready',
+    });
+
+    expect(config.drm?.servers?.['com.microsoft.playready']).toBe(
+      'https://tenant.example/playready'
+    );
+    expect(config.drm?.keySystemsMapping).toEqual({
+      'com.microsoft.playready': 'com.microsoft.playready',
+      'com.microsoft.playready.recommendation': 'com.microsoft.playready',
+      'com.microsoft.playready.recommendation.3000': 'com.microsoft.playready',
+    });
+    expect(config.drm?.preferredKeySystems).toEqual(['com.microsoft.playready']);
   });
 });

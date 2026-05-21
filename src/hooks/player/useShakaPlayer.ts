@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import {
     applyAxinomMessageHeader,
-    resolveAxinomLicenseServerUrl,
+    createAxinomDrmConfiguration,
 } from '@/lib/shaka-axinom';
 
 interface UseShakaPlayerProps {
@@ -50,52 +50,27 @@ export function useShakaPlayer({
             // Skip DRM config for clear HLS (FairPlay without certificate)
             const isClearPlayback = drmType === 'fairplay' && !fairplayCertUrl;
 
-            if (licenseServerUrl && !isClearPlayback) {
-                const drmConfig: shaka.extern.PlayerConfiguration = {
-                    drm: {
-                        servers: {},
-                    },
-                };
+            if (licenseServerUrl && drmType && !isClearPlayback) {
+                let fairplayServerCertificate: Uint8Array | undefined;
 
-                // Only configure the active DRM system
-                if (drmType === 'widevine') {
-                    drmConfig.drm!.servers!['com.widevine.alpha'] =
-                        resolveAxinomLicenseServerUrl('widevine', licenseServerUrl)!;
-                } else if (drmType === 'playready') {
-                    drmConfig.drm!.servers!['com.microsoft.playready'] =
-                        resolveAxinomLicenseServerUrl('playready', licenseServerUrl)!;
-                } else if (drmType === 'fairplay') {
-                    drmConfig.drm!.servers!['com.apple.fps.1_0'] =
-                        resolveAxinomLicenseServerUrl('fairplay', licenseServerUrl)!;
-                }
-
-                // Add robustness configuration for L1 (hardware DRM)
-                if (robustness) {
-                    drmConfig.drm!.advanced = {
-                        'com.widevine.alpha': {
-                            videoRobustness: [robustness],
-                            audioRobustness: [robustness],
-                        },
-                    };
-                }
-
-                // FairPlay requires certificate
                 if (drmType === 'fairplay' && fairplayCertUrl) {
                     try {
                         const certResponse = await fetch(fairplayCertUrl);
                         const certArrayBuffer = await certResponse.arrayBuffer();
-                        drmConfig.drm!.advanced = {
-                            ...drmConfig.drm!.advanced,
-                            'com.apple.fps.1_0': {
-                                serverCertificate: new Uint8Array(certArrayBuffer),
-                            },
-                        };
+                        fairplayServerCertificate = new Uint8Array(certArrayBuffer);
                     } catch (error) {
                         console.error('Failed to fetch FairPlay certificate:', error);
                         toast.error('Failed to load DRM certificate');
                         return;
                     }
                 }
+
+                const drmConfig = createAxinomDrmConfiguration({
+                    drmType,
+                    licenseServerUrl,
+                    robustness,
+                    fairplayServerCertificate,
+                });
 
                 newPlayer.configure(drmConfig);
             }
