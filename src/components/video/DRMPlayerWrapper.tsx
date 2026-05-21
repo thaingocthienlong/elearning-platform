@@ -46,7 +46,7 @@ export default function DRMPlayerWrapper({
                 const caps = await detectDRMCapabilities();
 
                 // Get optimal configuration
-                const config = getOptimalDRMConfig(dashUrl, hlsUrl, requireHD);
+                const config = getOptimalDRMConfig(dashUrl, hlsUrl, requireHD, caps);
 
                 if (!config) {
                     toast.error('No compatible DRM manifest available for your device');

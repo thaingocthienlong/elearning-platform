@@ -76,4 +76,13 @@ describe('shaka Axinom helpers', () => {
     });
     expect(config.drm?.preferredKeySystems).toEqual(['com.microsoft.playready']);
   });
+
+  test('pins Widevine selection when the app chooses Widevine playback', () => {
+    const config = createAxinomDrmConfiguration({
+      drmType: 'widevine',
+      licenseServerUrl: 'https://tenant.example/widevine',
+    });
+
+    expect(config.drm?.preferredKeySystems).toEqual(['com.widevine.alpha']);
+  });
 });
