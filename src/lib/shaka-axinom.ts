@@ -102,6 +102,7 @@ export function createAxinomDrmConfiguration({
   if (drmType === 'widevine') {
     drmConfig.drm.servers['com.widevine.alpha'] =
       resolveAxinomLicenseServerUrl('widevine', licenseServerUrl)!;
+    drmConfig.drm.preferredKeySystems = ['com.widevine.alpha'];
 
     if (robustness) {
       drmConfig.drm.advanced = {

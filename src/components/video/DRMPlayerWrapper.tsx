@@ -55,7 +55,8 @@ export default function DRMPlayerWrapper({
                     hlsUrl,
                     requireHD,
                     isClearHlsFallback,
-                    isFairPlayConfigured
+                    isFairPlayConfigured,
+                    caps
                 );
 
                 if (!config) {
