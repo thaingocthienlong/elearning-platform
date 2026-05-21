@@ -36,7 +36,8 @@ export async function POST(req: Request) {
         const token = generateAxinomToken({
             keyIds: entitlement.video.drmKeyId,
             userId: entitlement.user.id,
-            ttlSeconds: 300,
+            messageTtlSeconds: 300,
+            licenseDurationSeconds: 12600,
             allowPersistence: false,
         });
 

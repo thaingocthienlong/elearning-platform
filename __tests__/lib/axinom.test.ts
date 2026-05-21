@@ -52,6 +52,21 @@ describe('Axinom License Service Message helpers', () => {
     });
   });
 
+  test('separates short message validity from longer playback license duration', () => {
+    const payload = buildAxinomLicenseServiceMessage({
+      keyIds: 'kid-1',
+      now: new Date('2026-05-05T00:00:00.000Z'),
+      messageTtlSeconds: 300,
+      licenseDurationSeconds: 12600,
+    });
+
+    expect(payload.expiration_date).toBe('2026-05-05T00:05:00.000Z');
+    expect(payload.message.license).toEqual({
+      duration: 12600,
+      allow_persistence: false,
+    });
+  });
+
   test('rejects empty key ID input before signing', () => {
     expect(() =>
       buildAxinomLicenseServiceMessage({ keyIds: ' , ' })

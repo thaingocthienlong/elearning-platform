@@ -180,7 +180,8 @@ describe('media route entitlement adoption', () => {
     expect(mockedGenerateAxinomToken).toHaveBeenCalledWith({
       keyIds: 'kid-1,kid-2',
       userId: 'user-1',
-      ttlSeconds: 300,
+      messageTtlSeconds: 300,
+      licenseDurationSeconds: 12600,
       allowPersistence: false,
     });
   });
