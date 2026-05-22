@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 export interface AxinomLicenseServiceMessage {
   version: 1;
   com_key_id: string;
+  expiration_date?: string;
   message: AxinomEntitlementMessage;
 }
 
@@ -10,8 +11,9 @@ export interface AxinomEntitlementMessage {
   type: 'entitlement_message';
   version: 2;
   license: {
-    start_datetime: string;
-    expiration_datetime: string;
+    start_datetime?: string;
+    expiration_datetime?: string;
+    duration?: number;
     allow_persistence: boolean;
   };
   content_keys_source: {
@@ -32,6 +34,8 @@ export type GenerateAxinomTokenOptions = {
   sessionId?: string;
   now?: Date;
   ttlSeconds?: number;
+  messageTtlSeconds?: number;
+  licenseDurationSeconds?: number;
   allowPersistence?: boolean;
 };
 
@@ -53,12 +57,20 @@ function requireEnv(name: string) {
   return value;
 }
 
+function assertSecondsInRange(name: string, value: number, max: number) {
+  if (!Number.isInteger(value) || value <= 0 || value > max) {
+    throw new Error(`Axinom ${name} must be between 1 and ${max}`);
+  }
+}
+
 export function buildAxinomLicenseServiceMessage({
   keyIds,
   userId,
   sessionId,
   now = new Date(),
   ttlSeconds = 300,
+  messageTtlSeconds,
+  licenseDurationSeconds,
   allowPersistence = false,
 }: GenerateAxinomTokenOptions): AxinomLicenseServiceMessage {
   const normalizedKeyIds = normalizeKeyIds(keyIds);
@@ -67,22 +79,35 @@ export function buildAxinomLicenseServiceMessage({
     throw new Error('At least one Axinom key ID is required');
   }
 
-  if (ttlSeconds <= 0 || ttlSeconds > 3600) {
-    throw new Error('Axinom token ttlSeconds must be between 1 and 3600');
-  }
-
   const start = now.toISOString();
-  const expiration = new Date(now.getTime() + ttlSeconds * 1000).toISOString();
   const comKeyId = requireEnv('AXINOM_COM_KEY_ID');
+  const usesSeparateLicenseDuration =
+    messageTtlSeconds !== undefined || licenseDurationSeconds !== undefined;
+
+  const license = usesSeparateLicenseDuration
+    ? (() => {
+        const duration = licenseDurationSeconds ?? 7200;
+        assertSecondsInRange('licenseDurationSeconds', duration, 86400);
+
+        return {
+          duration,
+          allow_persistence: allowPersistence,
+        };
+      })()
+    : (() => {
+        assertSecondsInRange('token ttlSeconds', ttlSeconds, 3600);
+
+        return {
+          start_datetime: start,
+          expiration_datetime: new Date(now.getTime() + ttlSeconds * 1000).toISOString(),
+          allow_persistence: allowPersistence,
+        };
+      })();
 
   const message: AxinomEntitlementMessage = {
     type: 'entitlement_message',
     version: 2,
-    license: {
-      start_datetime: start,
-      expiration_datetime: expiration,
-      allow_persistence: allowPersistence,
-    },
+    license,
     content_keys_source: {
       inline: normalizedKeyIds.map((keyId) => ({ id: keyId })),
     },
@@ -95,11 +120,19 @@ export function buildAxinomLicenseServiceMessage({
     };
   }
 
-  return {
+  const payload: AxinomLicenseServiceMessage = {
     version: 1,
     com_key_id: comKeyId,
     message,
   };
+
+  if (usesSeparateLicenseDuration) {
+    const messageTtl = messageTtlSeconds ?? 300;
+    assertSecondsInRange('messageTtlSeconds', messageTtl, 3600);
+    payload.expiration_date = new Date(now.getTime() + messageTtl * 1000).toISOString();
+  }
+
+  return payload;
 }
 
 export function signAxinomLicenseServiceMessage(

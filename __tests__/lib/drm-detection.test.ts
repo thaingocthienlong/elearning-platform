@@ -1,10 +1,31 @@
-import { detectDRMCapabilities, getOptimalDRMConfig } from '@/lib/drm-detection';
+import {
+  detectDRMCapabilities,
+  DRMCapabilities,
+  getOptimalDRMConfig,
+} from '@/lib/drm-detection';
+
+const edgeWindowsUa =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0';
 
 function setUserAgent(userAgent: string) {
   Object.defineProperty(window.navigator, 'userAgent', {
     value: userAgent,
     configurable: true,
   });
+}
+
+function capabilities(overrides: Partial<DRMCapabilities>): DRMCapabilities {
+  return {
+    widevine: false,
+    widevineL1: false,
+    playready: false,
+    fairplay: false,
+    supportedSystems: [],
+    recommendedDRM: null,
+    supportsHardwareDRM: false,
+    ...overrides,
+  };
 }
 
 describe('DRM playback routing', () => {
@@ -68,12 +89,40 @@ describe('DRM playback routing', () => {
     });
   });
 
-  test('routes Windows Edge to PlayReady DASH', () => {
-    setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0'
-    );
+  test('routes Windows Edge to Widevine when Widevine is available to avoid untested PlayReady 3000 playback', () => {
+    setUserAgent(edgeWindowsUa);
 
-    expect(getOptimalDRMConfig(dashUrl, hlsUrl)).toEqual({
+    expect(
+      getOptimalDRMConfig(
+        dashUrl,
+        hlsUrl,
+        false,
+        false,
+        false,
+        capabilities({ widevine: true, playready: true })
+      )
+    ).toEqual({
+      drmType: 'widevine',
+      manifestUrl: dashUrl,
+      protocol: 'DASH',
+      robustness: 'SW_SECURE_CRYPTO',
+      requiresL1: false,
+    });
+  });
+
+  test('routes Windows Edge to PlayReady only when Widevine is unavailable', () => {
+    setUserAgent(edgeWindowsUa);
+
+    expect(
+      getOptimalDRMConfig(
+        dashUrl,
+        hlsUrl,
+        false,
+        false,
+        false,
+        capabilities({ widevine: false, playready: true })
+      )
+    ).toEqual({
       drmType: 'playready',
       manifestUrl: dashUrl,
       protocol: 'DASH',

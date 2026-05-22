@@ -148,6 +148,41 @@
         window.ReduxThunk = window.ReduxThunk?.default || window.ReduxThunk; // Handle UMD weirdness
         window._ = _;
 
+        let hasForcedLeaveForRevocation = false;
+
+        function redirectAfterSessionRevoked() {
+            window.parent.location.href = '/auth/signin?error=SessionRevoked';
+        }
+
+        function forceLeaveMeetingForRevokedSession() {
+            if (hasForcedLeaveForRevocation) return;
+            hasForcedLeaveForRevocation = true;
+
+            try {
+                if (window.ZoomMtg && typeof ZoomMtg.leaveMeeting === 'function') {
+                    ZoomMtg.leaveMeeting({
+                        confirm: false,
+                        success: redirectAfterSessionRevoked,
+                        error: redirectAfterSessionRevoked
+                    });
+                    return;
+                }
+            } catch (error) {
+                console.error('Forced Zoom leave failed', error);
+            }
+
+            redirectAfterSessionRevoked();
+        }
+
+        window.addEventListener('message', function (event) {
+            if (event.origin !== window.location.origin) return;
+
+            const data = event.data;
+            if (!data || data.type !== 'platform:leave-meeting') return;
+
+            forceLeaveMeetingForRevokedSession();
+        });
+
         // Initialize Zoom
         ZoomMtg.setZoomJSLib('https://source.zoom.us/6.0.2/lib', '/av');
         ZoomMtg.preLoadWasm();

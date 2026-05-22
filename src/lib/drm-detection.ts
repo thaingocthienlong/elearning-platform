@@ -139,7 +139,8 @@ export function getOptimalDRMConfig(
   hlsUrl: string | null,
   requireHD: boolean = false,
   isClearHlsFallback: boolean = false,
-  isFairPlayConfigured: boolean = false
+  isFairPlayConfigured: boolean = false,
+  capabilities?: DRMCapabilities
 ): DRMConfig | null {
   const ua = navigator.userAgent;
 
@@ -213,6 +214,18 @@ export function getOptimalDRMConfig(
       console.warn('DASH manifest required for PlayReady but not available');
       return null;
     }
+
+    if (capabilities?.widevine) {
+      console.log('Using Widevine L3 for Edge to avoid untested PlayReady 3000 playback');
+      return {
+        drmType: 'widevine',
+        manifestUrl: dashUrl,
+        protocol: 'DASH',
+        robustness: 'SW_SECURE_CRYPTO',
+        requiresL1: false,
+      };
+    }
+
     console.log('🔐 Using PlayReady for Edge');
     return {
       drmType: 'playready',
