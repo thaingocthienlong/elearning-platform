@@ -48,6 +48,7 @@ export default function Player({
         manifestUrl,
         licenseServerUrl,
         drmToken,
+        videoId,
         drmType,
         robustness,
         fairplayCertUrl

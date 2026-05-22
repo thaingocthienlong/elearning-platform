@@ -12,6 +12,7 @@ interface UseShakaPlayerProps {
     manifestUrl: string;
     licenseServerUrl?: string;
     drmToken?: string;
+    videoId?: string;
     drmType?: 'widevine' | 'playready' | 'fairplay';
     robustness?: string;
     fairplayCertUrl?: string;
@@ -23,6 +24,7 @@ export function useShakaPlayer({
     manifestUrl,
     licenseServerUrl,
     drmToken,
+    videoId,
     drmType,
     robustness,
     fairplayCertUrl
@@ -111,12 +113,35 @@ export function useShakaPlayer({
 
             // Add DRM token to license requests
             if (drmToken && !isClearPlayback) {
-                newPlayer.getNetworkingEngine()?.registerRequestFilter((type: number, request: { headers: Record<string, string> }) => {
+                newPlayer.getNetworkingEngine()?.registerRequestFilter(async (type: number, request: { headers: Record<string, string> }) => {
+                    let message = drmToken;
+
+                    if (type === shaka.net.NetworkingEngine.RequestType.LICENSE && videoId) {
+                        try {
+                            const response = await fetch('/api/drm/token', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ videoId }),
+                            });
+
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (typeof data.token === 'string' && data.token) {
+                                    message = data.token;
+                                }
+                            } else {
+                                console.warn('Failed to refresh DRM token:', response.status);
+                            }
+                        } catch (error) {
+                            console.warn('Failed to refresh DRM token:', error);
+                        }
+                    }
+
                     applyAxinomMessageHeader({
                         requestType: type,
                         licenseRequestType: shaka.net.NetworkingEngine.RequestType.LICENSE,
                         request,
-                        message: drmToken,
+                        message,
                     });
                 });
             }
@@ -188,7 +213,7 @@ export function useShakaPlayer({
                 void activePlayer.destroy();
             }
         };
-    }, [manifestUrl, licenseServerUrl, drmToken, drmType, robustness, fairplayCertUrl, videoRef, containerRef]);
+    }, [manifestUrl, licenseServerUrl, drmToken, videoId, drmType, robustness, fairplayCertUrl, videoRef, containerRef]);
 
     return { player };
 }

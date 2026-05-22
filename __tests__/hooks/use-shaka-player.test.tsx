@@ -42,8 +42,18 @@ jest.mock('shaka-player/dist/shaka-player.ui.js', () => ({
 
 function ShakaHarness({
   fairplayCertUrl,
+  drmToken = '',
+  drmType = 'fairplay',
+  licenseServerUrl = 'https://license.example/fairplay',
+  manifestUrl = 'https://media.example/video/clear.m3u8',
+  videoId = 'video-1',
 }: {
   fairplayCertUrl?: string;
+  drmToken?: string;
+  drmType?: 'widevine' | 'playready' | 'fairplay';
+  licenseServerUrl?: string;
+  manifestUrl?: string;
+  videoId?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,11 +61,12 @@ function ShakaHarness({
   useShakaPlayer({
     videoRef,
     containerRef,
-    manifestUrl: 'https://media.example/video/clear.m3u8',
-    licenseServerUrl: 'https://license.example/fairplay',
-    drmToken: '',
-    drmType: 'fairplay',
+    manifestUrl,
+    licenseServerUrl,
+    drmToken,
+    drmType,
     fairplayCertUrl,
+    videoId,
   });
 
   return (
@@ -90,5 +101,38 @@ describe('useShakaPlayer', () => {
       })
     );
     expect(mockRegisterRequestFilter).not.toHaveBeenCalled();
+  });
+
+  test('fetches a fresh DRM token for license requests', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ token: 'fresh-token' }),
+    });
+    global.fetch = fetchMock;
+
+    render(
+      <ShakaHarness
+        drmToken="initial-token"
+        drmType="widevine"
+        licenseServerUrl="https://license.example/widevine"
+        manifestUrl="https://media.example/video/protected.mpd"
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockRegisterRequestFilter).toHaveBeenCalled();
+    });
+
+    const requestFilter = mockRegisterRequestFilter.mock.calls[0][0];
+    const request = { headers: {} as Record<string, string> };
+
+    await requestFilter(1, request);
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/drm/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ videoId: 'video-1' }),
+    });
+    expect(request.headers['X-AxDRM-Message']).toBe('fresh-token');
   });
 });
