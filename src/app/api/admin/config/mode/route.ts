@@ -30,7 +30,7 @@ export async function GET(req: Request) {
         return NextResponse.json({ mode, configured: true });
     } catch (error) {
         console.error('Failed to fetch system mode:', error);
-        return new NextResponse('Internal Server Error', { status: 500 });
+        return NextResponse.json({ mode: 'courses', configured: false });
     }
 }
 
