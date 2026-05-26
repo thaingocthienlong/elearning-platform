@@ -56,7 +56,7 @@ async function requestTnp<T>(path: string, init: RequestInit = {}) {
 }
 
 function outputPathForVideo(videoId: string) {
-  return `videos/${videoId}/`;
+  return `${videoId}/`;
 }
 
 function manifestUrl(outputBaseUrl: string, outputPath: string, manifestName: string) {
@@ -98,27 +98,19 @@ export const doverunnerProvider: MediaProvider = {
           output: {
             storage_id: config.tnpOutputStorageId,
             path: outputPath,
-            default_language: 'en',
             transcodings: [
               {
-                track_id: 'video_hd',
+                track_id: 'video_0',
                 track_type: 'video',
                 codec: 'h264',
                 height: 720,
                 width: 1280,
-                bitrate_mode: 'cbr',
                 bitrate: 2500000,
-                bandwidth: 2500000,
               },
               {
-                track_id: 'audio_main',
+                track_id: 'audio_0',
                 track_type: 'audio',
-                track_name: 'audio',
                 codec: 'aac',
-                bitrate_mode: 'cbr',
-                bitrate: 128000,
-                sample_rate: 48000,
-                language: 'en',
                 sources: [{ track: 0 }],
               },
             ],
@@ -135,9 +127,6 @@ export const doverunnerProvider: MediaProvider = {
               enabled: config.tnpDrmEnabled,
               option: {
                 multi_key: false,
-                max_sd_height: 480,
-                max_hd_height: 1080,
-                max_uhd1_height: 2160,
                 skip_audio_encryption: false,
                 clear_lead: 0,
                 generate_tracktype_manifests: false,

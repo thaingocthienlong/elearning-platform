@@ -46,7 +46,7 @@ describe('DoveRunner media provider', () => {
     expect(result).toEqual({
       providerJobId: '26197',
       providerContentId: 'video-1',
-      outputPath: 'videos/video-1/',
+      outputPath: 'video-1/',
       status: 'QUEUED',
     });
     expect(global.fetch).toHaveBeenNthCalledWith(
@@ -60,6 +60,24 @@ describe('DoveRunner media provider', () => {
     const [, requestInit] = (global.fetch as jest.Mock).mock.calls[1];
     const payload = JSON.parse(requestInit.body);
 
+    expect(payload.output.path).toBe('video-1/');
+    expect(payload.output.default_language).toBeUndefined();
+    expect(payload.output.transcodings).toEqual([
+      {
+        track_id: 'video_0',
+        track_type: 'video',
+        codec: 'h264',
+        height: 720,
+        width: 1280,
+        bitrate: 2500000,
+      },
+      {
+        track_id: 'audio_0',
+        track_type: 'audio',
+        codec: 'aac',
+        sources: [{ track: 0 }],
+      },
+    ]);
     expect(payload.output.packaging).toEqual(expect.objectContaining({
       dash: true,
       hls: false,
@@ -67,9 +85,6 @@ describe('DoveRunner media provider', () => {
     }));
     expect(payload.output.drm.option).toEqual({
       multi_key: false,
-      max_sd_height: 480,
-      max_hd_height: 1080,
-      max_uhd1_height: 2160,
       skip_audio_encryption: false,
       clear_lead: 0,
       generate_tracktype_manifests: false,
@@ -119,8 +134,8 @@ describe('DoveRunner media provider', () => {
 
     expect(result).toEqual({
       status: 'READY',
-      dashUrl: 'https://cdn.example.test/output/videos/video-1/manifest.mpd',
-      hlsUrl: 'https://cdn.example.test/output/videos/video-1/master.m3u8',
+      dashUrl: 'https://cdn.example.test/output/video-1/manifest.mpd',
+      hlsUrl: 'https://cdn.example.test/output/video-1/master.m3u8',
       ready: true,
     });
   });
