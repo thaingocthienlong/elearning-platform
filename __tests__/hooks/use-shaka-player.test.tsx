@@ -131,8 +131,9 @@ describe('useShakaPlayer', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/drm/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videoId: 'video-1' }),
+      body: JSON.stringify({ videoId: 'video-1', drmType: 'widevine' }),
     });
-    expect(request.headers['X-AxDRM-Message']).toBe('fresh-token');
+    expect(request.headers['pallycon-customdata-v2']).toBe('fresh-token');
+    expect(request.headers['X-AxDRM-Message']).toBeUndefined();
   });
 });

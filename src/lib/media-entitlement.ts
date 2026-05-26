@@ -40,6 +40,7 @@ export type MediaEntitlementAllowed = {
     id: string;
     courseId: string;
     drmKeyId?: string | null;
+    providerContentId?: string | null;
     hlsUrl?: string | null;
     dashUrl?: string | null;
     hlsUrlClear?: string | null;

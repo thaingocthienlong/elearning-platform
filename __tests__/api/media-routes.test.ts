@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import { getServerSession } from 'next-auth';
-import { generateAxinomToken } from '@/lib/axinom';
+import { activeMediaProvider } from '@/lib/media-provider';
 import {
   evaluateMediaEntitlement,
   mapMediaEntitlementToHttp,
@@ -22,8 +22,10 @@ jest.mock('@/lib/auth', () => ({
   authOptions: {},
 }));
 
-jest.mock('@/lib/axinom', () => ({
-  generateAxinomToken: jest.fn(() => 'signed-token'),
+jest.mock('@/lib/media-provider', () => ({
+  activeMediaProvider: {
+    createLicenseToken: jest.fn(() => 'doverunner-token'),
+  },
 }));
 
 jest.mock('@/lib/media-entitlement', () => ({
@@ -57,7 +59,9 @@ jest.mock('@/lib/r2', () => ({
 
 const mockedGetServerSession = getServerSession as jest.Mock;
 const mockedEvaluate = evaluateMediaEntitlement as jest.Mock;
-const mockedGenerateAxinomToken = generateAxinomToken as jest.Mock;
+const mockedActiveMediaProvider = activeMediaProvider as unknown as {
+  createLicenseToken: jest.Mock;
+};
 const mockedPrisma = prisma as unknown as {
   watchRecord: {
     findUnique: jest.Mock;
@@ -99,7 +103,7 @@ describe('media route entitlement adoption', () => {
     expect(mockedEvaluate).toHaveBeenCalledWith(
       expect.objectContaining({ session, videoId: 'video-1', checkViewLimit: true })
     );
-    expect(mockedGenerateAxinomToken).not.toHaveBeenCalled();
+    expect(mockedActiveMediaProvider.createLicenseToken).not.toHaveBeenCalled();
   });
 
   test('HLS playlist route denies unauthorized users before R2 reads', async () => {
@@ -165,23 +169,23 @@ describe('media route entitlement adoption', () => {
     expect(body.provider).toBe('Axinom License Service');
   });
 
-  test('DRM token route signs authorized key IDs through Axinom helper', async () => {
+  test('DRM token route issues authorized DoveRunner content token', async () => {
     mockedEvaluate.mockResolvedValue({
       allowed: true,
       user: { id: 'user-1' },
-      video: { id: 'video-1', drmKeyId: 'kid-1,kid-2' },
+      video: { id: 'video-1', providerContentId: 'content-video-1' },
     });
 
-    const response = await drmTokenPost(jsonRequest({ videoId: 'video-1' }));
+    const response = await drmTokenPost(jsonRequest({ videoId: 'video-1', drmType: 'widevine' }));
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.token).toBe('signed-token');
-    expect(mockedGenerateAxinomToken).toHaveBeenCalledWith({
-      keyIds: 'kid-1,kid-2',
+    expect(body.token).toBe('doverunner-token');
+    expect(mockedActiveMediaProvider.createLicenseToken).toHaveBeenCalledWith({
+      contentId: 'content-video-1',
       userId: 'user-1',
+      drmType: 'widevine',
       ttlSeconds: 300,
-      allowPersistence: false,
     });
   });
 });

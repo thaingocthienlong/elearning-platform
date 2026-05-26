@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Player from './Player';
 import { detectDRMCapabilities, getOptimalDRMConfig, getBrowserInfo, DRMConfig } from '@/lib/drm-detection';
 import { toast } from 'sonner';
-import { resolveAxinomLicenseServerUrl } from '@/lib/shaka-axinom';
+import { resolveDoveRunnerLicenseServerUrl } from '@/lib/shaka-drm';
 
 interface DRMPlayerWrapperProps {
     dashUrl: string | null;
@@ -189,7 +189,7 @@ export default function DRMPlayerWrapper({
     return (
         <Player
             manifestUrl={drmConfig.manifestUrl}
-            licenseServerUrl={resolveAxinomLicenseServerUrl(drmConfig.drmType)}
+            licenseServerUrl={resolveDoveRunnerLicenseServerUrl(drmConfig.drmType)}
             drmToken={drmToken}
             videoId={videoId}
             viewCount={viewCount}

@@ -96,12 +96,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         completed: !!watchRecords.find((r) => r.videoId === v.id)?.completedAt,
     }));
 
-    // Generate DRM token
-    const { generateAxinomToken } = await import('@/lib/axinom');
-    let token = '';
-    if (video.drmKeyId) {
-        token = generateAxinomToken(video.drmKeyId);
-    }
+    const token = '';
 
     return (
         <SecurityWrapper videoId={videoId}>
@@ -124,7 +119,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 dashUrl={video.dashUrl ?? null}
                 hlsUrl={video.hlsUrl ?? null}
                 hlsUrlClear={video.hlsUrlClear ?? null}
-                isFairPlayConfigured={Boolean(process.env.AXINOM_FAIRPLAY_CERT_URL)}
+                isFairPlayConfigured={Boolean(process.env.DOVERUNNER_FAIRPLAY_CERT_URL)}
                 chatLog={(video as any).chatLog}
             />
         </SecurityWrapper>

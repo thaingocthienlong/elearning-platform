@@ -1,21 +1,30 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { generateAxinomToken } from '@/lib/axinom';
 import {
     evaluateMediaEntitlement,
     mapMediaEntitlementToHttp,
 } from '@/lib/media-entitlement';
 import { serverLog } from '@/lib/server-log';
+import { activeMediaProvider } from '@/lib/media-provider';
+import type { DrmType } from '@/lib/media-provider/types';
+
+function isDrmType(value: unknown): value is DrmType {
+    return value === 'widevine' || value === 'playready' || value === 'fairplay';
+}
 
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
 
     try {
-        const { videoId } = await req.json();
+        const { videoId, drmType = 'widevine' } = await req.json();
 
         if (!videoId) {
             return new NextResponse('Invalid request', { status: 400 });
+        }
+
+        if (!isDrmType(drmType)) {
+            return new NextResponse('Unsupported DRM type', { status: 400 });
         }
 
         const entitlement = await evaluateMediaEntitlement({
@@ -29,15 +38,17 @@ export async function POST(req: Request) {
             return new NextResponse(denial.body, { status: denial.status });
         }
 
-        if (!entitlement.video.drmKeyId) {
+        const contentId = entitlement.video.providerContentId || entitlement.video.id;
+
+        if (!contentId) {
             return new NextResponse('Video not found or not encrypted', { status: 404 });
         }
 
-        const token = generateAxinomToken({
-            keyIds: entitlement.video.drmKeyId,
+        const token = activeMediaProvider.createLicenseToken({
+            contentId,
             userId: entitlement.user.id,
-            ttlSeconds: 300,
-            allowPersistence: false,
+            drmType,
+            ttlSeconds: Number(process.env.DOVERUNNER_LICENSE_TOKEN_TTL_SECONDS ?? 300),
         });
 
         return NextResponse.json({ token });

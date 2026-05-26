@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import {
-    applyAxinomMessageHeader,
-    resolveAxinomLicenseServerUrl,
-} from '@/lib/shaka-axinom';
+    attachDoveRunnerLicenseTokenHeader,
+    resolveDoveRunnerLicenseServerUrl,
+    shouldAttachLicenseToken,
+} from '@/lib/shaka-drm';
 import { FAIRPLAY_KEY_SYSTEM } from '@/lib/drm-detection';
 
 interface UseShakaPlayerProps {
@@ -71,13 +72,13 @@ export function useShakaPlayer({
                 // Only configure the active DRM system
                 if (drmType === 'widevine') {
                     drmConfig.drm!.servers!['com.widevine.alpha'] =
-                        resolveAxinomLicenseServerUrl('widevine', licenseServerUrl)!;
+                        resolveDoveRunnerLicenseServerUrl('widevine', process.env, licenseServerUrl)!;
                 } else if (drmType === 'playready') {
                     drmConfig.drm!.servers!['com.microsoft.playready'] =
-                        resolveAxinomLicenseServerUrl('playready', licenseServerUrl)!;
+                        resolveDoveRunnerLicenseServerUrl('playready', process.env, licenseServerUrl)!;
                 } else if (drmType === 'fairplay') {
                     drmConfig.drm!.servers![FAIRPLAY_KEY_SYSTEM] =
-                        resolveAxinomLicenseServerUrl('fairplay', licenseServerUrl)!;
+                        resolveDoveRunnerLicenseServerUrl('fairplay', process.env, licenseServerUrl)!;
                 }
 
                 // Add robustness configuration for L1 (hardware DRM)
@@ -112,16 +113,16 @@ export function useShakaPlayer({
             }
 
             // Add DRM token to license requests
-            if (drmToken && !isClearPlayback) {
+            if ((drmToken || videoId) && !isClearPlayback) {
                 newPlayer.getNetworkingEngine()?.registerRequestFilter(async (type: number, request: { headers: Record<string, string> }) => {
-                    let message = drmToken;
+                    let message = drmToken || '';
 
                     if (type === shaka.net.NetworkingEngine.RequestType.LICENSE && videoId) {
                         try {
                             const response = await fetch('/api/drm/token', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ videoId }),
+                                body: JSON.stringify({ videoId, drmType }),
                             });
 
                             if (response.ok) {
@@ -137,12 +138,15 @@ export function useShakaPlayer({
                         }
                     }
 
-                    applyAxinomMessageHeader({
-                        requestType: type,
-                        licenseRequestType: shaka.net.NetworkingEngine.RequestType.LICENSE,
-                        request,
-                        message,
-                    });
+                    if (
+                        shouldAttachLicenseToken(
+                            type,
+                            shaka.net.NetworkingEngine.RequestType.LICENSE,
+                            message
+                        )
+                    ) {
+                        attachDoveRunnerLicenseTokenHeader(request, message);
+                    }
                 });
             }
 
