@@ -26,21 +26,9 @@ export function selectWatchPlaybackSources({
   userAgent,
   dashUrl,
   hlsUrl,
-  hlsUrlClear,
   drmToken,
 }: WatchPlaybackSourceInput): WatchPlaybackSources {
   const appleHlsBrowser = isAppleHlsBrowser(userAgent);
-  const clearAppleFallback = appleHlsBrowser && Boolean(hlsUrlClear);
-
-  if (clearAppleFallback) {
-    return {
-      dashUrl: null,
-      hlsUrl: hlsUrlClear,
-      drmToken: '',
-      isAppleHlsBrowser: true,
-      isClearHlsFallback: true,
-    };
-  }
 
   if (appleHlsBrowser) {
     return {

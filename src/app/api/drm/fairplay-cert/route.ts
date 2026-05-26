@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
  */
 export async function GET() {
     try {
-        const certUrl = process.env.AXINOM_FAIRPLAY_CERT_URL;
+        const certUrl = process.env.DOVERUNNER_FAIRPLAY_CERT_URL;
 
         if (!certUrl) {
             console.error('FairPlay certificate URL is not configured');

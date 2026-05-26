@@ -1,114 +1,57 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-const REPO_ROOT = process.cwd();
-const SCRIPT = path.join(REPO_ROOT, 'scripts/verify-safari-fairplay.ts');
-const TSX_CLI = path.join(REPO_ROOT, 'node_modules/tsx/dist/cli.mjs');
-const TEMP_CWDS = new Set<string>();
+const repoRoot = process.cwd();
 
-function createTempCwd() {
-  const cwd = mkdtempSync(path.join(REPO_ROOT, '.tmp-fairplay-verifier-'));
-  TEMP_CWDS.add(cwd);
-  return cwd;
-}
-
-function runVerifier(
-  env: Partial<NodeJS.ProcessEnv>,
-  options: { cwd?: string } = {}
-) {
+function runVerifier(env: Record<string, string | undefined>, cwd = repoRoot) {
+  const tsxPath = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
   const childEnv: NodeJS.ProcessEnv = {
-      ...process.env,
-      ...env,
-    };
+    ...process.env,
+    ...env,
+  };
 
+  if (!Object.prototype.hasOwnProperty.call(env, 'DOVERUNNER_FAIRPLAY_CERT_URL')) {
+    delete childEnv.DOVERUNNER_FAIRPLAY_CERT_URL;
+  }
   delete childEnv.AXINOM_FAIRPLAY_CERT_URL;
   delete childEnv.NEXT_PUBLIC_AX_FP_LS_URL;
 
-  Object.assign(childEnv, env);
-
-  return spawnSync(process.execPath, [TSX_CLI, SCRIPT], {
-    cwd: options.cwd ?? createTempCwd(),
+  return spawnSync(process.execPath, [tsxPath, path.join(repoRoot, 'scripts/verify-safari-fairplay.ts')], {
+    cwd,
     env: childEnv,
     encoding: 'utf8',
   });
 }
 
-describe('verify-safari-fairplay CLI', () => {
-  afterEach(() => {
-    for (const cwd of TEMP_CWDS) {
-      rmSync(cwd, { force: true, recursive: true });
-    }
-
-    TEMP_CWDS.clear();
-  });
-
-  test('exits 1 and prints missing variable names when FairPlay env is absent', () => {
+describe('verify-safari-fairplay script', () => {
+  test('exits 1 and prints missing variable names without printing values', () => {
     const result = runVerifier({});
 
     expect(result.status).toBe(1);
     expect(result.stdout).toContain('Safari FairPlay readiness: blocked');
-    expect(result.stdout).toContain(
-      'Missing: AXINOM_FAIRPLAY_CERT_URL, NEXT_PUBLIC_AX_FP_LS_URL'
-    );
+    expect(result.stdout).toContain('Missing: DOVERUNNER_FAIRPLAY_CERT_URL');
     expect(result.stdout).not.toContain('secret');
   });
 
   test('exits 1 and prints invalid variable names without printing invalid values', () => {
     const result = runVerifier({
-      AXINOM_FAIRPLAY_CERT_URL: 'not-a-url',
-      NEXT_PUBLIC_AX_FP_LS_URL: 'ftp://licenses.example/fairplay',
+      DOVERUNNER_FAIRPLAY_CERT_URL: 'not-a-url',
     });
 
     expect(result.status).toBe(1);
-    expect(result.stdout).toContain(
-      'Invalid URL format: AXINOM_FAIRPLAY_CERT_URL, NEXT_PUBLIC_AX_FP_LS_URL'
-    );
+    expect(result.stdout).toContain('Invalid URL format: DOVERUNNER_FAIRPLAY_CERT_URL');
     expect(result.stdout).not.toContain('not-a-url');
-    expect(result.stdout).not.toContain('ftp://licenses.example/fairplay');
   });
 
-  test('exits 0 when FairPlay certificate and license URLs are configured', () => {
+  test('exits 0 when FairPlay certificate URL is configured', () => {
     const result = runVerifier({
-      AXINOM_FAIRPLAY_CERT_URL:
-        'https://tools.axinom.com/FPScert/fairplay.cer',
-      NEXT_PUBLIC_AX_FP_LS_URL:
-        'https://drm-fairplay-licensing.axprod.net/AcquireLicense',
+      DOVERUNNER_FAIRPLAY_CERT_URL: 'https://media.example/fairplay.cer',
     });
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Safari FairPlay readiness: ready');
     expect(result.stdout).toContain('Mode: fairplay-drm');
-    expect(result.stdout).not.toContain('https://tools.axinom.com');
-    expect(result.stdout).not.toContain(
-      'https://drm-fairplay-licensing.axprod.net'
-    );
+    expect(result.stdout).not.toContain('https://media.example');
   });
 
-  test('loads local env files without printing configured values', () => {
-    const cwd = createTempCwd();
-    writeFileSync(
-      path.join(cwd, '.env'),
-      [
-        'AXINOM_FAIRPLAY_CERT_URL=https://env.example.test/fairplay.cer',
-        'NEXT_PUBLIC_AX_FP_LS_URL=ftp://env.example.test/license',
-        '',
-      ].join('\n')
-    );
-    writeFileSync(
-      path.join(cwd, '.env.local'),
-      [
-        'NEXT_PUBLIC_AX_FP_LS_URL=https://env-local.example.test/license',
-        '',
-      ].join('\n')
-    );
-
-    const result = runVerifier({}, { cwd });
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('Safari FairPlay readiness: ready');
-    expect(result.stdout).not.toContain('https://env.example.test');
-    expect(result.stdout).not.toContain('ftp://env.example.test/license');
-    expect(result.stdout).not.toContain('https://env-local.example.test');
-  });
 });

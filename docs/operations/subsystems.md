@@ -23,7 +23,7 @@ Use strict service checks only when real staging credentials are available:
 
 ```bash
 npm run verify:services:strict
-npm run verify:axinom -- --strict
+npm run verify:doverunner -- --live
 ```
 
 ## Auth And Whitelist
@@ -63,43 +63,43 @@ Operational checks:
 - HLS, DRM token, local license, heartbeat, and watch page behavior must stay aligned.
 - Add tests when adding new media-serving routes.
 
-## DRM And Axinom
+## DRM And DoveRunner
 
 Primary files/docs:
 
-- `src/lib/axinom.ts`
-- `src/lib/axinom-env.ts`
+- `src/lib/media-provider/doverunner.ts`
+- `src/lib/media-provider/doverunner-token.ts`
+- `src/lib/shaka-drm.ts`
 - `src/hooks/player/useShakaPlayer.ts`
-- `src/app/api/webhook/axinom/route.ts`
-- `docs/axinom-setup.md`
-- `docs/axinom-staging-checklist.md`
+- `docs/doverunner-setup.md`
+- `docs/playback-encoding-matrix.md`
 
-Axinom is the v1 DRM provider. The app signs short-lived Axinom License Service Messages server-side and Shaka sends entitlement tokens only with license requests.
+DoveRunner is the media provider for upload, T&P, DRM token creation, and playback. The app creates short-lived DoveRunner license tokens server-side and Shaka sends them only with license requests.
 
 Operational checks:
 
-- Communication key ID/secret and webhook secret stay server-only.
-- FairPlay certificate URL and public license URLs match the Axinom tenant.
-- Webhook verification rejects malformed signatures without leaking details.
-- Local DRM license endpoint is not a production DRM substitute unless real key custody is added.
+- DoveRunner access keys stay server-only.
+- FairPlay certificate URL and license URL match the DoveRunner tenant.
+- Browser/OS playback routing matches `docs/playback-encoding-matrix.md`.
+- License tokens are never logged or stored.
 
 ## Video Processing And Storage
 
 Primary files/docs:
 
-- `src/lib/axinom-video-service.ts`
-- `src/lib/axinom-encoding.ts`
-- `src/lib/azure-storage.ts`
-- `src/lib/r2.ts`
+- `src/lib/media-provider/doverunner.ts`
+- `src/lib/media-provider/aws-s3.ts`
+- `src/lib/media-provider/types.ts`
 - `src/app/api/video/process/route.ts`
+- `docs/playback-encoding-matrix.md`
 - `docs/database-performance.md`
 - `docs/vercel-staging-runbook.md`
 
-Source media and encoded output use Azure Blob and R2/S3-compatible storage. Axinom operational IDs and statuses live in explicit video fields.
+Source media and packaged output use AWS S3 registered in DoveRunner T&P. Provider operational IDs and statuses live in provider-neutral video fields.
 
 Operational checks:
 
-- Azure input/output containers and R2 bucket/prefix must match staging env.
+- AWS S3 input/output buckets, DoveRunner storage IDs, and output base URL must match staging env.
 - CORS/origin settings must include the staging origin where browser access is expected.
 - `src/app/api/video/process/route.ts` is a long-running trigger path, not a production-grade worker queue.
 - Production hardening should move long-running orchestration to a queue, worker, or provider-native job mechanism.

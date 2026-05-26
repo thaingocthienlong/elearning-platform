@@ -2,7 +2,7 @@
 
 This guide gives maintainers a step-by-step manual test plan for local verification and staging acceptance. It complements automated tests, `docs/staging-smoke-checklist.md`, `docs/operations/health-checklist.md`, and vendor runbooks.
 
-Do not paste secrets, tokens, service account values, DRM keys, certificates, database URLs, storage keys, Redis tokens, Zoom SDK secrets, Axinom communication secrets, SMTP passwords, or full user emails into test evidence.
+Do not paste secrets, tokens, service account values, DRM keys, certificates, database URLs, storage keys, Redis tokens, Zoom SDK secrets, DoveRunner access keys, SMTP passwords, or full user emails into test evidence.
 
 ## 1. Test Evidence Rules
 
@@ -43,13 +43,13 @@ Before manual tests, confirm:
 7. Test content exists:
    - One published open course.
    - One enrolled course for the learner.
-   - One protected video with Axinom DRM metadata and playable asset URLs.
+   - One protected video with DoveRunner provider metadata and playable asset URLs.
 8. Provider access exists or is explicitly blocked:
    - Google OAuth.
-   - Axinom DRM/Encoding.
+   - DoveRunner T&P/Multi-DRM.
    - Zoom Meeting SDK test meeting.
    - Upstash Redis.
-   - Azure Blob and R2/S3-compatible storage.
+   - AWS S3 input/output storage.
    - SMTP/reCAPTCHA.
    - Sentry.
 
@@ -78,7 +78,7 @@ For staging credentials:
 
 ```bash
 npm run verify:services:strict
-npm run verify:axinom -- --strict
+npm run verify:doverunner -- --live
 ```
 
 Expected result:
@@ -413,12 +413,12 @@ Expected result:
 - Redis-backed features work.
 - Missing credentials are marked blocked, not pass.
 
-### STORAGE-01: Azure And R2/S3
+### STORAGE-01: AWS S3
 
 Steps:
 
-1. Confirm Azure input/output containers exist.
-2. Confirm R2/S3 bucket and prefix exist.
+1. Confirm AWS S3 input/output buckets exist.
+2. Confirm DoveRunner T&P storage IDs point at the expected buckets.
 3. Confirm CORS/origin rules include staging.
 4. Load a playback asset through the app flow.
 
@@ -427,12 +427,12 @@ Expected result:
 - Storage is reachable through intended app paths.
 - Direct sensitive storage credentials are not exposed.
 
-### AXINOM-01: Webhook Readiness
+### DOVERUNNER-01: DoveRunner Setup
 
 Steps:
 
-1. Confirm Axinom webhook URL is `<STAGING_ORIGIN>/api/webhook/axinom`.
-2. Send or trigger a safe signed staging event.
+1. Run `npm run verify:doverunner -- --live`.
+2. Confirm DoveRunner T&P token/settings checks and AWS S3 bucket checks pass.
 3. Send or simulate a malformed signature in a safe environment.
 
 Expected result:
@@ -440,13 +440,13 @@ Expected result:
 - Valid signed event is accepted and processed.
 - Malformed signature is rejected without 500 errors or secret leakage.
 
-### AXINOM-02: Encoding And Playback
+### DOVERUNNER-02: Encoding And Playback
 
 Steps:
 
 1. Use a staging test video.
-2. Start or verify an Axinom encoding job.
-3. Confirm explicit Axinom operational fields/statuses on the video.
+2. Upload the source through the admin UI and submit a DoveRunner T&P job.
+3. Confirm provider-neutral operational fields/statuses on the video.
 4. Play the result through the watch page.
 
 Expected result:
@@ -539,8 +539,8 @@ Browser/device:
 ## External Services
 - REDIS-01:
 - STORAGE-01:
-- AXINOM-01:
-- AXINOM-02:
+- DOVERUNNER-01:
+- DOVERUNNER-02:
 - SENTRY-01:
 
 ## UI Screenshots

@@ -19,6 +19,7 @@ const eslintConfig = defineConfig([
     "public/zoom-client-view/**",
     "zoom-webapp/**",
     ".agent/**",
+    ".browser-profile/**",
     "scripts/packager/node_modules/**",
     "Shaka Packager Script/**",
     "archive/**",

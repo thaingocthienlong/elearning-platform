@@ -12,11 +12,15 @@ const requiredStarterVariables = [
   'GOOGLE_CLIENT_SECRET',
   'UPSTASH_REDIS_REST_URL',
   'UPSTASH_REDIS_REST_TOKEN',
-  'AXINOM_COM_KEY_ID',
-  'AXINOM_COM_KEY_SECRET',
-  'R2_ENDPOINT',
-  'R2_ACCESS_KEY_ID',
-  'R2_SECRET_ACCESS_KEY',
+  'DOVERUNNER_SITE_ID',
+  'DOVERUNNER_ACCESS_KEY',
+  'DOVERUNNER_TNP_ACCOUNT_ID',
+  'DOVERUNNER_TNP_ACCESS_KEY',
+  'AWS_REGION',
+  'AWS_S3_INPUT_BUCKET',
+  'AWS_S3_OUTPUT_BUCKET',
+  'AWS_ACCESS_KEY_ID',
+  'AWS_SECRET_ACCESS_KEY',
   'ZOOM_MEETING_SDK_KEY',
   'ZOOM_MEETING_SDK_SECRET',
   'SMTP_HOST',
@@ -31,7 +35,7 @@ const requiredServiceGroups = [
   'Database',
   'Auth',
   'Redis',
-  'Axinom',
+  'DoveRunner',
   'Storage',
   'Zoom',
   'Support/Email/reCAPTCHA',
@@ -86,11 +90,11 @@ describe('env documentation contract', () => {
     }
   });
 
-  test('marks the Axinom clear profile as required for staging uploads', () => {
+  test('marks DoveRunner T&P configuration as required for staging uploads', () => {
     const envMatrix = readText(envMatrixPath);
-    const clearProfileRow = findMatrixRow(envMatrix, 'AXINOM_ENCODING_PROFILE_CLEAR');
+    const inputStorageRow = findMatrixRow(envMatrix, 'DOVERUNNER_TNP_INPUT_STORAGE_ID');
 
-    expect(clearProfileRow).toContain('| optional | required |');
-    expect(clearProfileRow).toContain('clear HLS fallback');
+    expect(inputStorageRow).toContain('| optional | required |');
+    expect(inputStorageRow).toContain('input storage ID');
   });
 });

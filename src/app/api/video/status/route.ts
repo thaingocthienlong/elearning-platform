@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getJobStatus } from '@/lib/axinom-encoding';
 import { prisma } from '@/lib/prisma';
-import { azureStorage } from '@/lib/azure-storage';
+import { activeMediaProvider } from '@/lib/media-provider';
 
 export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
@@ -22,37 +21,44 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Video not found' }, { status: 404 });
         }
 
-        // Extract job ID from description (temporary storage)
-        const jobIdMatch = video.description?.match(/Job ID: (.+)/);
-        if (!jobIdMatch) {
-            return NextResponse.json({ error: 'No encoding job found for this video' }, { status: 404 });
+        if (!video.providerJobId) {
+            return NextResponse.json({ error: 'No provider processing job found for this video' }, { status: 404 });
         }
 
-        const jobId = jobIdMatch[1];
-        const status = await getJobStatus(jobId);
+        const result = await activeMediaProvider.syncProcessing({
+            videoId,
+            providerJobId: video.providerJobId,
+            providerContentId: video.providerContentId ?? video.id,
+        });
 
-        // If completed, update video with URLs
-        if (status.status === 'COMPLETED' || status.status === 'Finished') {
-            const dashUrl = azureStorage.getOutputUrl(`${videoId}/manifest.mpd`);
-            const hlsUrl = azureStorage.getOutputUrl(`${videoId}/master.m3u8`);
-
+        if (result.ready) {
             await prisma.video.update({
                 where: { id: videoId },
                 data: {
                     published: true,
-                    dashUrl: dashUrl,
-                    hlsUrl: hlsUrl,
+                    providerStatus: result.status,
+                    providerSyncedAt: new Date(),
+                    dashUrl: result.dashUrl,
+                    hlsUrl: result.hlsUrl,
                 },
             });
 
             return NextResponse.json({
-                status: 'COMPLETED',
-                dashUrl,
-                hlsUrl,
+                status: result.status,
+                dashUrl: result.dashUrl,
+                hlsUrl: result.hlsUrl,
             });
         }
 
-        return NextResponse.json({ status: status.status });
+        await prisma.video.update({
+            where: { id: videoId },
+            data: {
+                providerStatus: result.status,
+                providerSyncedAt: new Date(),
+            },
+        });
+
+        return NextResponse.json({ status: result.status });
     } catch (error) {
         console.error('Status check error:', error);
         return NextResponse.json({ error: (error as Error).message }, { status: 500 });

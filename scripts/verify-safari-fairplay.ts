@@ -8,14 +8,13 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local'), override: true });
 
 const readiness = getSafariFairPlayReadiness({
-  AXINOM_FAIRPLAY_CERT_URL: process.env.AXINOM_FAIRPLAY_CERT_URL,
-  NEXT_PUBLIC_AX_FP_LS_URL: process.env.NEXT_PUBLIC_AX_FP_LS_URL,
+  DOVERUNNER_FAIRPLAY_CERT_URL: process.env.DOVERUNNER_FAIRPLAY_CERT_URL,
 });
 
 if (readiness.fairPlayReady) {
   console.log('Safari FairPlay readiness: ready');
   console.log(`Mode: ${readiness.mode}`);
-  console.log('Checked: AXINOM_FAIRPLAY_CERT_URL, NEXT_PUBLIC_AX_FP_LS_URL');
+  console.log('Checked: DOVERUNNER_FAIRPLAY_CERT_URL');
   process.exit(0);
 }
 

@@ -21,7 +21,7 @@ Replace placeholder values in `.env.local` before running commands that need rea
 - Node >=20.9.0. The repo pins `20.11.1` in `.nvmrc`.
 - npm, using the committed `package-lock.json`.
 - A MongoDB-compatible database connection for `DATABASE_URL` when preparing the Prisma schema.
-- External service credentials only when verifying or using those integrations: Google OAuth, Upstash Redis, Axinom, Azure/R2 storage, Zoom, SMTP, reCAPTCHA, and Sentry.
+- External service credentials only when verifying or using those integrations: Google OAuth, Upstash Redis, DoveRunner, AWS S3, Zoom, SMTP, reCAPTCHA, and Sentry.
 
 ## Install From Clean Checkout
 
@@ -57,9 +57,9 @@ Do not copy inherited real env values into docs or examples. `.env.example` is p
 
 For ordinary local setup, missing external credentials are allowed. The app can still install, generate Prisma client code, and start once required local placeholders are replaced enough for the workflow being exercised.
 
-Axinom DRM and Encoding have a dedicated setup guide at `docs/axinom-setup.md`. Use it when configuring an Axinom trial tenant, communication keys, license service URLs, encoding profiles, and webhook callbacks.
+DoveRunner T&P and Multi-DRM have a dedicated setup guide at `docs/doverunner-setup.md`. Use it when configuring DoveRunner Site ID, license token access, T&P storage IDs, AWS S3 buckets, and playback output URLs.
 
-After configuring real tenant values, use `docs/axinom-staging-checklist.md` for the opt-in staging playback validation path.
+After configuring real tenant values, use `npm run verify:doverunner -- --live` for the opt-in DoveRunner and AWS S3 validation path.
 
 ## Prisma MongoDB Setup
 
@@ -78,6 +78,14 @@ Set `DATABASE_URL` in `.env.local` to a MongoDB connection string. For a local d
 mongodb://localhost:27017/secure_video_platform
 ```
 
+For MongoDB Atlas, copy the driver connection string from the Atlas **Connect** flow and add the app database name before the query string:
+
+```text
+mongodb+srv://<db-user>:<db-password>@<cluster-host>/secure_video_platform?retryWrites=true&w=majority
+```
+
+The `/secure_video_platform` segment matters. Without an explicit database name, Prisma may connect to the cluster but fail when preparing the schema.
+
 Generate the Prisma client:
 
 ```bash
@@ -91,6 +99,14 @@ npm run db:push
 ```
 
 MongoDB setup uses `prisma db push`; do not follow stale SQL migration instructions for this repo's current datasource.
+
+If `npm run db:push` reports that `DATABASE_URL` is missing while the value is only in `.env.local`, load it into the shell for that command or keep an ignored local `.env` with the same placeholder-free value. Do not commit either file. In PowerShell, the safe shape is:
+
+```powershell
+$env:DATABASE_URL = '<paste-from-password-manager>'
+npm run db:push
+Remove-Item Env:\DATABASE_URL
+```
 
 ## Start Local Development
 
@@ -111,6 +127,27 @@ npm run verify:services
 ```
 
 This command reads `docs/env-matrix.md`, groups variables by service, and checks whether variables marked required for local or staging are present. By default it prints `SKIP <service>: missing ...` for missing external credentials and exits 0.
+It also treats obvious placeholder values such as `example.invalid`, `<...>`, `your-...`, and `changeme` as not configured, even if the variable exists.
+
+After real Upstash Redis values are configured, run the live Redis smoke:
+
+```bash
+npm run verify:redis
+```
+
+This writes, reads, and deletes a temporary verification key and checks that `config:system_mode`, when present, is either `courses` or `meeting`.
+
+After real SMTP values are configured, verify the SMTP connection:
+
+```bash
+npm run verify:email
+```
+
+To send one smoke email to `ADMIN_EMAIL`, run:
+
+```bash
+npm run verify:email -- --send
+```
 
 For staging or CI readiness, use strict mode:
 
@@ -120,15 +157,14 @@ npm run verify:services:strict
 
 Strict mode, and `CI=true`, fails if any required service group is missing variables. The verifier does not call external service APIs in Phase 1 and does not print env values.
 
-Axinom has a narrower verifier:
+DoveRunner has a narrower verifier:
 
 ```bash
-npm run verify:axinom
-npm run verify:axinom -- --strict
-npm run verify:axinom -- --strict --live
+npm run verify:doverunner
+npm run verify:doverunner -- --live
 ```
 
-The default and strict Axinom modes validate configuration only. `--live` is opt-in and should be used only after real Axinom trial tenant values are configured.
+Default DoveRunner mode validates configuration only. `--live` is opt-in and should be used only after real DoveRunner and AWS S3 values are configured.
 
 ## Troubleshooting
 

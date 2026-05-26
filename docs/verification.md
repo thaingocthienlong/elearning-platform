@@ -22,13 +22,13 @@ npm run build
 npm run verify:setup
 npm run verify:services
 npm run verify:services:strict
-npm run verify:axinom
+npm run verify:doverunner
 ```
 
 - `npm run verify:setup` checks Node >=20.9.0, npm availability, expected root setup files, Prisma schema presence, `.env.example`, `docs/env-matrix.md`, and required root package scripts.
 - `npm run verify:services` derives service groups and required variable names from `docs/env-matrix.md`. In default local mode, missing external service credentials print `SKIP <service>: missing VAR_NAME` messages and the command exits 0.
 - `npm run verify:services:strict` runs the same env-matrix-derived checks with strict failure semantics. It exits nonzero when required service groups are missing variables. `CI=true` applies the same strict-fail behavior.
-- `npm run verify:axinom` validates Axinom-specific canonical env configuration and skips live API calls by default. Use `npm run verify:axinom -- --strict` for staging-style env validation and `npm run verify:axinom -- --strict --live` only when real Axinom trial tenant values are intentionally configured.
+- `npm run verify:doverunner` validates DoveRunner T&P/Multi-DRM and AWS S3 env configuration and skips live API calls by default. Use `npm run verify:doverunner -- --live` only when real DoveRunner and AWS credentials are intentionally configured.
 
 Service verification reports missing variable names only. It must not print env values, tokens, connection strings, masks, or service-account material.
 
@@ -47,7 +47,7 @@ npm run secrets:scan
 ```bash
 npm run verify:setup
 npm run verify:services
-npm run verify:axinom
+npm run verify:doverunner
 npm run lint
 npm run typecheck
 npm test

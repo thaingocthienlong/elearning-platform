@@ -9,14 +9,19 @@ Use placeholder values in documentation and tickets. Do not paste real secrets, 
 - Google OAuth consent: https://developers.google.com/workspace/guides/configure-oauth-consent
 - Google OAuth web server flow: https://developers.google.com/identity/protocols/oauth2/web-server
 - Google OAuth clients: https://support.google.com/cloud/answer/6158849
+- MongoDB Atlas getting started: https://www.mongodb.com/docs/atlas/getting-started/
+- MongoDB Atlas cluster connection: https://www.mongodb.com/docs/atlas/connect-to-cluster/
 - Axinom DRM: https://docs.axinom.com/services/drm/
 - Axinom License Service: https://docs.axinom.com/services/drm/license-service
 - Axinom License Service Message signing: https://docs.axinom.com/services/drm/license-service/sign-license-service-message
 - Axinom Shaka Player integration: https://docs.axinom.com/services/drm/players/shaka
 - Axinom Encoding API quickstart: https://docs.axinom.com/services/encoding/quickstart/using-api/api
+- Axinom Encoding UI quickstart: https://docs.axinom.com/services/encoding/quickstart/using-ui/ui
 - Axinom Encoding Profiles: https://docs.axinom.com/services/video/setup-encoding-profiles/
+- Axinom Mosaic Hosting Service storage: https://docs.axinom.com/platform/hosting/storage-with-mosaic-hosting-service/
 - Zoom Meeting SDK for Web: https://marketplacefront.zoom.us/sdk/meeting/web/index.html
 - Zoom Meeting SDK docs: https://developers.zoom.us/docs/meeting-sdk/web/
+- Zoom build flow: https://zoom-developer-docs-go.zoomapp.cloud/docs/build-flow/quick-start-guide
 - Upstash Redis getting started: https://upstash.com/docs/redis
 - Upstash Redis REST API: https://upstash.com/docs/redis/features/restapi
 - Azure storage account creation: https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create
@@ -100,6 +105,64 @@ Common failure points:
 - `redirect_uri_mismatch`: callback URL does not exactly match Google OAuth client settings.
 - Secret copied from an old cancelled OAuth client.
 - `NEXTAUTH_URL` points to local while testing staging.
+- `localhost` and `127.0.0.1` are different OAuth origins. If maintainers use both locally, add both exact callback URLs in Google Cloud.
+
+## 2A. MongoDB Atlas From Zero
+
+Purpose in this app:
+
+- Prisma MongoDB datasource for users, courses, videos, enrollments, DRM access state, support tickets, and provider smoke rows.
+- Local and staging database bootstrap before provider end-to-end testing.
+
+Repo env vars:
+
+```bash
+DATABASE_URL=<MONGODB_CONNECTION_STRING_WITH_DATABASE_NAME>
+```
+
+Steps:
+
+1. Open https://cloud.mongodb.com/.
+2. Create a MongoDB Atlas account or sign in with the institute-owned account.
+3. Create a new Atlas project for this platform.
+4. Build a free `M0` cluster unless staging load testing requires a paid tier.
+5. In **Database Access**, create a database user for this app. Use a generated password stored in the password manager.
+6. Grant the least role that supports the current app. For initial staging rescue, use Atlas' standard read/write database role for the `secure_video_platform` database instead of organization-wide admin privileges.
+7. In **Network Access**, add the current developer IP for local smoke. For Vercel staging, add the outbound/static networking strategy used by that environment; do not leave `0.0.0.0/0` enabled longer than an intentional temporary smoke window.
+8. Open the cluster **Connect** flow.
+9. Choose **Drivers** / Node.js and copy the `mongodb+srv://...` connection string.
+10. Replace the username and password placeholders with the app database user values in the password manager or local env file only.
+11. Add an explicit database name before query parameters. This repo expects a URL shaped like:
+
+```text
+mongodb+srv://<db-user>:<db-password>@<cluster-host>/secure_video_platform?retryWrites=true&w=majority
+```
+
+12. Save the value as `DATABASE_URL` in local `.env.local` and the encrypted staging host environment.
+13. Run `npm run prisma:generate`.
+14. Run `npm run db:push` from a shell where Prisma can read `DATABASE_URL`.
+15. Create or whitelist the first maintainer admin user through the documented admin bootstrap path for this project.
+
+Validation:
+
+```bash
+npm run prisma:generate
+npm run db:push
+```
+
+Manual smoke:
+
+1. Sign in with Google as a whitelisted admin.
+2. Confirm the app redirects back without a Prisma connection error.
+3. Open a page that reads course/video data, such as `/dashboard`, `/courses`, or a known `/watch/<videoId>` path.
+4. Confirm one write path, such as enrollment, support ticket creation, or a controlled provider smoke seed, persists and can be read back.
+
+Common failure points:
+
+- The Atlas URL does not include `/secure_video_platform` before `?retryWrites...`.
+- Prisma CLI cannot see `DATABASE_URL` because it is only in `.env.local`; export it into the shell or keep an ignored local `.env` for Prisma-only CLI work.
+- The current IP is not allowed in Atlas **Network Access**.
+- The database user's password has special characters that were not URL-encoded.
 
 ## 3. Axinom DRM And Encoding From Zero
 
@@ -121,10 +184,11 @@ AXINOM_ENCODING_PROFILE_CLEAR=<CLEAR_PROFILE_ID>
 AXINOM_ENCODING_API_URL=<AXINOM_ENCODING_API_URL>
 AXINOM_VIDEO_SERVICE_URL=<AXINOM_VIDEO_SERVICE_URL>
 AXINOM_WEBHOOK_SECRET=<WEBHOOK_SHARED_SECRET>
-AXINOM_FAIRPLAY_CERT_URL=<FAIRPLAY_CERTIFICATE_URL>
 NEXT_PUBLIC_AX_WV_LS_URL=<WIDEVINE_LICENSE_SERVICE_URL>
 NEXT_PUBLIC_AX_PR_LS_URL=<PLAYREADY_LICENSE_SERVICE_URL>
-NEXT_PUBLIC_AX_FP_LS_URL=<FAIRPLAY_LICENSE_SERVICE_URL>
+# Only if FairPlay/FPS is provisioned:
+# AXINOM_FAIRPLAY_CERT_URL=<FAIRPLAY_CERTIFICATE_URL>
+# NEXT_PUBLIC_AX_FP_LS_URL=<FAIRPLAY_LICENSE_SERVICE_URL>
 ```
 
 Axinom account and tenant creation:
@@ -149,12 +213,12 @@ DRM credentials and license URLs:
 7. Copy the **Communication Key** value into the password manager as `AXINOM_COM_KEY_SECRET`. Axinom documents this value as base64 for signing License Service Message JWTs.
 8. Copy the Widevine License Service URL into `NEXT_PUBLIC_AX_WV_LS_URL`.
 9. Copy the PlayReady License Service URL into `NEXT_PUBLIC_AX_PR_LS_URL`.
-10. Copy the FairPlay License Service URL into `NEXT_PUBLIC_AX_FP_LS_URL`.
+10. Copy the FairPlay License Service URL into `NEXT_PUBLIC_AX_FP_LS_URL` only if FairPlay/FPS is provisioned for this tenant.
 11. If the tenant does not show tenant-specific license URLs, use the documented Axinom defaults only for the matching DRM type:
     - Widevine: `https://drm-widevine-licensing.axprod.net/AcquireLicense`
     - PlayReady: `https://drm-playready-licensing.axprod.net/AcquireLicense`
     - FairPlay: `https://drm-fairplay-licensing.axprod.net/AcquireLicense`
-12. If FairPlay is required, locate the FairPlay certificate or streaming certificate URL and store it as `AXINOM_FAIRPLAY_CERT_URL`. If FairPlay has not been provisioned yet, mark FairPlay as blocked and keep Widevine/PlayReady testing separate.
+12. If FairPlay is required, locate the FairPlay certificate or streaming certificate URL and store it as `AXINOM_FAIRPLAY_CERT_URL`. If FairPlay has not been provisioned yet, leave `AXINOM_FAIRPLAY_CERT_URL` unset, configure `AXINOM_ENCODING_PROFILE_CLEAR`, and use the clear HLS Apple-browser fallback documented in `docs/playback-encoding-matrix.md`.
 13. Open https://portal.axinom.com/Tools or the Axinom **Tools** area.
 14. Open the **Entitlement Message** or **DRM Video Playback** tool.
 15. Use the tool only with test content and temporary values to confirm that the Communication Key ID/value can sign a License Service Message. Do not paste production user or content identifiers.
@@ -163,13 +227,22 @@ Encoding and Video Service access:
 
 1. Open the tenant Management System URL copied from **My Mosaic** -> **Overview** -> **Management System**.
 2. Confirm the left navigation includes **Settings** and **Videos**. If it does not, the account is missing Video Service/Encoding permissions.
-3. Open the Mosaic Admin Portal for the same tenant/environment.
-4. Create a dedicated service account named `secure-streaming-platform-staging`.
-5. Grant the service account only the permissions required for this app's Axinom flow. At minimum, Axinom's Encoding API docs call out `Videos: Encode` for encoding access.
-6. Copy the service account client ID into `AXINOM_ENCODING_CLIENT_ID`.
-7. Copy the service account client secret into `AXINOM_ENCODING_CLIENT_SECRET`.
-8. Keep the default Video Service GraphQL URL as `https://video.service.eu.axinom.net/graphql` unless Axinom assigns a different region/tenant endpoint. Store it in `AXINOM_VIDEO_SERVICE_URL`.
-9. Keep the Encoding API URL aligned with the tenant region. Axinom documents the default service URL as `https://vip-eu-west-1.axinom.com`; this repo's lower-level Encoding helper expects the API form in `AXINOM_ENCODING_API_URL`.
+3. Open the Axinom Environment Administration portal at `https://admin.service.eu.axinom.com/`.
+4. Click **Environments**.
+5. Click the environment used by this project, for example **default**.
+6. Click **Service Accounts**.
+7. Click **New**.
+8. Set **Name** to `secure-streaming-platform-staging`.
+9. Click **Proceed**.
+10. On the one-time **Client Secret** page, save the client ID and client secret in the password manager. Do not download or commit the generated secret file.
+11. Copy the service account client ID into `AXINOM_ENCODING_CLIENT_ID`.
+12. Copy the service account client secret into `AXINOM_ENCODING_CLIENT_SECRET`.
+13. Open the new service account's **Permissions** page.
+14. Expand **VIDEO SERVICE (Managed by Axinom)** if needed.
+15. Turn on only **Videos: Encode** for the first staging setup. Do not grant **Admin**, **Videos: Edit**, **Videos: Delete**, or broad Identity permissions unless a later feature explicitly requires them.
+16. Click **Save** and confirm the permission page no longer has unsaved changes.
+17. Keep the default Video Service GraphQL URL as `https://video.service.eu.axinom.net/graphql` unless Axinom assigns a different region/tenant endpoint. Store it in `AXINOM_VIDEO_SERVICE_URL`.
+18. Keep the Encoding API URL aligned with the tenant region. This repo's lower-level Encoding helper expects the API form `https://vip-eu-west-1.axinom.com/api/encoding` in `AXINOM_ENCODING_API_URL`.
 
 Storage setup inside Axinom:
 
@@ -195,6 +268,21 @@ Storage setup inside Axinom:
 17. For first staging playback, make the output manifests and media segments readable by the browser/CDN path used by this app. The Axinom quickstart notes that output needs public read access when previewing directly.
 18. Save the Publishing Profile.
 19. For any storage secret that Axinom asks for, use Axinom's **Credentials Protection Tool** or certificate-based credentials protection. Axinom's Encoding docs state storage and DRM secrets should be encrypted before being passed to the Encoding service.
+
+Mosaic Hosting Service - Azure option:
+
+1. Use this option when the team wants Axinom to provision trial storage instead of creating an Azure account first.
+2. In the Axinom Admin Portal, open **Hosting** or **Mosaic Hosting Service** for the same environment.
+3. Create the Mosaic-hosted storage if it is not already present.
+4. Confirm the generated storage includes the standard video containers:
+   - `video-input` for Encoding input/acquisition.
+   - `video-output` for Encoding output/publishing.
+5. Return to the tenant Management System.
+6. In the **Acquisition Profile**, choose **Mosaic Hosting Service** as the storage provider and select the input container/path.
+7. In the **Publishing Profile**, choose **Mosaic Hosting Service** as the storage provider and select the output container/path.
+8. Upload the test source video into the Mosaic-hosted input container through the UI or supported storage tooling.
+9. After encode completion, confirm the output manifest URLs use the Axinom-provisioned Azure Blob host.
+10. Keep using external Azure Blob or R2/S3-compatible storage when the institute needs direct cloud-account ownership, custom lifecycle rules, or a storage/CDN path outside the Axinom trial tenant.
 
 DRM processing profile:
 
@@ -262,11 +350,20 @@ npm run verify:staging
 Manual smoke:
 
 1. Encode or select a staging test video.
-2. Confirm explicit Axinom operational IDs/statuses are stored on the `Video`.
-3. Open `/watch/<videoId>` as an entitled learner.
-4. Confirm Shaka sends entitlement tokens only to license requests.
-5. Send or trigger a safe signed webhook event.
-6. Confirm malformed webhook signatures are rejected.
+2. Copy the DASH/HLS manifest URLs from the Axinom video details or preview page.
+3. Fetch the DASH manifest and record the `default_KID` values as comma-separated `drmKeyId` values. Do not record content keys.
+4. Seed or edit one app `Video` row with `dashUrl`, `hlsUrl`, comma-separated `drmKeyId`, `axinomVideoId`, `axinomJobId`, `axinomEncodingStatus=READY`, and `axinomOutputLocation`.
+5. Confirm explicit Axinom operational IDs/statuses are stored on the `Video`.
+6. Grant the signed-in learner access through an open course, enrollment, or `VideoAccess` row.
+7. Open `/watch/<videoId>` as the entitled learner.
+8. Accept the IPR consent prompt if it appears.
+9. Confirm Shaka loads the DASH manifest.
+10. Confirm the browser contacts the configured Axinom Widevine, PlayReady, or configured FairPlay license URL for a license request. In no-FairPlay mode, confirm Safari/iOS uses `hlsUrlClear` without a DRM license request.
+11. Confirm encrypted media segments load from the output storage host.
+12. Press play and confirm `currentTime` advances without a video element error.
+13. Confirm Shaka sends entitlement tokens only to license requests.
+14. Send or trigger a safe signed webhook event.
+15. Confirm malformed webhook signatures are rejected.
 
 Common failure points:
 
@@ -274,6 +371,7 @@ Common failure points:
 - Mixing old `AX_*` legacy aliases with canonical `AXINOM_*` vars.
 - Webhook URL points to local or old staging domain.
 - License URL region does not match the tenant.
+- Axinom portal preview can fail if preview entitlement/license settings are incomplete even when app playback works. Treat the app `/watch/<videoId>` path as the acceptance path for this repository.
 
 ## 4. Zoom Meeting SDK From Zero
 
@@ -293,14 +391,31 @@ NEXT_PUBLIC_ZOOM_PASSCODE=<TEST_MEETING_PASSCODE>
 
 Steps:
 
-1. Create or choose a Zoom account that owns the staging test meeting.
-2. Create a Meeting SDK app in the Zoom App Marketplace or current Zoom developer portal.
-3. Copy the Meeting SDK key and secret.
-4. Add or allow the staging domain/origin for the SDK app if required by the Zoom app settings.
-5. Create a recurring or durable staging test meeting owned by the same Zoom account.
-6. Store meeting ID and passcode as public config for this app's current flow.
-7. Put SDK key/secret in local `.env.local` and Vercel staging env.
-8. Put meeting ID/passcode in local and staging env.
+1. Sign in to https://marketplace.zoom.us/ or the current Zoom App Marketplace as the account that will own the staging app and meeting.
+2. Open **Develop** -> **Build App**.
+3. Choose **General App** if Zoom routes Meeting SDK creation through the new build flow.
+4. Name the app, for example `Secure Streaming Platform Staging`.
+5. Set the app to private/account-managed unless a later production review explicitly requires public marketplace distribution.
+6. In the feature selection step, enable **Meeting SDK**.
+7. Open **Build your app** / **Basic Information**.
+8. Fill the required OAuth fields even though this repo's current meeting flow does not exchange the OAuth code:
+   - **OAuth Redirect URL**: `<LOCAL_ORIGIN>/api/zoom/oauth/callback`
+   - **OAuth Allow Lists**: `<LOCAL_ORIGIN>`
+   - Add the staging redirect/origin when staging is ready.
+9. Open **Scopes**.
+10. Add the minimum read-only user/profile scope accepted by Zoom Local Test for this app. This is only to satisfy Zoom app authorization; `/api/zoom/oauth/callback` in this repo records no token and does not store the authorization code.
+11. Open **Embed** / **Meeting SDK** settings.
+12. Copy the Meeting SDK key/client ID into `ZOOM_MEETING_SDK_KEY`.
+13. Copy the Meeting SDK secret/client secret into `ZOOM_MEETING_SDK_SECRET`.
+14. Add or allow the local and staging domain/origin for the SDK app if Zoom shows an origin/domain allow-list setting.
+15. Open **Local Test**.
+16. Click **Add App Now** or the equivalent account authorization action.
+17. Confirm Zoom redirects to `<LOCAL_ORIGIN>/api/zoom/oauth/callback?code=...` and the app returns a safe JSON `status: ok` response.
+18. Create a recurring or durable staging test meeting owned by the same Zoom account.
+19. For the first smoke, turn off settings that block SDK web join unless intentionally being tested: waiting room, registration, authenticated-user-only join, and host-required lockouts.
+20. Store meeting ID and passcode as public config for this app's current flow.
+21. Put SDK key/secret in local `.env.local` and Vercel staging env.
+22. Put meeting ID/passcode in local and staging env.
 
 Validation:
 
@@ -315,6 +430,7 @@ Manual smoke:
 3. Confirm the iframe loads and learner joins with role `0`.
 4. Sign in as admin and verify role behavior according to server rules.
 5. Confirm `ZOOM_MEETING_SDK_SECRET` is never sent to the browser.
+6. If Zoom blocks outside-account joins under the current Marketplace policy, use a meeting owned by the same Zoom account as the SDK app for staging smoke. Do not broaden app scopes to work around this without a reviewed requirement.
 
 Common failure points:
 
@@ -353,6 +469,7 @@ Validation:
 
 ```bash
 npm run verify:services:strict
+npm run verify:redis
 ```
 
 Manual smoke:
@@ -434,6 +551,8 @@ Purpose in this app:
 - HLS/playback object reads through S3-compatible API.
 - Optional public asset base for playback.
 
+Current v1 note: if the accepted playback path uses Axinom-managed Azure Blob output URLs stored directly on each `Video` as `dashUrl`/`hlsUrl`, Cloudflare R2 and `NEXT_PUBLIC_ASSET_BASE` are optional. Configure this section only if the app must upload to, read from, or serve static HLS assets from R2/S3-compatible storage.
+
 Repo env vars:
 
 ```bash
@@ -462,6 +581,7 @@ Validation:
 
 ```bash
 npm run verify:services:strict
+npm run verify:email
 ```
 
 Manual smoke:
@@ -529,6 +649,7 @@ Manual smoke:
 2. Confirm ticket is persisted.
 3. Confirm email notification is sent or provider block is recorded.
 4. Confirm SMTP secret is not logged.
+5. Optionally send a direct smoke email with `npm run verify:email -- --send`.
 
 Common failure points:
 
@@ -604,8 +725,9 @@ Steps:
 4. Copy the project DSN.
 5. Configure staging environment tagging in Sentry and/or app config.
 6. Review Sentry sensitive data scrubbing settings.
-7. Add DSN values to local `.env.local` and Vercel staging env.
-8. Do not put auth tokens or source-map upload tokens into docs or client env unless explicitly needed and understood.
+7. Add `SENTRY_DSN` to local `.env.local` and Vercel staging env for server and edge capture.
+8. Add `NEXT_PUBLIC_SENTRY_DSN` only when client-side browser error capture is intentionally enabled.
+9. Do not put auth tokens or source-map upload tokens into docs or client env unless explicitly needed and understood.
 
 Validation:
 
@@ -622,6 +744,7 @@ Manual smoke:
 Common failure points:
 
 - DSN configured for the wrong project/environment.
+- `SENTRY_DSN` is set but `NEXT_PUBLIC_SENTRY_DSN` is missing when testing browser-side error boundaries.
 - Sensitive data scrubbing is not enabled.
 - Client/server/edge configs drift from each other.
 

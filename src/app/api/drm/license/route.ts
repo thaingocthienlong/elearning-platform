@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         return NextResponse.json(
             {
                 error: 'Local DRM license endpoint is not implemented for production DRM.',
-                provider: 'Axinom License Service',
+                provider: 'DoveRunner Multi-DRM',
             },
             { status: 501 }
         );

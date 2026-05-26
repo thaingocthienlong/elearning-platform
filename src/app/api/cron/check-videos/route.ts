@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { syncVideoWithAxinom, extractAxinomId } from '@/lib/axinom-sync';
+import { activeMediaProvider } from '@/lib/media-provider';
 
 export async function GET(request: NextRequest) {
     try {
@@ -11,14 +11,10 @@ export async function GET(request: NextRequest) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
-        // Find all unpublished videos with Axinom IDs
         const pendingVideos = await prisma.video.findMany({
             where: {
                 published: false,
-                description: {
-                    not: null,
-                    contains: 'axinom-id:'
-                }
+                providerJobId: { not: null },
             }
         });
 
@@ -28,15 +24,29 @@ export async function GET(request: NextRequest) {
         // Check each video
         for (const video of pendingVideos) {
             try {
-                const result = await syncVideoWithAxinom(video.id);
+                const result = await activeMediaProvider.syncProcessing({
+                    videoId: video.id,
+                    providerJobId: video.providerJobId!,
+                    providerContentId: video.providerContentId ?? video.id,
+                });
 
-                if (result.success) {
-                    if (result.updated) {
-                        updatedCount++;
-                    }
-                } else {
-                    console.error(`❌ Sync failed for ${video.id}: ${result.error}`);
-                    errorCount++;
+                await prisma.video.update({
+                    where: { id: video.id },
+                    data: {
+                        providerStatus: result.status,
+                        providerSyncedAt: new Date(),
+                        ...(result.ready
+                            ? {
+                                published: true,
+                                dashUrl: result.dashUrl,
+                                hlsUrl: result.hlsUrl,
+                            }
+                            : {}),
+                    },
+                });
+
+                if (result.ready) {
+                    updatedCount++;
                 }
 
             } catch (error) {

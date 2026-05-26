@@ -166,7 +166,7 @@ describe('media route entitlement adoption', () => {
     const body = await response.json();
 
     expect(response.status).toBe(501);
-    expect(body.provider).toBe('Axinom License Service');
+    expect(body.provider).toBe('DoveRunner Multi-DRM');
   });
 
   test('DRM token route issues authorized DoveRunner content token', async () => {

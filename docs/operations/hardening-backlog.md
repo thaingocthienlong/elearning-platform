@@ -35,6 +35,6 @@ Priority scale:
 |----|------|------|----------------|---------------|
 | HARDEN-P2-01 | Database | Revisit database migration only if profiling shows MongoDB cannot meet requirements. | Avoid high-risk migration without evidence. | Profiling report supports keep/migrate decision. |
 | HARDEN-P2-02 | Admin UI | Apply deeper academic/operational redesign to dense admin pages. | Phase 7 preserved admin density but did not deeply redesign every admin workflow. | Admin screenshots and usability review pass. |
-| HARDEN-P2-03 | Vendor upgrades | Schedule quarterly Axinom, Zoom, Next.js, Prisma, Shaka, and Vercel review. | Vendor SDKs and hosting behavior change over time. | Upgrade review issue created each quarter. |
+| HARDEN-P2-03 | Vendor upgrades | Schedule quarterly DoveRunner, Zoom, Next.js, Prisma, Shaka, and Vercel review. | Vendor SDKs and hosting behavior change over time. | Upgrade review issue created each quarter. |
 | HARDEN-P2-04 | Compliance | Define institute-specific compliance needs if applicable. | Legal/regulatory controls depend on the real operating context. | Compliance owner signs off or marks not applicable. |
 | HARDEN-P2-05 | Analytics | Add richer export/reporting after dashboard performance is stable. | Useful for academic operations, but not staging-critical. | Export requirements and privacy rules are approved. |

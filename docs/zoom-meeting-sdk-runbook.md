@@ -21,6 +21,26 @@ The retained live SDK path is currently:
 
 As of May 6, 2026, `npm view @zoom/meetingsdk version` reports `6.0.0`. Do not force this upgrade without following the upgrade procedure below and completing the smoke path.
 
+## Marketplace App Setup Notes
+
+The current Zoom Marketplace build flow may create this as a **General App** with **Meeting SDK** enabled. The repository still uses Meeting SDK signatures, not a stored Zoom OAuth token.
+
+Required Marketplace setup for local/staging smoke:
+
+1. In Zoom App Marketplace, open **Develop** -> **Build App**.
+2. Create or edit the private/account-managed General App for this platform.
+3. Enable **Meeting SDK**.
+4. In **Basic Information**, set:
+   - **OAuth Redirect URL**: `http://localhost:3000/api/zoom/oauth/callback` for local.
+   - **OAuth Allow Lists**: `http://localhost:3000` for local.
+   - Add the staging origin and callback when staging is deployed.
+5. In **Scopes**, add the minimum read-only user/profile scope Zoom requires for **Local Test** authorization. This scope is not used by the repository's join flow.
+6. In **Embed** / **Meeting SDK**, copy the SDK key/client ID and SDK secret/client secret into the app environment.
+7. In **Local Test**, click **Add App Now** and authorize the app.
+8. Confirm the redirect reaches `/api/zoom/oauth/callback` and returns a safe JSON `status: ok` response.
+
+`src/app/api/zoom/oauth/callback/route.ts` intentionally does not store the OAuth `code`. It exists so Zoom's required Local Test authorization can complete without turning this project into a Zoom OAuth integration.
+
 ## Quarantined Samples
 
 The following duplicate/sample trees were moved outside served public paths:
@@ -44,8 +64,8 @@ They are not the maintained app integration. Inspect them only when looking for 
 
 - `/api/zoom/signature` must validate the NextAuth session before generating a signature.
 - Browser requests must not control `meetingNumber`, `passcode`, or `role`.
-- Learners receive role `0`.
-- Only users with `session.user.role === "ADMIN"` receive role `1`.
+- All retained iframe joins receive attendee role `0`.
+- Host role `1` requires a separate reviewed flow that supplies a valid Zoom ZAK token.
 - Missing Zoom config fails closed: no signature is generated.
 - The response must never include `ZOOM_MEETING_SDK_SECRET`.
 
@@ -88,14 +108,23 @@ The current implementation preserves Client View. Component View is reference ma
 Use a staging environment with real Zoom SDK values and a test meeting.
 
 1. Configure `ZOOM_MEETING_SDK_KEY`, `ZOOM_MEETING_SDK_SECRET`, `NEXT_PUBLIC_ZOOM_MEETING_ID`, and `NEXT_PUBLIC_ZOOM_PASSCODE`.
-2. Sign in as a learner and open `/meeting`.
-3. Confirm the iframe launches the configured meeting and does not show raw operational errors.
-4. Confirm user identity appears as expected.
-5. Confirm passcode handling succeeds.
-6. Confirm camera and microphone prompts work.
-7. Confirm watermark text appears and follows active video/share targets.
-8. Leave the meeting and confirm the app exits cleanly.
-9. Sign in as an admin and verify host-capable behavior only if the test meeting setup allows it.
+2. Use a meeting owned by the same Zoom account as the SDK app for first smoke.
+3. Sign in as a learner and open `/meeting`.
+4. Confirm the iframe launches the configured meeting and does not show raw operational errors.
+5. Confirm user identity appears as expected.
+6. Confirm passcode handling succeeds.
+7. Confirm camera and microphone prompts work.
+8. Confirm watermark text appears and follows active video/share targets.
+9. Leave the meeting and confirm the app exits cleanly.
+10. Sign in as an admin and verify the iframe still receives attendee role `0`; host/start behavior requires a separate ZAK-backed flow.
+
+Local evidence from the 2026-05-09 rescue smoke:
+
+- Google-authenticated admin reached `/meeting`.
+- `/api/zoom/signature` generated the Meeting SDK signature server-side.
+- The iframe loaded Zoom Client View and reached the live meeting UI.
+- The SDK secret was not exposed to the browser response.
+- The test meeting ID/passcode were treated as public configuration, not access-control secrets.
 
 If real credentials or meeting availability are missing, record the smoke as `requires staging credentials`; do not mark automated signature/API tests optional.
 

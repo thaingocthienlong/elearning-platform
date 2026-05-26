@@ -17,10 +17,9 @@ describe('staging deployment documentation contract', () => {
       'npm run verify:services:strict',
       'npm run verify:staging',
       'Google OAuth',
-      'Axinom webhook',
+      'DoveRunner T&P',
       'Zoom Meeting SDK',
-      'Azure Blob',
-      'Cloudflare R2',
+      'AWS S3',
       'maxDuration = 300',
       'Production hardening should move long-running encoding control to a queue',
     ]) {
@@ -37,7 +36,7 @@ describe('staging deployment documentation contract', () => {
       'PLAYBACK-01',
       'DRM-01',
       'HLS-01',
-      'AXINOM-01',
+      'DOVERUNNER-01',
       'ZOOM-01',
       'SUPPORT-01',
       'REDIS-01',
@@ -55,14 +54,13 @@ describe('staging deployment documentation contract', () => {
 });
 
 describe('Safari FairPlay staging docs', () => {
-  test('Axinom staging checklist documents real macOS Safari FairPlay verification', () => {
-    const checklist = readText('docs/axinom-staging-checklist.md');
+  test('DoveRunner setup documents real macOS Safari FairPlay verification', () => {
+    const checklist = readText('docs/doverunner-setup.md');
 
-    expect(checklist).toContain('## 6B. macOS Safari FairPlay Smoke');
+    expect(checklist).toContain('DOVERUNNER_FAIRPLAY_CERT_URL');
     expect(checklist).toContain('npm run verify:safari-fairplay');
-    expect(checklist).toContain('Use real macOS Safari for acceptance');
-    expect(checklist).toContain('Playwright WebKit is not a FairPlay acceptance substitute');
-    expect(checklist).toContain('Do not paste license tokens, certificate contents, Communication Key values, or DRM content keys');
+    expect(checklist).toContain('real macOS Safari');
+    expect(checklist).toContain('Do not paste license tokens');
   });
 
   test('staging smoke checklist has Safari-specific FairPlay and fallback rows', () => {
@@ -71,6 +69,6 @@ describe('Safari FairPlay staging docs', () => {
     expect(checklist).toContain('SAFARI-DRM-01');
     expect(checklist).toContain('SAFARI-FALLBACK-01');
     expect(checklist).toContain('real macOS Safari');
-    expect(checklist).toContain('clear HLS fallback');
+    expect(checklist).toContain('marked blocked');
   });
 });

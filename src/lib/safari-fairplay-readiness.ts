@@ -1,20 +1,18 @@
 import { isAppleHlsBrowser } from '@/lib/playback-routing';
 
 const REQUIRED_FAIRPLAY_ENV = [
-  'AXINOM_FAIRPLAY_CERT_URL',
-  'NEXT_PUBLIC_AX_FP_LS_URL',
+  'DOVERUNNER_FAIRPLAY_CERT_URL',
 ] as const;
 
 export type SafariFairPlayEnvName = (typeof REQUIRED_FAIRPLAY_ENV)[number];
 
 export interface SafariFairPlayEnv {
-  AXINOM_FAIRPLAY_CERT_URL?: string;
-  NEXT_PUBLIC_AX_FP_LS_URL?: string;
+  DOVERUNNER_FAIRPLAY_CERT_URL?: string;
 }
 
 export interface SafariFairPlayReadiness {
   fairPlayReady: boolean;
-  mode: 'fairplay-drm' | 'clear-hls-or-blocked';
+  mode: 'fairplay-drm' | 'blocked';
   missing: SafariFairPlayEnvName[];
   invalid: SafariFairPlayEnvName[];
 }
@@ -30,7 +28,6 @@ export interface SafariPlaybackExpectation {
   appleBrowser: boolean;
   expectedMode:
     | 'fairplay-drm'
-    | 'clear-hls-fallback'
     | 'blocked'
     | 'not-apple-browser';
   reason: string;
@@ -61,7 +58,7 @@ export function getSafariFairPlayReadiness(
 
   return {
     fairPlayReady,
-    mode: fairPlayReady ? 'fairplay-drm' : 'clear-hls-or-blocked',
+    mode: fairPlayReady ? 'fairplay-drm' : 'blocked',
     missing: [...missing],
     invalid: [...invalid],
   };
@@ -70,7 +67,6 @@ export function getSafariFairPlayReadiness(
 export function getSafariPlaybackExpectation({
   userAgent,
   hlsUrl,
-  hlsUrlClear,
   fairPlayReady,
 }: SafariPlaybackExpectationInput): SafariPlaybackExpectation {
   if (!isAppleHlsBrowser(userAgent)) {
@@ -78,14 +74,6 @@ export function getSafariPlaybackExpectation({
       appleBrowser: false,
       expectedMode: 'not-apple-browser',
       reason: 'This check is only for Safari/iOS Apple HLS playback.',
-    };
-  }
-
-  if (hlsUrlClear) {
-    return {
-      appleBrowser: true,
-      expectedMode: 'clear-hls-fallback',
-      reason: 'Safari should use clear HLS fallback because clear HLS is available for Apple playback.',
     };
   }
 
@@ -100,6 +88,6 @@ export function getSafariPlaybackExpectation({
   return {
     appleBrowser: true,
     expectedMode: 'blocked',
-    reason: 'Safari has no clear HLS fallback and FairPlay env is not configured.',
+    reason: 'Safari protected playback requires DoveRunner FairPlay config and protected HLS.',
   };
 }

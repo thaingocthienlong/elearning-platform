@@ -4,7 +4,7 @@ describe('watch playback source routing', () => {
   const dashUrl = 'https://media.example/video/manifest.mpd';
   const hlsUrl = 'https://media.example/video/protected.m3u8';
   const hlsUrlClear = 'https://media.example/video/clear.m3u8';
-  const drmToken = 'signed-axinom-token';
+  const drmToken = 'signed-doverunner-token';
 
   test('detects all iOS browsers as Apple HLS browsers', () => {
     expect(
@@ -30,7 +30,7 @@ describe('watch playback source routing', () => {
     ).toBe(false);
   });
 
-  test('routes iOS to clear HLS and suppresses the DRM token when clear fallback exists', () => {
+  test('routes iOS to protected HLS and keeps the DRM token when a legacy clear fallback exists', () => {
     expect(
       selectWatchPlaybackSources({
         userAgent:
@@ -42,14 +42,14 @@ describe('watch playback source routing', () => {
       })
     ).toEqual({
       dashUrl: null,
-      hlsUrl: hlsUrlClear,
-      drmToken: '',
+      hlsUrl,
+      drmToken,
       isAppleHlsBrowser: true,
-      isClearHlsFallback: true,
+      isClearHlsFallback: false,
     });
   });
 
-  test('routes macOS Safari to clear HLS and suppresses the DRM token when clear fallback exists', () => {
+  test('routes macOS Safari to protected HLS and keeps the DRM token when a legacy clear fallback exists', () => {
     expect(
       selectWatchPlaybackSources({
         userAgent:
@@ -61,10 +61,10 @@ describe('watch playback source routing', () => {
       })
     ).toEqual({
       dashUrl: null,
-      hlsUrl: hlsUrlClear,
-      drmToken: '',
+      hlsUrl,
+      drmToken,
       isAppleHlsBrowser: true,
-      isClearHlsFallback: true,
+      isClearHlsFallback: false,
     });
   });
 

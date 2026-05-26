@@ -28,9 +28,12 @@ Required Axinom variables:
 - `AXINOM_ENCODING_API_URL`
 - `AXINOM_VIDEO_SERVICE_URL`
 - `AXINOM_WEBHOOK_SECRET`
-- `AXINOM_FAIRPLAY_CERT_URL`
 - `NEXT_PUBLIC_AX_WV_LS_URL`
 - `NEXT_PUBLIC_AX_PR_LS_URL`
+
+Optional FairPlay variables, required only if Apple FPS/FairPlay is configured instead of the clear HLS fallback:
+
+- `AXINOM_FAIRPLAY_CERT_URL`
 - `NEXT_PUBLIC_AX_FP_LS_URL`
 
 Run:
@@ -90,6 +93,40 @@ Expected after Encoding completion:
 4. In browser network tools, confirm Shaka sends `X-AxDRM-Message` only on DRM license requests.
 5. Confirm manifest and media segment requests do not include `X-AxDRM-Message`.
 6. Confirm playback starts for a supported DRM/browser combination.
+
+For tenants without FairPlay/FPS credentials, Safari and iOS acceptance requires `hlsUrlClear` from the clear processing profile. Treat clear HLS as a fallback protected by auth, HLS authorization, watermarking, session controls, and audit telemetry, not by DRM.
+
+## 6A. Local App Playback Smoke
+
+Use this when Axinom Encoding has finished and staging deployment is not ready yet.
+
+1. Open the completed video in the Axinom Management System.
+2. Copy the DASH and HLS manifest URLs from the video details or preview page.
+3. Fetch the DASH manifest and record only the DRM `default_KID` values. Do not record DRM content keys, CPIX data, license tokens, or Communication Key values.
+4. Create or update one app `Video` row with:
+   - `dashUrl`
+   - `hlsUrl`
+   - comma-separated `drmKeyId`
+   - `axinomVideoId`
+   - `axinomJobId`
+   - `axinomOutputLocation`
+   - `axinomEncodingStatus=READY`
+5. Ensure the video is reachable through an open course, enrollment, or `VideoAccess` row.
+6. Sign in to the local app with a whitelisted user.
+7. Open `/watch/<videoId>`.
+8. Accept the IPR consent prompt.
+9. Confirm the browser loads the DASH manifest.
+10. Confirm the browser sends a license request to the Axinom license service.
+11. Confirm encrypted media segments load from the output storage host.
+12. Press play and confirm the video element `currentTime` advances without a video element error.
+
+Local evidence from the 2026-05-09 rescue smoke:
+
+- Axinom Encoding completed a protected BigBuckBunny test video.
+- The app watch page loaded the DASH manifest and encrypted media from Axinom-managed Azure Blob output.
+- A Widevine license request reached Axinom License Service.
+- Playback advanced in the browser through the app path.
+- The Axinom portal preview had previously shown a preview configuration error, so app playback is the source-of-truth acceptance path for this repository.
 
 ## 6B. macOS Safari FairPlay Smoke
 

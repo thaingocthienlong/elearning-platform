@@ -10,7 +10,7 @@ const requiredServiceGroups = [
   'Database',
   'Auth',
   'Redis',
-  'Axinom',
+  'DoveRunner',
   'Storage',
   'Zoom',
   'Support/Email/reCAPTCHA',
@@ -98,6 +98,53 @@ function groupRequiredVariables(rows: MatrixRow[]) {
   return grouped;
 }
 
+function isPlaceholderValue(value: string): boolean {
+  const normalized = value.toLowerCase();
+  return (
+    normalized.includes('example.invalid') ||
+    normalized.includes('example.com') ||
+    normalized.includes('<') ||
+    normalized.includes('>') ||
+    normalized.includes('placeholder') ||
+    normalized.includes('your_') ||
+    normalized.includes('your-') ||
+    normalized.includes('changeme')
+  );
+}
+
+function getEnvIssue(variableName: string): string | null {
+  const value = process.env[variableName];
+
+  if (!value) {
+    return 'missing';
+  }
+
+  if (isPlaceholderValue(value)) {
+    return 'placeholder value';
+  }
+
+  if (
+    variableName.endsWith('_URL') ||
+    variableName.endsWith('_DSN') ||
+    variableName === 'DATABASE_URL'
+  ) {
+    try {
+      const parsedUrl = new URL(value);
+      if (variableName === 'DATABASE_URL') {
+        if (parsedUrl.protocol !== 'mongodb:' && parsedUrl.protocol !== 'mongodb+srv:') {
+          return 'invalid MongoDB URL';
+        }
+      } else if (parsedUrl.protocol !== 'https:' && !value.startsWith('http://localhost')) {
+        return 'invalid URL protocol';
+      }
+    } catch {
+      return 'invalid URL shape';
+    }
+  }
+
+  return null;
+}
+
 function verifyRequiredGroups(matrixServices: Set<string>) {
   const missingGroups = requiredServiceGroups.filter(
     (service) => !matrixServices.has(service)
@@ -111,31 +158,33 @@ function verifyRequiredGroups(matrixServices: Set<string>) {
 }
 
 function verifyServices(grouped: Map<string, Set<string>>) {
-  let missingAny = false;
+  let issueAny = false;
 
   for (const service of requiredServiceGroups) {
     const requiredVariables = [...(grouped.get(service) ?? [])].sort();
-    const missingVariables = requiredVariables.filter(
-      (variableName) => !process.env[variableName]
-    );
+    const variableIssues = requiredVariables
+      .map((variableName) => ({ variableName, issue: getEnvIssue(variableName) }))
+      .filter((entry): entry is { variableName: string; issue: string } => Boolean(entry.issue));
 
-    if (missingVariables.length === 0) {
+    if (variableIssues.length === 0) {
       console.log(`OK ${service}: required variables present`);
       continue;
     }
 
-    missingAny = true;
-    const missingList = missingVariables.join(', ');
+    issueAny = true;
+    const issueList = variableIssues
+      .map(({ variableName, issue }) => `${variableName} (${issue})`)
+      .join(', ');
 
     if (strict) {
-      console.error(`FAIL ${service}: missing ${missingList}`);
+      console.error(`FAIL ${service}: ${issueList}`);
       continue;
     }
 
-    console.log(`SKIP ${service}: missing ${missingList}`);
+    console.log(`SKIP ${service}: ${issueList}`);
   }
 
-  if (strict && missingAny) {
+  if (strict && issueAny) {
     process.exit(1);
   }
 }

@@ -35,8 +35,8 @@ In My Mosaic / DRM, collect:
 | Communication Key value | `AXINOM_COM_KEY_SECRET` | Base64 value used server-side to sign HS256 JWTs. Never expose to the browser. |
 | Widevine License Service URL | `NEXT_PUBLIC_AX_WV_LS_URL` | Public browser config. Use the tenant-dedicated URL if Axinom provides one. |
 | PlayReady License Service URL | `NEXT_PUBLIC_AX_PR_LS_URL` | Public browser config. |
-| FairPlay License Service URL | `NEXT_PUBLIC_AX_FP_LS_URL` | Public browser config. FairPlay also needs a certificate URL. |
-| FairPlay certificate URL | `AXINOM_FAIRPLAY_CERT_URL` | Server-side source for `/api/drm/fairplay-cert`. Apple FPS credentials are owner-specific. |
+| FairPlay License Service URL | `NEXT_PUBLIC_AX_FP_LS_URL` | Public browser config required only when FairPlay playback is configured. FairPlay also needs a certificate URL. |
+| FairPlay certificate URL | `AXINOM_FAIRPLAY_CERT_URL` | Server-side source for `/api/drm/fairplay-cert`. Apple FPS credentials are owner-specific; leave unset when using clear HLS fallback for Apple browsers. |
 
 Axinom documents generic license URLs:
 
@@ -74,7 +74,7 @@ For a first trial tenant, use Axinom's UI-first flow before relying on API autom
 4. Configure an Acquisition Profile for input storage.
 5. Configure a Publishing Profile for output storage.
 6. Configure a DRM Processing Profile for protected output.
-7. Configure a clear Processing Profile only if you intentionally keep a clear HLS fallback.
+7. Configure a clear Processing Profile if FairPlay/FPS is not available and Apple-browser playback is still required.
 8. Upload one test video to input storage.
 9. Start encoding and wait for completion.
 10. Preview the encoded output in Axinom tools before connecting it to this app.
@@ -91,6 +91,20 @@ Create a Mosaic service account with Encoding permission. Record:
 | Service account client secret | `AXINOM_ENCODING_CLIENT_SECRET` | Server secret. |
 | DRM processing profile ID | `AXINOM_ENCODING_PROFILE_DRM` | Used for protected output. |
 | Clear processing profile ID | `AXINOM_ENCODING_PROFILE_CLEAR` | Required for new admin video processing so Safari/iOS have the clear HLS fallback path. |
+
+## Apple Browser Fallback Without FairPlay
+
+Axinom and Shaka both require a FairPlay server certificate for FairPlay DRM playback. If the tenant does not have Apple FPS/FairPlay credentials, do not configure FairPlay in the player path.
+
+This repo supports the older fallback pattern:
+
+1. Keep `AXINOM_FAIRPLAY_CERT_URL` unset.
+2. Configure `AXINOM_ENCODING_PROFILE_CLEAR`.
+3. Let the admin processing route create both the DRM encode and the clear encode.
+4. Confirm sync/webhook populates `hlsUrlClear`.
+5. Safari and iOS use `hlsUrlClear` without a DRM token; other supported browsers keep using DASH with Widevine or PlayReady.
+
+Clear HLS is not DRM. Use it only as an intentional compatibility fallback with server-side entitlement, HLS route authorization, watermarking, session controls, and audit telemetry.
 | Encoding API base URL | `AXINOM_ENCODING_API_URL` | Default examples use `https://vip-eu-west-1.axinom.com`. |
 | Video Service GraphQL URL | `AXINOM_VIDEO_SERVICE_URL` | Default examples use `https://video.service.eu.axinom.net/graphql`. |
 

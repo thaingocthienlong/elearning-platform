@@ -1,14 +1,14 @@
 # Secure Video Platform
 
-Secure streaming and course platform with authenticated access, Axinom DRM playback, admin management, Zoom meetings, support tickets, watermarking, session controls, analytics, and external service integrations.
+Secure streaming and course platform with authenticated access, DoveRunner T&P/Multi-DRM playback, admin management, Zoom meetings, support tickets, watermarking, session controls, analytics, and external service integrations.
 
 ## Features
 
-- **Secure playback:** Multi-DRM playback through Axinom and Shaka Player.
+- **Secure playback:** Multi-DRM playback through DoveRunner and Shaka Player.
 - **Access control:** NextAuth sessions, whitelisted access, course enrollment, and direct video access.
 - **Admin operations:** User, course, video, analytics, whitelist, permission, ticket, and security-event management.
 - **Meetings and support:** Zoom Meeting SDK flow plus support ticket handling.
-- **Runtime integrations:** Prisma MongoDB, Upstash Redis, Azure Blob, Cloudflare R2, Sentry, and Vercel-oriented deployment.
+- **Runtime integrations:** Prisma MongoDB, Upstash Redis, DoveRunner T&P, AWS S3, Sentry, and Vercel-oriented deployment.
 
 ## Getting Started
 
@@ -17,7 +17,7 @@ Secure streaming and course platform with authenticated access, Axinom DRM playb
 - Node >=20.9.0. The repo pins `20.11.1` in `.nvmrc`.
 - npm with the committed `package-lock.json`.
 - Prisma MongoDB through `DATABASE_URL`.
-- Optional external services for full integration checks: Google OAuth, Upstash Redis, Axinom, Azure/R2 storage, Zoom, SMTP, reCAPTCHA, and Sentry.
+- Optional external services for full integration checks: Google OAuth, Upstash Redis, DoveRunner, AWS S3, Zoom, SMTP, reCAPTCHA, and Sentry.
 
 ### Quick Setup
 
@@ -36,8 +36,8 @@ Replace placeholder values in `.env.local` before running workflows that need re
 
 - [Maintainer setup](docs/setup.md)
 - [Environment matrix](docs/env-matrix.md)
-- [Axinom setup](docs/axinom-setup.md)
-- [Axinom staging checklist](docs/axinom-staging-checklist.md)
+- [DoveRunner setup](docs/doverunner-setup.md)
+- [Encoding and playback matrix](docs/playback-encoding-matrix.md)
 - [Verification commands](docs/verification.md)
 - [Secret hygiene](docs/secret-hygiene.md)
 - [System architecture](docs/architecture/system_overview.md)

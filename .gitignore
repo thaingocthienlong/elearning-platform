@@ -23,6 +23,8 @@
 # misc
 .DS_Store
 *.pem
+.codex/
+.browser-profile/
 
 # debug
 npm-debug.log*
@@ -70,3 +72,5 @@ wv_pssh.hex
 # and large vendor bundles; keep only the README tracked.
 archive/zoom-sdk-quarantine/**
 !archive/zoom-sdk-quarantine/README.md
+
+.vercel

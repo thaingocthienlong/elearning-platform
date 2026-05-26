@@ -30,6 +30,14 @@ Current focus: Phase 1 - Installable Baseline, Docs, and Secret Hygiene.
 - Commit planning artifacts separately from source-code changes when Git tracking is enabled.
 - Do not read, print, copy, or commit secret values from env files, key files, DRM artifacts, service account files, certificates, or media keys.
 
+## Caveman Communication Rule
+
+- Trigger the `caveman` skill for agent-authored prose by default, including answers, status updates, plans, specs, docs, reviews, summaries, and handoff notes.
+- Use `caveman full` unless the user requests another level, such as `lite`, `ultra`, `wenyan-lite`, `wenyan-full`, or `wenyan-ultra`.
+- Keep code, commands, exact error text, file paths, API names, commit messages, and PR text precise and normally formatted.
+- Temporarily drop caveman compression when security warnings, irreversible-action confirmations, legal/compliance text, public-facing product copy, or ordered multi-step instructions would become ambiguous. Resume caveman style afterward.
+- Stop using caveman only when the user says `stop caveman` or `normal mode`.
+
 ## Project-Specific Constraints
 
 - Stabilize first: install, docs, tests, and security fixes come before the academic frontend redesign.
