@@ -114,7 +114,7 @@ export const doverunnerProvider: MediaProvider = {
                 track_id: 'audio_main',
                 track_type: 'audio',
                 track_name: 'audio',
-                codec: 'AAC',
+                codec: 'aac',
                 bitrate_mode: 'cbr',
                 bitrate: 128000,
                 sample_rate: 48000,
