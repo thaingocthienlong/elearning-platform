@@ -19,6 +19,7 @@ export type DoveRunnerConfig = {
   awsSecretAccessKey: string;
   fairPlayCertUrl?: string;
   licenseTokenTtlSeconds: number;
+  tnpDrmEnabled: boolean;
 };
 
 function required(env: Env, key: string) {
@@ -31,6 +32,14 @@ function required(env: Env, key: string) {
 
 function trimTrailingSlash(value: string) {
   return value.replace(/\/+$/, '');
+}
+
+function optionalBoolean(env: Env, key: string, defaultValue: boolean) {
+  const value = env[key]?.trim().toLowerCase();
+  if (!value) return defaultValue;
+  if (['1', 'true', 'yes', 'on'].includes(value)) return true;
+  if (['0', 'false', 'no', 'off'].includes(value)) return false;
+  throw new Error(`${key} must be a boolean value`);
 }
 
 export function readDoveRunnerConfig(env: Env = process.env): DoveRunnerConfig {
@@ -59,5 +68,6 @@ export function readDoveRunnerConfig(env: Env = process.env): DoveRunnerConfig {
     awsSecretAccessKey: required(env, 'AWS_SECRET_ACCESS_KEY'),
     fairPlayCertUrl: env.DOVERUNNER_FAIRPLAY_CERT_URL?.trim() || undefined,
     licenseTokenTtlSeconds,
+    tnpDrmEnabled: optionalBoolean(env, 'DOVERUNNER_TNP_DRM_ENABLED', true),
   };
 }

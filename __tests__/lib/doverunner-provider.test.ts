@@ -76,6 +76,30 @@ describe('DoveRunner media provider', () => {
     });
   });
 
+  test('can submit a clear packaging job for provider isolation', async () => {
+    process.env.DOVERUNNER_TNP_DRM_ENABLED = 'false';
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ error_code: '0000', data: { token: 'Bearer tnp-token' } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ error_code: '0000', data: { job_id: 26198, status: 'queued' } }),
+      }) as jest.Mock;
+
+    await doverunnerProvider.submitProcessing({
+      videoId: 'video-1',
+      title: 'Lecture 1',
+      sourceKey: 'videos/video-1/source.mp4',
+    });
+
+    const [, requestInit] = (global.fetch as jest.Mock).mock.calls[1];
+    const payload = JSON.parse(requestInit.body);
+
+    expect(payload.output.drm.enabled).toBe(false);
+  });
+
   test('syncs complete job to DASH and HLS URLs', async () => {
     global.fetch = jest.fn()
       .mockResolvedValueOnce({

@@ -132,7 +132,7 @@ export const doverunnerProvider: MediaProvider = {
               },
             },
             drm: {
-              enabled: true,
+              enabled: config.tnpDrmEnabled,
               option: {
                 multi_key: false,
                 max_sd_height: 480,
