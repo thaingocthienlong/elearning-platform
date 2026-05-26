@@ -22,11 +22,13 @@ export async function GET() {
                 dashUrl: true,
                 hlsUrl: true,
                 hlsUrlClear: true,
-                axinomVideoId: true,
-                axinomIdClear: true,
-                axinomEncodingStatus: true,
-                axinomOutputLocation: true,
-                axinomSyncedAt: true,
+                mediaProvider: true,
+                providerContentId: true,
+                providerJobId: true,
+                providerStatus: true,
+                sourceStorageKey: true,
+                outputStoragePath: true,
+                providerSyncedAt: true,
             }
         });
 
