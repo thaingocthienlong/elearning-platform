@@ -124,7 +124,7 @@ export const doverunnerProvider: MediaProvider = {
             ],
             packaging: {
               dash: true,
-              hls: true,
+              hls: false,
               cmaf: false,
               option: {
                 min_buffer_time: 2,
@@ -135,6 +135,12 @@ export const doverunnerProvider: MediaProvider = {
               enabled: true,
               option: {
                 multi_key: false,
+                max_sd_height: 480,
+                max_hd_height: 1080,
+                max_uhd1_height: 2160,
+                skip_audio_encryption: false,
+                clear_lead: 0,
+                generate_tracktype_manifests: false,
               },
             },
           },

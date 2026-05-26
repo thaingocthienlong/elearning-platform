@@ -57,6 +57,23 @@ describe('DoveRunner media provider', () => {
         headers: expect.objectContaining({ Authorization: 'Bearer tnp-token' }),
       })
     );
+    const [, requestInit] = (global.fetch as jest.Mock).mock.calls[1];
+    const payload = JSON.parse(requestInit.body);
+
+    expect(payload.output.packaging).toEqual(expect.objectContaining({
+      dash: true,
+      hls: false,
+      cmaf: false,
+    }));
+    expect(payload.output.drm.option).toEqual({
+      multi_key: false,
+      max_sd_height: 480,
+      max_hd_height: 1080,
+      max_uhd1_height: 2160,
+      skip_audio_encryption: false,
+      clear_lead: 0,
+      generate_tracktype_manifests: false,
+    });
   });
 
   test('syncs complete job to DASH and HLS URLs', async () => {
