@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { azureStorage } from '@/lib/azure-storage';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { activeMediaProvider } from '@/lib/media-provider';
 
 // Input validation schema
 const uploadSchema = z.object({
@@ -21,7 +21,7 @@ const uploadSchema = z.object({
         .optional(),
 });
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest | Request) {
     const session = await getServerSession(authOptions);
     if (!session) {
         return new NextResponse('Unauthorized', { status: 401 });
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 
     try {
         // Parse and validate input
-        const body = await req.json();
+        const body = await request.json();
         const validationResult = uploadSchema.safeParse(body);
 
         if (!validationResult.success) {
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const { filename, courseId, title } = validationResult.data;
+        const { filename, contentType = 'video/mp4', courseId, title } = validationResult.data;
 
         // Verify course exists before creating video
         const course = await prisma.course.findUnique({
@@ -62,20 +62,36 @@ export async function POST(req: Request) {
             );
         }
 
-        // Generate Azure SAS URL for upload
-        const { url: signedUrl, blobName } = await azureStorage.getUploadSasUrl(filename);
-
         // Create video record in DB (pending state)
         const video = await prisma.video.create({
             data: {
                 title: title || filename,
                 courseId: courseId,
-                r2Key: blobName,
                 published: false,
             },
         });
 
-        return NextResponse.json({ signedUrl, videoId: video.id, key: blobName });
+        const upload = await activeMediaProvider.createUploadUrl({
+            videoId: video.id,
+            filename,
+            contentType,
+        });
+
+        await prisma.video.update({
+            where: { id: video.id },
+            data: {
+                mediaProvider: activeMediaProvider.name,
+                sourceStorageBucket: upload.sourceBucket,
+                sourceStorageKey: upload.sourceKey,
+                providerStatus: 'UPLOAD_URL_CREATED',
+            },
+        });
+
+        return NextResponse.json({
+            signedUrl: upload.uploadUrl,
+            videoId: video.id,
+            key: upload.sourceKey,
+        });
     } catch (error) {
         console.error('Error generating signed URL:', error);
         return new NextResponse('Internal Server Error', { status: 500 });
