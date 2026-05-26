@@ -132,6 +132,15 @@ model Video {
   axinomEncodingStatus String?
   axinomOutputLocation String?
   axinomSyncedAt DateTime?
+  mediaProvider       String?
+  providerContentId   String?
+  providerJobId       String?
+  providerStatus      String?
+  sourceStorageBucket String?
+  sourceStorageKey    String?
+  outputStorageBucket String?
+  outputStoragePath   String?
+  providerSyncedAt    DateTime?
   viewLimit     Int?
   courseId      String          @db.ObjectId
   createdAt     DateTime        @default(now())
@@ -151,6 +160,10 @@ model Video {
   @@index([axinomVideoId])
   @@index([axinomIdClear])
   @@index([axinomEncodingStatus])
+  @@index([mediaProvider])
+  @@index([providerContentId])
+  @@index([providerJobId])
+  @@index([providerStatus])
 }
 
 model WatchRecord {
