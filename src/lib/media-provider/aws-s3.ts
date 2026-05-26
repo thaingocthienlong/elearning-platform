@@ -19,6 +19,7 @@ function createS3Client() {
 
   return new S3Client({
     region: config.awsRegion,
+    requestChecksumCalculation: 'WHEN_REQUIRED',
     credentials: {
       accessKeyId: config.awsAccessKeyId,
       secretAccessKey: config.awsSecretAccessKey,
