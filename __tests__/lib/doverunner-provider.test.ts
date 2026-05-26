@@ -1,0 +1,91 @@
+import { doverunnerProvider } from '@/lib/media-provider/doverunner';
+
+const originalEnv = process.env;
+
+describe('DoveRunner media provider', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = {
+      ...originalEnv,
+      DOVERUNNER_SITE_ID: 'DEMO',
+      DOVERUNNER_ACCESS_KEY: '12345678901234567890123456789012',
+      DOVERUNNER_TNP_ACCOUNT_ID: 'account@example.test',
+      DOVERUNNER_TNP_ACCESS_KEY: 'tnp-access-key',
+      DOVERUNNER_TNP_INPUT_STORAGE_ID: 'input-storage',
+      DOVERUNNER_TNP_OUTPUT_STORAGE_ID: 'output-storage',
+      DOVERUNNER_OUTPUT_BASE_URL: 'https://cdn.example.test/output',
+      AWS_REGION: 'ap-southeast-1',
+      AWS_S3_INPUT_BUCKET: 'input-bucket',
+      AWS_S3_OUTPUT_BUCKET: 'output-bucket',
+      AWS_ACCESS_KEY_ID: 'aws-access-key',
+      AWS_SECRET_ACCESS_KEY: 'aws-secret-key',
+    };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  test('submits T&P DRM job with storage IDs and content ID', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ error_code: '0000', data: { token: 'Bearer tnp-token' } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ error_code: '0000', data: { job_id: 'job-1', status: 'queued' } }),
+      }) as jest.Mock;
+
+    const result = await doverunnerProvider.submitProcessing({
+      videoId: 'video-1',
+      title: 'Lecture 1',
+      sourceKey: 'videos/video-1/source.mp4',
+    });
+
+    expect(result).toEqual({
+      providerJobId: 'job-1',
+      providerContentId: 'video-1',
+      outputPath: 'videos/video-1/',
+      status: 'QUEUED',
+    });
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      'https://tnp.doverunner.com/api/job/DEMO',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ Authorization: 'Bearer tnp-token' }),
+      })
+    );
+  });
+
+  test('syncs complete job to DASH and HLS URLs', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ error_code: '0000', data: { token: 'Bearer tnp-token' } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ error_code: '0000', data: { job_id: 'job-1', status: 'success' } }),
+      }) as jest.Mock;
+
+    const result = await doverunnerProvider.syncProcessing({
+      providerJobId: 'job-1',
+      providerContentId: 'video-1',
+      videoId: 'video-1',
+    });
+
+    expect(result).toEqual({
+      status: 'READY',
+      dashUrl: 'https://cdn.example.test/output/videos/video-1/manifest.mpd',
+      hlsUrl: 'https://cdn.example.test/output/videos/video-1/master.m3u8',
+      ready: true,
+    });
+  });
+
+  test('returns configured license URL', () => {
+    expect(doverunnerProvider.getLicenseServerUrl('widevine'))
+      .toBe('https://drm-license.doverunner.com/ri/licenseManager.do');
+  });
+});

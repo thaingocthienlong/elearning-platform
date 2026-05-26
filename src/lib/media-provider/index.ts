@@ -14,3 +14,4 @@ export type {
 
 export { createS3UploadUrl } from './aws-s3';
 export { readDoveRunnerConfig } from './doverunner-env';
+export { doverunnerProvider as activeMediaProvider } from './doverunner';
