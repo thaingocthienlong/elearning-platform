@@ -34,7 +34,7 @@ describe('DoveRunner media provider', () => {
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ error_code: '0000', data: { job_id: 'job-1', status: 'queued' } }),
+        json: async () => ({ error_code: '0000', data: { job_id: 26197, status: 'queued' } }),
       }) as jest.Mock;
 
     const result = await doverunnerProvider.submitProcessing({
@@ -44,7 +44,7 @@ describe('DoveRunner media provider', () => {
     });
 
     expect(result).toEqual({
-      providerJobId: 'job-1',
+      providerJobId: '26197',
       providerContentId: 'video-1',
       outputPath: 'videos/video-1/',
       status: 'QUEUED',

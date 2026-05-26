@@ -73,7 +73,7 @@ export const doverunnerProvider: MediaProvider = {
   async submitProcessing(input: SubmitProcessingInput) {
     const config = readDoveRunnerConfig();
     const outputPath = outputPathForVideo(input.videoId);
-    const data = await requestTnp<{ job_id: string; status?: string }>(
+    const data = await requestTnp<{ job_id: number | string; status?: string }>(
       `/api/job/${config.siteId}`,
       {
         method: 'POST',
@@ -143,7 +143,7 @@ export const doverunnerProvider: MediaProvider = {
     );
 
     return {
-      providerJobId: data.job_id,
+      providerJobId: String(data.job_id),
       providerContentId: input.videoId,
       outputPath,
       status: normalizeProviderStatus(data.status ?? 'queued'),
