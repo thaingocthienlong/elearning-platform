@@ -17,6 +17,12 @@ const config: Config = {
     '<rootDir>/zoom-webapp/',
     '<rootDir>/public/zoom/',
     '<rootDir>/public/lib/zoom/',
+    '<rootDir>/.agent/',
+    '<rootDir>/.browser-profile/',
+    '<rootDir>/.codex/',
+    '<rootDir>/.serena/',
+    '<rootDir>/scripts/packager/',
+    '<rootDir>/Shaka Packager Script/',
   ],
 };
 
