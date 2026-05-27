@@ -34,7 +34,7 @@ describe('playback browser allowlist', () => {
     expect(getPlaybackBrowserGate(EDGE_WINDOWS)).toEqual({
       allowed: false,
       browserName: 'Microsoft Edge',
-      message: 'Video playback is temporarily available only on Google Chrome and Safari.',
+      message: 'Tính năng phát video hiện tạm thời chỉ hỗ trợ Google Chrome và Safari.',
     });
   });
 });

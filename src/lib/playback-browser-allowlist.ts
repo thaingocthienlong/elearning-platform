@@ -38,7 +38,7 @@ export function getPlaybackBrowserGate(userAgent: string) {
     browserName: getPlaybackBrowserName(userAgent),
     message: allowed
       ? ''
-      : 'Video playback is temporarily available only on Google Chrome and Safari.',
+      : 'Tính năng phát video hiện tạm thời chỉ hỗ trợ Google Chrome và Safari.',
   };
 }
 
