@@ -114,6 +114,18 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+enum VideoProvider {
+  AXINOM
+  VDOCIPHER
+}
+
+enum VdoCipherStatus {
+  PRE_UPLOAD
+  QUEUED
+  READY
+  ERROR
+}
+
 model Video {
   id            String          @id @default(auto()) @map("_id") @db.ObjectId
   title         String
@@ -121,6 +133,7 @@ model Video {
   duration      Float?
   position      Int             @default(0)
   published     Boolean         @default(false)
+  provider      VideoProvider   @default(AXINOM)
   r2Key         String?
   dashUrl       String?
   hlsUrl        String?
@@ -132,6 +145,12 @@ model Video {
   axinomEncodingStatus String?
   axinomOutputLocation String?
   axinomSyncedAt DateTime?
+  vdocipherVideoId   String?
+  vdocipherAccountId String?
+  vdocipherStatus    VdoCipherStatus?
+  vdocipherPosterUrl String?
+  vdocipherSyncedAt  DateTime?
+  vdocipherError     String?
   viewLimit     Int?
   courseId      String          @db.ObjectId
   createdAt     DateTime        @default(now())
@@ -148,9 +167,13 @@ model Video {
   @@index([courseId, published, isDeleted])
   @@index([courseId, position])
   @@index([drmKeyId])  // For DRM license lookups
+  @@index([provider])
   @@index([axinomVideoId])
   @@index([axinomIdClear])
   @@index([axinomEncodingStatus])
+  @@index([vdocipherAccountId])
+  @@index([vdocipherVideoId])
+  @@index([vdocipherStatus])
 }
 
 model WatchRecord {
