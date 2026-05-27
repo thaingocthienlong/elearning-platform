@@ -1,6 +1,6 @@
 # Provider Account Setup From Zero
 
-This guide is for rebuilding all external provider access after inherited accounts, keys, trials, or credentials were cancelled. It covers Google OAuth, Axinom DRM/Encoding, Zoom Meeting SDK, Upstash Redis, Azure Blob Storage, Cloudflare R2/S3-compatible storage, SMTP/reCAPTCHA, and Sentry.
+This guide is for rebuilding all external provider access after inherited accounts, keys, trials, or credentials were cancelled. It covers Google OAuth, Axinom DRM/Encoding, VdoCipher, Zoom Meeting SDK, Upstash Redis, Azure Blob Storage, Cloudflare R2/S3-compatible storage, SMTP/reCAPTCHA, and Sentry.
 
 Use placeholder values in documentation and tickets. Do not paste real secrets, tokens, service-account files, private keys, certificates, media keys, database URLs, storage keys, SDK secrets, or full user emails into this repository.
 
@@ -15,6 +15,12 @@ Use placeholder values in documentation and tickets. Do not paste real secrets, 
 - Axinom Shaka Player integration: https://docs.axinom.com/services/drm/players/shaka
 - Axinom Encoding API quickstart: https://docs.axinom.com/services/encoding/quickstart/using-api/api
 - Axinom Encoding Profiles: https://docs.axinom.com/services/video/setup-encoding-profiles/
+- VdoCipher upload overview: https://www.vdocipher.com/docs/server/upload/overview/
+- VdoCipher upload credentials: https://www.vdocipher.com/docs/server/upload/credentials/
+- VdoCipher browser upload: https://www.vdocipher.com/docs/server/upload/browser/
+- VdoCipher OTP API: https://www.vdocipher.com/docs/server/playbackauth/otp/
+- VdoCipher player embed: https://www.vdocipher.com/docs/player/v2/
+- VdoCipher web hooks: https://www.vdocipher.com/docs/server/account/hooks
 - Zoom Meeting SDK for Web: https://marketplacefront.zoom.us/sdk/meeting/web/index.html
 - Zoom Meeting SDK docs: https://developers.zoom.us/docs/meeting-sdk/web/
 - Upstash Redis getting started: https://upstash.com/docs/redis
@@ -49,6 +55,7 @@ Required callback/origin placeholders:
 | `<STAGING_ORIGIN>` | Stable Vercel Preview/Custom Environment staging URL. |
 | `<GOOGLE_CALLBACK>` | `<ORIGIN>/api/auth/callback/google`. |
 | `<AXINOM_WEBHOOK_URL>` | `<STAGING_ORIGIN>/api/webhook/axinom`. |
+| `<VDOCIPHER_WEBHOOK_URL>` | `<STAGING_ORIGIN>/api/webhook/vdocipher?secret=<VDOCIPHER_WEBHOOK_SECRET>`. |
 
 ## 2. Google OAuth From Zero
 
@@ -275,7 +282,82 @@ Common failure points:
 - Webhook URL points to local or old staging domain.
 - License URL region does not match the tenant.
 
-## 4. Zoom Meeting SDK From Zero
+## 4. VdoCipher Upload And Playback From Zero
+
+Purpose in this app:
+
+- Create short-lived browser upload credentials from the server.
+- Store each uploaded video with its VdoCipher video ID, account ID, and processing status.
+- Generate short-lived OTP/playbackInfo values only after the existing course/video entitlement check passes.
+- Render the VdoCipher player iframe for VdoCipher-backed videos while keeping Axinom playback for older videos.
+
+Repo env vars:
+
+```bash
+VDOCIPHER_ACCOUNT_IDS=primary,backup_1,backup_2,backup_3,backup_4
+VDOCIPHER_DEFAULT_ACCOUNT_ID=primary
+VDOCIPHER_API_SECRET_PRIMARY=<PRIMARY_ACCOUNT_API_SECRET>
+VDOCIPHER_API_SECRET_BACKUP_1=<BACKUP_1_ACCOUNT_API_SECRET>
+VDOCIPHER_API_SECRET_BACKUP_2=<BACKUP_2_ACCOUNT_API_SECRET>
+VDOCIPHER_API_SECRET_BACKUP_3=<BACKUP_3_ACCOUNT_API_SECRET>
+VDOCIPHER_API_SECRET_BACKUP_4=<BACKUP_4_ACCOUNT_API_SECRET>
+VDOCIPHER_WEBHOOK_SECRET=<WEBHOOK_SHARED_SECRET>
+```
+
+Account and API setup:
+
+1. Create the required VdoCipher account or accounts in the VdoCipher dashboard.
+2. For the temporary free-account split, assign a stable logical ID to each account, for example `primary`, `backup_1`, `backup_2`, `backup_3`, and `backup_4`.
+3. In each account, copy the API secret into the password manager. Do not paste it into tickets, docs, screenshots, or chat.
+4. Set `VDOCIPHER_ACCOUNT_IDS` to the comma-separated logical IDs.
+5. Set `VDOCIPHER_DEFAULT_ACCOUNT_ID` to the account that should receive new uploads by default.
+6. For each account ID, create one secret variable using the normalized uppercase suffix. For example `backup_1` uses `VDOCIPHER_API_SECRET_BACKUP_1`.
+7. Add the same values to local `.env.local` for urgent local upload work and to Vercel encrypted environment settings for staging.
+8. Run `npm run verify:services`; missing VdoCipher values should be treated as blocked for upload/playback work, not ignored.
+
+Upload workflow:
+
+1. Sign in as an admin.
+2. Open `/admin/videos`.
+3. Select provider `VdoCipher`.
+4. Choose the intended VdoCipher account when multiple accounts are configured.
+5. Start upload. The server calls VdoCipher's upload credentials endpoint and stores a local `Video` row with status `PRE_UPLOAD`.
+6. Upload the file from the browser using the returned `clientPayload.uploadLink` data. The API secret must never be sent to the browser.
+7. Use the admin sync action after upload to refresh VdoCipher processing status.
+8. Publish the video only after VdoCipher status is ready.
+
+Webhook setup:
+
+1. Generate a random `VDOCIPHER_WEBHOOK_SECRET`.
+2. In VdoCipher, configure a webhook for video-ready or processing events where supported.
+3. Set the target URL to:
+
+```text
+https://<staging-domain>/api/webhook/vdocipher?secret=<VDOCIPHER_WEBHOOK_SECRET>
+```
+
+4. Use a safe staging video event to confirm the route returns a non-500 response.
+5. Do not paste API secrets, OTP values, playbackInfo values, webhook secrets, or raw provider payloads into evidence.
+
+Playback validation:
+
+1. Sign in as an entitled learner.
+2. Open `/watch/<videoId>` for a VdoCipher-backed video.
+3. Confirm the server generates OTP/playbackInfo only after entitlement succeeds.
+4. Confirm the player iframe loads with `allow="encrypted-media"` and `allowfullscreen`.
+5. Confirm visible watermarking remains present around the secure playback shell.
+6. Sign in as a learner without access and confirm the watch page and `/api/vdocipher/otp` deny playback.
+7. Refresh the page if the OTP expires before the learner starts playback.
+
+Common failure points:
+
+- Account ID suffix does not match the env var name, for example `backup-1` normalizes to `VDOCIPHER_API_SECRET_BACKUP_1`.
+- `VDOCIPHER_DEFAULT_ACCOUNT_ID` points to an account not listed in `VDOCIPHER_ACCOUNT_IDS`.
+- Upload succeeds but admin publishes before VdoCipher status is ready.
+- Evidence includes OTP or playbackInfo values, which should be redacted.
+- A free account runs out of storage/quota; move the affected videos to the paid account and update the stored account/video IDs.
+
+## 5. Zoom Meeting SDK From Zero
 
 Purpose in this app:
 
@@ -323,7 +405,7 @@ Common failure points:
 - Old JWT-era credentials are used instead of current Meeting SDK credentials.
 - Meeting ID/passcode were cancelled or regenerated.
 
-## 5. Upstash Redis From Zero
+## 6. Upstash Redis From Zero
 
 Purpose in this app:
 
@@ -367,7 +449,7 @@ Common failure points:
 - Token belongs to a deleted database.
 - Vercel env was updated but staging was not redeployed.
 
-## 6. Azure Blob Storage From Zero
+## 7. Azure Blob Storage From Zero
 
 Purpose in this app:
 
@@ -427,7 +509,7 @@ Common failure points:
 - Container names differ from env values.
 - Old account key was rotated or cancelled.
 
-## 7. Cloudflare R2/S3-Compatible Storage From Zero
+## 8. Cloudflare R2/S3-Compatible Storage From Zero
 
 Purpose in this app:
 
@@ -477,7 +559,7 @@ Common failure points:
 - Token scope does not include the bucket.
 - Public asset base exposes objects that should be served only through app authorization.
 
-## 8. SMTP Provider From Zero
+## 9. SMTP Provider From Zero
 
 Purpose in this app:
 
@@ -537,7 +619,7 @@ Common failure points:
 - Wrong TLS mode for port.
 - API key was cancelled or copied into the wrong env var.
 
-## 9. Google reCAPTCHA From Zero
+## 10. Google reCAPTCHA From Zero
 
 Purpose in this app:
 
@@ -582,7 +664,7 @@ Common failure points:
 - v3 key used while app renders explicit checkbox flow.
 - Site key and secret key swapped.
 
-## 10. Sentry From Zero
+## 11. Sentry From Zero
 
 Purpose in this app:
 
@@ -625,7 +707,7 @@ Common failure points:
 - Sensitive data scrubbing is not enabled.
 - Client/server/edge configs drift from each other.
 
-## 11. Vercel Staging Env Entry
+## 12. Vercel Staging Env Entry
 
 After every provider is configured:
 
@@ -646,12 +728,13 @@ npm run verify:staging
    - `docs/operations/health-checklist.md`
    - `docs/manual-testing-guide.md`
 
-## 12. Final Provider Readiness Table
+## 13. Final Provider Readiness Table
 
 | Provider | Account Created | Env Added Locally | Env Added To Vercel | Smoke Passed | Notes |
 |----------|-----------------|-------------------|---------------------|--------------|-------|
 | Google OAuth | not run | not run | not run | not run | |
 | Axinom DRM/Encoding | not run | not run | not run | not run | |
+| VdoCipher upload/playback | not run | not run | not run | not run | |
 | Zoom Meeting SDK | not run | not run | not run | not run | |
 | Upstash Redis | not run | not run | not run | not run | |
 | Azure Blob Storage | not run | not run | not run | not run | |

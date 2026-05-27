@@ -31,6 +31,8 @@ Allowed status values:
 | HEALTH-REDIS-01 | Redis | Are Upstash cache, rate limit, system mode, and session revocation paths available? | not run | |
 | HEALTH-AXINOM-01 | Axinom DRM | Can an entitled staging learner obtain a token and license for a test video? | not run | |
 | HEALTH-AXINOM-02 | Axinom webhooks | Is `<STAGING_ORIGIN>/api/webhook/axinom` configured and signature-verified? | not run | |
+| HEALTH-VDOCIPHER-01 | VdoCipher accounts | Do all configured `VDOCIPHER_ACCOUNT_IDS` have matching API secrets and a valid default account? | not run | |
+| HEALTH-VDOCIPHER-02 | VdoCipher upload/playback | Can admin upload and sync a VdoCipher video, and can entitled playback start while denied OTP requests fail? | not run | |
 | HEALTH-ZOOM-01 | Zoom | Can a learner join `/meeting` with role `0` through the staging domain? | not run | |
 | HEALTH-STORAGE-01 | Azure/R2 storage | Are Azure containers, R2 bucket/prefix, CORS, and asset URLs aligned with staging? | not run | |
 | HEALTH-SUPPORT-01 | Support | Can a signed-in user submit a ticket with rate limit and diagnostic redaction active? | not run | |

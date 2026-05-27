@@ -83,6 +83,31 @@ Operational checks:
 - Webhook verification rejects malformed signatures without leaking details.
 - Local DRM license endpoint is not a production DRM substitute unless real key custody is added.
 
+## VdoCipher Upload And Playback
+
+Primary files/docs:
+
+- `src/lib/vdocipher.ts`
+- `src/lib/vdocipher-accounts.ts`
+- `src/lib/vdocipher-watermark.ts`
+- `src/app/api/vdocipher/upload-credentials/route.ts`
+- `src/app/api/vdocipher/otp/route.ts`
+- `src/app/api/video/vdocipher/sync/route.ts`
+- `src/app/api/webhook/vdocipher/route.ts`
+- `src/components/video/VdoCipherPlayer.tsx`
+- `docs/provider-zero-setup.md`
+
+VdoCipher is the new upload/playback provider for replacement videos. The app supports multiple logical VdoCipher accounts so urgent free-account quota can be spread across videos, while each video stores the exact account ID used for upload and OTP generation. The existing media entitlement helper remains the gate before server-side OTP generation.
+
+Operational checks:
+
+- Every ID in `VDOCIPHER_ACCOUNT_IDS` needs a matching `VDOCIPHER_API_SECRET_<ACCOUNT>` env var.
+- `VDOCIPHER_DEFAULT_ACCOUNT_ID` must match one configured account when set.
+- VdoCipher API secrets, webhook secrets, OTP values, and playbackInfo values must not appear in logs, docs, screenshots, or tickets.
+- Admins should sync status and publish only after VdoCipher reports the video ready.
+- Entitled playback must show watermarking; denied users must not receive OTP/playbackInfo.
+- When moving from free accounts to a paid account, migrate videos deliberately and update the stored account/video IDs before removing old secrets.
+
 ## Video Processing And Storage
 
 Primary files/docs:

@@ -14,6 +14,7 @@ describe('provider zero setup guide', () => {
     for (const term of [
       'Google OAuth From Zero',
       'Axinom DRM And Encoding From Zero',
+      'VdoCipher Upload And Playback From Zero',
       'Zoom Meeting SDK From Zero',
       'Upstash Redis From Zero',
       'Azure Blob Storage From Zero',
@@ -35,6 +36,9 @@ describe('provider zero setup guide', () => {
       'GOOGLE_CLIENT_SECRET',
       'AXINOM_COM_KEY_ID',
       'AXINOM_COM_KEY_SECRET',
+      'VDOCIPHER_ACCOUNT_IDS',
+      'VDOCIPHER_API_SECRET_PRIMARY',
+      'VDOCIPHER_WEBHOOK_SECRET',
       'ZOOM_MEETING_SDK_KEY',
       'ZOOM_MEETING_SDK_SECRET',
       'UPSTASH_REDIS_REST_URL',
@@ -54,6 +58,9 @@ describe('provider zero setup guide', () => {
     for (const term of [
       'https://developers.google.com/identity/protocols/oauth2/web-server',
       'https://docs.axinom.com/services/drm/',
+      'https://www.vdocipher.com/docs/server/upload/credentials/',
+      'https://www.vdocipher.com/docs/server/playbackauth/otp/',
+      'https://www.vdocipher.com/docs/player/v2/',
       'https://marketplacefront.zoom.us/sdk/meeting/web/index.html',
       'https://upstash.com/docs/redis',
       'https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create',

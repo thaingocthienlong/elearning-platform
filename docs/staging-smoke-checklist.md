@@ -23,6 +23,9 @@ Do not paste secrets, raw tokens, service account values, DRM keys, database URL
 | HLS-01 | HLS access | HLS playlist route succeeds only for an entitled user and denies a user without access. | not run | |
 | AXINOM-01 | Axinom webhook | Staging Axinom webhook URL is configured as `<STAGING_ORIGIN>/api/webhook/axinom` and signature handling is verified with a safe staging event or portal check. | not run | |
 | AXINOM-02 | Axinom encoding/playback | A staging test video has Axinom operational IDs/statuses and can be encoded/published or is explicitly blocked by missing Axinom access. | not run | |
+| VDOCIPHER-01 | VdoCipher upload | Admin can select a configured VdoCipher account, create upload credentials, upload a safe staging file, and store the VdoCipher video ID/account without exposing API secrets. | not run | |
+| VDOCIPHER-02 | VdoCipher sync/webhook | Admin sync or a safe VdoCipher webhook event updates the local video status to ready or error without logging OTP, playbackInfo, API secrets, or webhook secrets. | not run | |
+| VDOCIPHER-03 | VdoCipher playback | Entitled learner can open `/watch/<videoId>` for a VdoCipher video, receive server-generated OTP/playbackInfo, see watermarking, and play; non-entitled OTP requests are denied. | not run | |
 | ZOOM-01 | Zoom | Authenticated learner can launch the meeting page and join through the preserved Zoom iframe flow with learner role. | not run | |
 | SUPPORT-01 | Support | Authenticated user can submit a support ticket with reCAPTCHA/SMTP behavior matching staging configuration. | not run | |
 | REDIS-01 | Redis | Redis-backed cache/rate-limit/session-revocation paths are available and do not fall back because staging credentials are missing. | not run | |
