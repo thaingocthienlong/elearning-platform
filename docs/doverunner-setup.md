@@ -644,6 +644,7 @@ Then use real macOS Safari:
 | S3 `AccessDenied` on upload | App IAM identity lacks `s3:PutObject` for upload prefix | Update app IAM policy for `arn:aws:s3:::<input-bucket>/videos/*`. |
 | DoveRunner storage registration fails | DoveRunner IAM identity cannot list/read/write required S3 paths | Check CloudTrail and grant minimum missing S3 action for the registered buckets. |
 | DoveRunner T&P auth fails | Wrong T&P account identifier or access key | Confirm exact API credential fields with DoveRunner console/support. |
+| DoveRunner T&P returns `E9011` | Trial packaging job limit exceeded. DoveRunner docs list this as trial job limit `2`. | Ask DoveRunner support to reset/upgrade the T&P account, or switch the app to a paid/production T&P tenant. Retrying with the same account will keep failing. |
 | Job stuck or fails quickly | Source path wrong, unsupported source format, or trial limitation | Confirm object exists in input bucket and matches DoveRunner supported formats/limits. |
 | Manifest URL returns 404 | Output path/base URL mismatch or job not completed | Compare DoveRunner output directory with `DOVERUNNER_OUTPUT_BASE_URL` and manifest names. |
 | Playback loads manifest but license fails | Wrong site ID/access key/content ID/token TTL | Confirm license token payload maps to DoveRunner content ID and uses current site key. |

@@ -1,4 +1,4 @@
-import { doverunnerProvider } from '@/lib/media-provider/doverunner';
+import { DoveRunnerTnpError, doverunnerProvider } from '@/lib/media-provider/doverunner';
 
 const originalEnv = process.env;
 
@@ -113,6 +113,27 @@ describe('DoveRunner media provider', () => {
     const payload = JSON.parse(requestInit.body);
 
     expect(payload.output.drm.enabled).toBe(false);
+  });
+
+  test('maps DoveRunner trial job limit failures to actionable errors', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ error_code: '0000', data: { token: 'Bearer tnp-token' } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ error_code: 'E9011', error_message: 'Job limit exceeded', data: null }),
+      }) as jest.Mock;
+
+    await expect(doverunnerProvider.submitProcessing({
+      videoId: 'video-1',
+      title: 'Lecture 1',
+      sourceKey: 'videos/video-1/source.mp4',
+    })).rejects.toThrow(DoveRunnerTnpError);
+
+    await expect(Promise.reject(new DoveRunnerTnpError('E9011', 200)))
+      .rejects.toThrow(/trial packaging job limit exceeded/);
   });
 
   test('syncs complete job to DASH and HLS URLs', async () => {

@@ -16,6 +16,27 @@ type DoveRunnerApiResponse<T> = {
   data: T;
 };
 
+const TNP_ERROR_EXPLANATIONS: Record<string, string> = {
+  E9011: 'DoveRunner trial packaging job limit exceeded. The trial limit is 2 jobs; ask DoveRunner to reset or upgrade the T&P account.',
+};
+
+export class DoveRunnerTnpError extends Error {
+  constructor(
+    public readonly code: string,
+    public readonly status: number,
+    providerMessage?: string
+  ) {
+    const explanation = TNP_ERROR_EXPLANATIONS[code];
+    const detail = explanation || providerMessage || 'Check DoveRunner T&P console and API credentials.';
+    super(`DoveRunner T&P request failed: ${code}. ${detail}`);
+    this.name = 'DoveRunnerTnpError';
+  }
+}
+
+export function isDoveRunnerTnpError(error: unknown): error is DoveRunnerTnpError {
+  return error instanceof DoveRunnerTnpError;
+}
+
 async function getTnpAuthToken() {
   const config = readDoveRunnerConfig();
   const basic = Buffer.from(`${config.tnpAccountId}:${config.tnpAccessKey}`, 'utf8').toString('base64');
@@ -29,7 +50,7 @@ async function getTnpAuthToken() {
   const body = await response.json() as DoveRunnerApiResponse<{ token: string }>;
 
   if (!response.ok || body.error_code !== '0000') {
-    throw new Error(`DoveRunner T&P authentication failed: ${body.error_code || response.status}`);
+    throw new DoveRunnerTnpError(body.error_code || String(response.status), response.status, body.error_message);
   }
 
   return body.data.token;
@@ -49,7 +70,7 @@ async function requestTnp<T>(path: string, init: RequestInit = {}) {
   const body = await response.json() as DoveRunnerApiResponse<T>;
 
   if (!response.ok || body.error_code !== '0000') {
-    throw new Error(`DoveRunner T&P request failed: ${body.error_code || response.status}`);
+    throw new DoveRunnerTnpError(body.error_code || String(response.status), response.status, body.error_message);
   }
 
   return body.data;

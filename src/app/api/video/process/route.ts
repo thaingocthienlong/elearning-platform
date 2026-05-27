@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { activeMediaProvider } from '@/lib/media-provider';
+import { isDoveRunnerTnpError } from '@/lib/media-provider/doverunner';
 
 export const maxDuration = 300;
 
@@ -54,6 +55,12 @@ export async function POST(request: Request) {
         });
     } catch (error) {
         console.error('Processing error:', error instanceof Error ? error.message : 'UnknownError');
+        if (isDoveRunnerTnpError(error)) {
+            return NextResponse.json({
+                error: error.message,
+                providerErrorCode: error.code,
+            }, { status: 502 });
+        }
         return NextResponse.json({ error: 'Video processing submission failed' }, { status: 500 });
     }
 }

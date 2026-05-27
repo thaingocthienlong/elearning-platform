@@ -7,6 +7,7 @@ import { activeMediaProvider } from '@/lib/media-provider';
 import { POST as uploadPost } from '@/app/api/upload/presigned/route';
 import { POST as processPost } from '@/app/api/video/process/route';
 import { POST as syncPost } from '@/app/api/video/sync/route';
+import { DoveRunnerTnpError } from '@/lib/media-provider/doverunner';
 
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/lib/auth', () => ({ authOptions: {} }));
@@ -112,6 +113,24 @@ describe('DoveRunner media routes', () => {
       },
     });
     expect(body).toMatchObject({ success: true, providerJobId: 'job-1' });
+  });
+
+  test('process route returns actionable DoveRunner limit errors', async () => {
+    mockedPrisma.video.findUnique.mockResolvedValue({
+      id: 'video-1',
+      title: 'Lecture 1',
+      sourceStorageKey: 'videos/video-1/source.mp4',
+    });
+    mockedProvider.submitProcessing.mockRejectedValue(new DoveRunnerTnpError('E9011', 200));
+
+    const response = await processPost(jsonRequest('http://localhost/api/video/process', { videoId: 'video-1' }));
+    const body = await response.json();
+
+    expect(response.status).toBe(502);
+    expect(body).toMatchObject({
+      providerErrorCode: 'E9011',
+    });
+    expect(body.error).toContain('trial packaging job limit exceeded');
   });
 
   test('sync route publishes video when DoveRunner job is ready', async () => {
