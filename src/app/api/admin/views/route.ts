@@ -13,22 +13,37 @@ export async function GET() {
 
     try {
         const records = await prisma.watchRecord.findMany({
-            include: {
-                User: {
+            orderBy: { lastViewedAt: 'desc' },
+        });
+
+        const userIds = [...new Set(records.map((record) => record.userId))];
+        const videoIds = [...new Set(records.map((record) => record.videoId))];
+
+        const [users, videos] = await Promise.all([
+            userIds.length > 0
+                ? prisma.user.findMany({
+                    where: { id: { in: userIds } },
                     select: {
+                        id: true,
                         name: true,
                         email: true,
                     },
-                },
-                Video: {
+                })
+                : Promise.resolve([]),
+            videoIds.length > 0
+                ? prisma.video.findMany({
+                    where: { id: { in: videoIds } },
                     select: {
+                        id: true,
                         title: true,
                         viewLimit: true,
                     },
-                },
-            },
-            orderBy: { lastViewedAt: 'desc' },
-        });
+                })
+                : Promise.resolve([]),
+        ]);
+
+        const usersById = new Map(users.map((user) => [user.id, user]));
+        const videosById = new Map(videos.map((video) => [video.id, video]));
 
         const formattedRecords = records.map((record) => ({
             id: record.id,
@@ -38,10 +53,10 @@ export async function GET() {
             viewCount: record.viewCount,
             viewLimit: record.viewLimit,
             lastViewedAt: record.lastViewedAt.toISOString(),
-            userName: record.User.name,
-            userEmail: record.User.email,
-            videoTitle: record.Video.title,
-            videoViewLimit: record.Video.viewLimit,
+            userName: usersById.get(record.userId)?.name ?? 'Người dùng không tồn tại',
+            userEmail: usersById.get(record.userId)?.email ?? '',
+            videoTitle: videosById.get(record.videoId)?.title ?? 'Video không tồn tại',
+            videoViewLimit: videosById.get(record.videoId)?.viewLimit ?? null,
         }));
 
         return NextResponse.json(formattedRecords);
