@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import VdoCipherPlayer from '@/components/video/VdoCipherPlayer';
 
 jest.mock('@/components/video/Watermark', () => ({
@@ -11,6 +11,20 @@ jest.mock('@/components/video/Watermark', () => ({
 }));
 
 describe('VdoCipherPlayer', () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    });
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    jest.clearAllMocks();
+  });
+
   it('renders iframe with encoded otp and playbackInfo', () => {
     render(
       <VdoCipherPlayer
@@ -47,5 +61,30 @@ describe('VdoCipherPlayer', () => {
     expect(watermark).toHaveAttribute('data-container-id', 'vdocipher-player-video-123');
     expect(iframe).toHaveAttribute('allow', 'encrypted-media');
     expect(iframe).not.toHaveAttribute('allowfullscreen');
+  });
+
+  it('records a watch heartbeat for iframe playback', async () => {
+    render(
+      <VdoCipherPlayer
+        otp="otp"
+        playbackInfo="playback"
+        title="Lesson 01"
+        videoId="video-123"
+        watermarkText="Learner"
+      />
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/watch/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoId: 'video-123',
+          position: 0,
+          isNewView: true,
+          isFinished: false,
+        }),
+      });
+    });
   });
 });
