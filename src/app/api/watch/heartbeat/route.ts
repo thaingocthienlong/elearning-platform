@@ -10,7 +10,7 @@ import {
 export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        if (!session?.user?.id && !session?.user?.email) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
@@ -31,11 +31,13 @@ export async function POST(request: NextRequest) {
             return new NextResponse(denial.body, { status: denial.status });
         }
 
+        const userId = entitlement.user.id;
+
         // Get or create watch record
         let watchRecord = await prisma.watchRecord.findUnique({
             where: {
                 userId_videoId: {
-                    userId: session.user.id,
+                    userId,
                     videoId,
                 },
             },
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest) {
             // Create new watch record
             watchRecord = await prisma.watchRecord.create({
                 data: {
-                    userId: session.user.id,
+                    userId,
                     videoId,
                     lastPosition: position,
                     viewCount: isNewView ? 1 : 0,
@@ -72,7 +74,7 @@ export async function POST(request: NextRequest) {
             watchRecord = await prisma.watchRecord.update({
                 where: {
                     userId_videoId: {
-                        userId: session.user.id,
+                        userId,
                         videoId,
                     },
                 },

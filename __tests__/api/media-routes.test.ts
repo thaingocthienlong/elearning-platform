@@ -132,6 +132,48 @@ describe('media route entitlement adoption', () => {
     expect(mockedPrisma.watchRecord.update).not.toHaveBeenCalled();
   });
 
+  test('heartbeat route records playback with entitlement-resolved user id', async () => {
+    const sessionWithoutId = {
+      user: {
+        email: 'learner@example.test',
+      },
+    };
+    mockedGetServerSession.mockResolvedValue(sessionWithoutId);
+    mockedEvaluate.mockResolvedValue({
+      allowed: true,
+      user: { id: 'resolved-user-1', email: 'learner@example.test' },
+      video: { id: 'video-1', viewLimit: null },
+    });
+    mockedPrisma.watchRecord.findUnique.mockResolvedValue(null);
+    mockedPrisma.watchRecord.create.mockResolvedValue({
+      viewCount: 1,
+      viewLimit: null,
+      lastPosition: 12,
+    });
+
+    const response = await heartbeatPost(
+      jsonRequest({ videoId: 'video-1', position: 12, isNewView: true }) as never
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedEvaluate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        session: sessionWithoutId,
+        videoId: 'video-1',
+        checkViewLimit: true,
+      })
+    );
+    expect(mockedPrisma.watchRecord.create).toHaveBeenCalledWith({
+      data: {
+        userId: 'resolved-user-1',
+        videoId: 'video-1',
+        lastPosition: 12,
+        viewCount: 1,
+        lastViewedAt: expect.any(Date),
+      },
+    });
+  });
+
   test('local DRM license route denies unauthorized video requests', async () => {
     mockedEvaluate.mockResolvedValue({
       allowed: false,
