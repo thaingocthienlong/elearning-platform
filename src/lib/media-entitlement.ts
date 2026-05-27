@@ -39,10 +39,14 @@ export type MediaEntitlementAllowed = {
   video: {
     id: string;
     courseId: string;
+    provider?: string | null;
     drmKeyId?: string | null;
     hlsUrl?: string | null;
     dashUrl?: string | null;
     hlsUrlClear?: string | null;
+    vdocipherVideoId?: string | null;
+    vdocipherAccountId?: string | null;
+    vdocipherStatus?: string | null;
     viewLimit?: number | null;
     Course?: {
       id?: string;

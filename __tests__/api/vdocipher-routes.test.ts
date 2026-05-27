@@ -30,6 +30,16 @@ jest.mock('@/lib/vdocipher-accounts', () => ({
 jest.mock('@/lib/vdocipher', () => ({
   createVdoCipherUpload: jest.fn(),
   getVdoCipherVideoStatus: jest.fn(),
+  getVdoCipherOtp: jest.fn(),
+}));
+
+jest.mock('@/lib/media-entitlement', () => ({
+  evaluateMediaEntitlement: jest.fn(),
+  mapMediaEntitlementToHttp: jest.fn(),
+}));
+
+jest.mock('@/lib/vdocipher-watermark', () => ({
+  buildVdoCipherAnnotate: jest.fn(),
 }));
 
 import { getServerSession } from 'next-auth';
@@ -40,13 +50,23 @@ import {
 } from '@/lib/vdocipher-accounts';
 import {
   createVdoCipherUpload,
+  getVdoCipherOtp,
   getVdoCipherVideoStatus,
 } from '@/lib/vdocipher';
+import {
+  evaluateMediaEntitlement,
+  mapMediaEntitlementToHttp,
+} from '@/lib/media-entitlement';
+import { buildVdoCipherAnnotate } from '@/lib/vdocipher-watermark';
 const mockedGetServerSession = getServerSession as jest.Mock;
 const mockedListVdoCipherAccounts = listVdoCipherAccounts as jest.Mock;
 const mockedResolveVdoCipherAccount = resolveVdoCipherAccount as jest.Mock;
 const mockedCreateVdoCipherUpload = createVdoCipherUpload as jest.Mock;
 const mockedGetVdoCipherVideoStatus = getVdoCipherVideoStatus as jest.Mock;
+const mockedGetVdoCipherOtp = getVdoCipherOtp as jest.Mock;
+const mockedEvaluateMediaEntitlement = evaluateMediaEntitlement as jest.Mock;
+const mockedMapMediaEntitlementToHttp = mapMediaEntitlementToHttp as jest.Mock;
+const mockedBuildVdoCipherAnnotate = buildVdoCipherAnnotate as jest.Mock;
 const mockedPrisma = prisma as unknown as {
   course: {
     findUnique: jest.Mock;
@@ -226,5 +246,98 @@ describe('vdocipher routes', () => {
 
     expect(response.status).toBe(404);
     expect(mockedGetVdoCipherVideoStatus).not.toHaveBeenCalled();
+  });
+
+  it('generates OTP only after entitlement passes', async () => {
+    const { POST: getOtp } = await import('@/app/api/vdocipher/otp/route');
+    const session = { user: { id: 'user-id', email: 'user@example.test' } };
+    mockedGetServerSession.mockResolvedValue(session);
+    mockedEvaluateMediaEntitlement.mockResolvedValue({
+      allowed: true,
+      user: { id: 'user-id', name: 'Learner', email: 'user@example.test' },
+      video: {
+        id: 'local-video-id',
+        provider: 'VDOCIPHER',
+        vdocipherAccountId: 'primary',
+        vdocipherVideoId: 'vdo-id',
+        vdocipherStatus: 'READY',
+      },
+    });
+    mockedResolveVdoCipherAccount.mockReturnValue({
+      id: 'primary',
+      apiSecret: 'secret',
+      isDefault: true,
+    });
+    mockedBuildVdoCipherAnnotate.mockReturnValue('[{"type":"rtext","text":"Learner"}]');
+    mockedGetVdoCipherOtp.mockResolvedValue({ otp: 'otp', playbackInfo: 'playback' });
+
+    const response = await getOtp(
+      jsonRequest('http://localhost.test/api/vdocipher/otp', {
+        videoId: 'local-video-id',
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockedEvaluateMediaEntitlement).toHaveBeenCalledWith({
+      session,
+      videoId: 'local-video-id',
+      checkViewLimit: true,
+    });
+    expect(mockedGetVdoCipherOtp).toHaveBeenCalledWith({
+      apiSecret: 'secret',
+      vdoCipherVideoId: 'vdo-id',
+      ttl: 300,
+      annotate: '[{"type":"rtext","text":"Learner"}]',
+    });
+    expect(body).toEqual({ otp: 'otp', playbackInfo: 'playback', expiresIn: 300 });
+  });
+
+  it('rejects denied entitlement before VdoCipher call', async () => {
+    const { POST: getOtp } = await import('@/app/api/vdocipher/otp/route');
+    mockedGetServerSession.mockResolvedValue({ user: { id: 'user-id' } });
+    mockedEvaluateMediaEntitlement.mockResolvedValue({
+      allowed: false,
+      code: 'NO_VIDEO_ACCESS',
+    });
+    mockedMapMediaEntitlementToHttp.mockReturnValue({
+      status: 403,
+      body: 'Forbidden',
+    });
+
+    const response = await getOtp(
+      jsonRequest('http://localhost.test/api/vdocipher/otp', {
+        videoId: 'local-video-id',
+      })
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.text()).resolves.toBe('Forbidden');
+    expect(mockedGetVdoCipherOtp).not.toHaveBeenCalled();
+  });
+
+  it('rejects non-ready VdoCipher videos', async () => {
+    const { POST: getOtp } = await import('@/app/api/vdocipher/otp/route');
+    mockedGetServerSession.mockResolvedValue({ user: { id: 'user-id' } });
+    mockedEvaluateMediaEntitlement.mockResolvedValue({
+      allowed: true,
+      user: { id: 'user-id', name: 'Learner', email: 'user@example.test' },
+      video: {
+        id: 'local-video-id',
+        provider: 'VDOCIPHER',
+        vdocipherAccountId: 'primary',
+        vdocipherVideoId: 'vdo-id',
+        vdocipherStatus: 'QUEUED',
+      },
+    });
+
+    const response = await getOtp(
+      jsonRequest('http://localhost.test/api/vdocipher/otp', {
+        videoId: 'local-video-id',
+      })
+    );
+
+    expect(response.status).toBe(404);
+    expect(mockedGetVdoCipherOtp).not.toHaveBeenCalled();
   });
 });
