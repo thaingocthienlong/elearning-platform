@@ -1,3 +1,6 @@
+import { readFileSync } from 'fs';
+import path from 'path';
+
 import {
   listVdoCipherAccounts,
   resolveVdoCipherAccount,
@@ -14,6 +17,7 @@ describe('vdocipher account registry', () => {
     delete process.env.VDOCIPHER_DEFAULT_ACCOUNT_ID;
     delete process.env.VDOCIPHER_API_SECRET_PRIMARY;
     delete process.env.VDOCIPHER_API_SECRET_BACKUP_1;
+    delete process.env.VDOCIPHER_API_SECRET_BACKUP;
   });
 
   afterAll(() => {
@@ -23,6 +27,12 @@ describe('vdocipher account registry', () => {
   it('normalizes account IDs for env suffixes', () => {
     expect(getVdoCipherAccountEnvSuffix('backup-1')).toBe('BACKUP_1');
     expect(getVdoCipherAccountEnvSuffix('primary')).toBe('PRIMARY');
+  });
+
+  it('keeps the registry server-only', () => {
+    const source = readFileSync(path.join(process.cwd(), 'src/lib/vdocipher-accounts.ts'), 'utf8');
+
+    expect(source.startsWith("import 'server-only';")).toBe(true);
   });
 
   it('lists configured accounts without exposing secrets', () => {
@@ -55,6 +65,40 @@ describe('vdocipher account registry', () => {
     process.env.VDOCIPHER_DEFAULT_ACCOUNT_ID = 'primary';
     process.env.VDOCIPHER_API_SECRET_PRIMARY = 'secret-a';
 
+    expect(resolveVdoCipherAccount()).toEqual({
+      id: 'primary',
+      apiSecret: 'secret-a',
+      isDefault: true,
+    });
+  });
+
+  it('throws when configured default account is not registered', () => {
+    process.env.VDOCIPHER_ACCOUNT_IDS = 'primary,backup-1';
+    process.env.VDOCIPHER_DEFAULT_ACCOUNT_ID = 'missing';
+    process.env.VDOCIPHER_API_SECRET_PRIMARY = 'secret-a';
+    process.env.VDOCIPHER_API_SECRET_BACKUP_1 = 'secret-b';
+
+    expect(() => resolveVdoCipherAccount()).toThrow('Unknown default VdoCipher account: missing');
+    expect(() => listVdoCipherAccounts()).toThrow('Unknown default VdoCipher account: missing');
+  });
+
+  it('rejects account IDs with duplicate normalized env suffixes', () => {
+    process.env.VDOCIPHER_ACCOUNT_IDS = 'backup-1,backup_1';
+    process.env.VDOCIPHER_API_SECRET_BACKUP_1 = 'secret-b';
+
+    expect(() => listVdoCipherAccounts()).toThrow(
+      'Duplicate VdoCipher account env suffix BACKUP_1 for accounts: backup-1, backup_1'
+    );
+    expect(() => resolveVdoCipherAccount('backup-1')).toThrow(
+      'Duplicate VdoCipher account env suffix BACKUP_1 for accounts: backup-1, backup_1'
+    );
+  });
+
+  it('treats blank account ID config as the primary default account', () => {
+    process.env.VDOCIPHER_ACCOUNT_IDS = '   ';
+    process.env.VDOCIPHER_API_SECRET_PRIMARY = 'secret-a';
+
+    expect(listVdoCipherAccounts()).toEqual([{ id: 'primary', isDefault: true, configured: true }]);
     expect(resolveVdoCipherAccount()).toEqual({
       id: 'primary',
       apiSecret: 'secret-a',

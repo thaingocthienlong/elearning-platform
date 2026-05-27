@@ -1,3 +1,5 @@
+import 'server-only';
+
 export type SafeVdoCipherAccount = {
   id: string;
   isDefault: boolean;
@@ -11,10 +13,32 @@ export type ResolvedVdoCipherAccount = {
 };
 
 function splitAccountIds(value: string | undefined) {
-  return (value ?? 'primary')
+  const rawValue = value?.trim() ? value : 'primary';
+
+  return rawValue
     .split(',')
     .map((id) => id.trim())
     .filter(Boolean);
+}
+
+function getVdoCipherAccountIds(env: NodeJS.ProcessEnv = process.env) {
+  const ids = splitAccountIds(env.VDOCIPHER_ACCOUNT_IDS);
+  const normalizedSuffixes = new Map<string, string>();
+
+  for (const id of ids) {
+    const suffix = getVdoCipherAccountEnvSuffix(id);
+    const existingId = normalizedSuffixes.get(suffix);
+
+    if (existingId && existingId !== id) {
+      throw new Error(
+        `Duplicate VdoCipher account env suffix ${suffix} for accounts: ${existingId}, ${id}`
+      );
+    }
+
+    normalizedSuffixes.set(suffix, id);
+  }
+
+  return ids;
 }
 
 export function getVdoCipherAccountEnvSuffix(accountId: string) {
@@ -36,10 +60,14 @@ function readSecret(accountId: string, env: NodeJS.ProcessEnv = process.env) {
 }
 
 export function getDefaultVdoCipherAccountId(env: NodeJS.ProcessEnv = process.env) {
-  const ids = splitAccountIds(env.VDOCIPHER_ACCOUNT_IDS);
+  const ids = getVdoCipherAccountIds(env);
   const configuredDefault = env.VDOCIPHER_DEFAULT_ACCOUNT_ID?.trim();
 
-  if (configuredDefault && ids.includes(configuredDefault)) {
+  if (configuredDefault) {
+    if (!ids.includes(configuredDefault)) {
+      throw new Error(`Unknown default VdoCipher account: ${configuredDefault}`);
+    }
+
     return configuredDefault;
   }
 
@@ -47,7 +75,7 @@ export function getDefaultVdoCipherAccountId(env: NodeJS.ProcessEnv = process.en
 }
 
 export function listVdoCipherAccounts(env: NodeJS.ProcessEnv = process.env): SafeVdoCipherAccount[] {
-  const ids = splitAccountIds(env.VDOCIPHER_ACCOUNT_IDS);
+  const ids = getVdoCipherAccountIds(env);
   const defaultId = getDefaultVdoCipherAccountId(env);
 
   return ids.map((id) => ({
@@ -61,7 +89,7 @@ export function resolveVdoCipherAccount(
   requestedAccountId?: string | null,
   env: NodeJS.ProcessEnv = process.env
 ): ResolvedVdoCipherAccount {
-  const ids = splitAccountIds(env.VDOCIPHER_ACCOUNT_IDS);
+  const ids = getVdoCipherAccountIds(env);
   const accountId = requestedAccountId?.trim() || getDefaultVdoCipherAccountId(env);
 
   if (!ids.includes(accountId)) {
