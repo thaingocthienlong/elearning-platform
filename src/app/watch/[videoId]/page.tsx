@@ -1,13 +1,16 @@
 import { prisma } from '@/lib/prisma';
 import { notFound, redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { SecurityWrapper } from '@/components/video/SecurityWrapper';
 import WatchPageClient from '@/components/course/WatchPageClient';
+import { UnsupportedPlaybackBrowser } from '@/components/video/UnsupportedPlaybackBrowser';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
 import { resolveVdoCipherAccount } from '@/lib/vdocipher-accounts';
 import { getVdoCipherOtp } from '@/lib/vdocipher';
 import { buildVdoCipherAnnotate } from '@/lib/vdocipher-watermark';
+import { getPlaybackBrowserGate } from '@/lib/playback-browser-allowlist';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +21,8 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
     }
 
     const { videoId } = await params;
+    const requestHeaders = await headers();
+    const browserGate = getPlaybackBrowserGate(requestHeaders.get('user-agent') || '');
 
     const entitlement = await evaluateMediaEntitlement({
         session,
@@ -55,6 +60,10 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         currentWatchRecord: entitlement.watchRecord,
         effectiveViewLimit: entitlement.effectiveViewLimit,
     };
+
+    if (!browserGate.allowed) {
+        return <UnsupportedPlaybackBrowser browserName={browserGate.browserName} />;
+    }
 
     const [whitelistEntry, courseVideos] = await Promise.all([
         // Whitelist data for watermark
