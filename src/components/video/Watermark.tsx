@@ -121,15 +121,13 @@ export default function Watermark({ text, containerId, aggressiveMode = false, f
             if (!container) return;
 
             const video = container.querySelector('video');
-            if (!video) return;
-
             const containerWidth = container.clientWidth;
             const containerHeight = container.clientHeight;
 
             // Calculate video display area
-            let vRect = { width: containerWidth, height: containerHeight, left: 0, top: 0 };
+            const vRect = { width: containerWidth, height: containerHeight, left: 0, top: 0 };
 
-            if (video.videoWidth && video.videoHeight) {
+            if (video?.videoWidth && video.videoHeight) {
                 const videoRatio = video.videoWidth / video.videoHeight;
                 const containerRatio = containerWidth / containerHeight;
 
