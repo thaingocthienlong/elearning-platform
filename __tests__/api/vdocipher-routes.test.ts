@@ -16,6 +16,7 @@ jest.mock('@/lib/prisma', () => ({
     },
     video: {
       create: jest.fn(),
+      findFirst: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
     },
@@ -73,6 +74,7 @@ const mockedPrisma = prisma as unknown as {
   };
   video: {
     create: jest.Mock;
+    findFirst: jest.Mock;
     findUnique: jest.Mock;
     update: jest.Mock;
   };
@@ -339,5 +341,69 @@ describe('vdocipher routes', () => {
 
     expect(response.status).toBe(404);
     expect(mockedGetVdoCipherOtp).not.toHaveBeenCalled();
+  });
+
+  it('updates matching VdoCipher video from webhook payload', async () => {
+    const { POST: vdocipherWebhook } = await import('@/app/api/webhook/vdocipher/route');
+    const originalSecret = process.env.VDOCIPHER_WEBHOOK_SECRET;
+    process.env.VDOCIPHER_WEBHOOK_SECRET = 'hook-secret';
+    mockedPrisma.video.findFirst.mockResolvedValue({
+      id: 'local-video-id',
+      provider: 'VDOCIPHER',
+      vdocipherAccountId: 'primary',
+      vdocipherVideoId: 'vdo-id',
+    });
+    mockedPrisma.video.update.mockResolvedValue({});
+
+    const response = await vdocipherWebhook(
+      jsonRequest('http://localhost.test/api/webhook/vdocipher?secret=hook-secret', {
+        videoId: 'vdo-id',
+        status: 'ready',
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockedPrisma.video.findFirst).toHaveBeenCalledWith({
+      where: {
+        provider: 'VDOCIPHER',
+        vdocipherVideoId: 'vdo-id',
+      },
+    });
+    expect(mockedPrisma.video.update).toHaveBeenCalledWith({
+      where: { id: 'local-video-id' },
+      data: expect.objectContaining({
+        vdocipherStatus: 'READY',
+      }),
+    });
+    expect(body).toEqual({ ok: true });
+
+    if (originalSecret === undefined) {
+      delete process.env.VDOCIPHER_WEBHOOK_SECRET;
+    } else {
+      process.env.VDOCIPHER_WEBHOOK_SECRET = originalSecret;
+    }
+  });
+
+  it('rejects webhook requests with wrong secret', async () => {
+    const { POST: vdocipherWebhook } = await import('@/app/api/webhook/vdocipher/route');
+    const originalSecret = process.env.VDOCIPHER_WEBHOOK_SECRET;
+    process.env.VDOCIPHER_WEBHOOK_SECRET = 'hook-secret';
+
+    const response = await vdocipherWebhook(
+      jsonRequest('http://localhost.test/api/webhook/vdocipher?secret=wrong', {
+        videoId: 'vdo-id',
+        status: 'ready',
+      })
+    );
+
+    expect(response.status).toBe(401);
+    expect(mockedPrisma.video.findFirst).not.toHaveBeenCalled();
+
+    if (originalSecret === undefined) {
+      delete process.env.VDOCIPHER_WEBHOOK_SECRET;
+    } else {
+      process.env.VDOCIPHER_WEBHOOK_SECRET = originalSecret;
+    }
   });
 });
