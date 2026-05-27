@@ -83,6 +83,17 @@ describe('vdocipher account registry', () => {
     });
   });
 
+  it('uses primary as default when account ID config is empty', () => {
+    process.env.VDOCIPHER_ACCOUNT_IDS = '';
+    process.env.VDOCIPHER_API_SECRET_PRIMARY = 'secret-a';
+
+    expect(resolveVdoCipherAccount()).toEqual({
+      id: 'primary',
+      apiSecret: 'secret-a',
+      isDefault: true,
+    });
+  });
+
   it('throws when configured default account is not registered', () => {
     process.env.VDOCIPHER_ACCOUNT_IDS = 'primary,backup-1';
     process.env.VDOCIPHER_DEFAULT_ACCOUNT_ID = 'missing';
