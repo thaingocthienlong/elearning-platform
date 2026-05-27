@@ -30,7 +30,7 @@ function getVdoCipherAccountIds(env: NodeJS.ProcessEnv = process.env) {
     const suffix = getVdoCipherAccountEnvSuffix(id);
     const existingId = normalizedSuffixes.get(suffix);
 
-    if (existingId && existingId !== id) {
+    if (existingId) {
       throw new Error(
         `Duplicate VdoCipher account env suffix ${suffix} for accounts: ${existingId}, ${id}`
       );

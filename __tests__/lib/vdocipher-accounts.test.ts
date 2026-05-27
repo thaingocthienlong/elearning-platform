@@ -72,6 +72,17 @@ describe('vdocipher account registry', () => {
     });
   });
 
+  it('uses primary as default when account ID config is absent', () => {
+    delete process.env.VDOCIPHER_ACCOUNT_IDS;
+    process.env.VDOCIPHER_API_SECRET_PRIMARY = 'secret-a';
+
+    expect(resolveVdoCipherAccount()).toEqual({
+      id: 'primary',
+      apiSecret: 'secret-a',
+      isDefault: true,
+    });
+  });
+
   it('throws when configured default account is not registered', () => {
     process.env.VDOCIPHER_ACCOUNT_IDS = 'primary,backup-1';
     process.env.VDOCIPHER_DEFAULT_ACCOUNT_ID = 'missing';
@@ -91,6 +102,18 @@ describe('vdocipher account registry', () => {
     );
     expect(() => resolveVdoCipherAccount('backup-1')).toThrow(
       'Duplicate VdoCipher account env suffix BACKUP_1 for accounts: backup-1, backup_1'
+    );
+  });
+
+  it('rejects exact duplicate account IDs', () => {
+    process.env.VDOCIPHER_ACCOUNT_IDS = 'primary,primary';
+    process.env.VDOCIPHER_API_SECRET_PRIMARY = 'secret-a';
+
+    expect(() => listVdoCipherAccounts()).toThrow(
+      'Duplicate VdoCipher account env suffix PRIMARY for accounts: primary, primary'
+    );
+    expect(() => resolveVdoCipherAccount('primary')).toThrow(
+      'Duplicate VdoCipher account env suffix PRIMARY for accounts: primary, primary'
     );
   });
 
