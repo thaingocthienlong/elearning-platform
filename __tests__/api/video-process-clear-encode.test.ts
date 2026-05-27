@@ -27,6 +27,17 @@ jest.mock('@/lib/axinom-video-service', () => ({
   encodeVideoViaService: jest.fn(),
 }));
 
+jest.mock('@/lib/media-provider', () => ({
+  activeMediaProvider: {
+    name: 'doverunner',
+    submitProcessing: jest.fn(),
+  },
+}));
+
+jest.mock('@/lib/media-provider/doverunner', () => ({
+  isDoveRunnerTnpError: jest.fn(() => false),
+}));
+
 const mockedGetServerSession = getServerSession as jest.Mock;
 const mockedEncodeVideoViaService = encodeVideoViaService as jest.Mock;
 const mockedPrisma = prisma as unknown as {
@@ -37,7 +48,6 @@ const mockedPrisma = prisma as unknown as {
 };
 
 let consoleErrorSpy: jest.SpyInstance;
-let consoleLogSpy: jest.SpyInstance;
 
 function processRequest(body: unknown) {
   return new Request('http://localhost.test/api/video/process', {
@@ -53,7 +63,6 @@ describe('video processing clear encode requirements', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     process.env = { ...originalEnv };
     process.env.AXINOM_ENCODING_PROFILE_DRM = 'drm-profile';
     delete process.env.AXINOM_ENCODING_PROFILE_CLEAR;
@@ -67,6 +76,7 @@ describe('video processing clear encode requirements', () => {
       id: 'video-1',
       title: 'Safari clear test',
       r2Key: 'uploads/video-1/source.mp4',
+      sourceStorageKey: null,
     });
     mockedEncodeVideoViaService.mockResolvedValue({
       axinomVideoId: 'drm-axinom-id',
@@ -76,7 +86,6 @@ describe('video processing clear encode requirements', () => {
 
   afterEach(() => {
     consoleErrorSpy.mockRestore();
-    consoleLogSpy.mockRestore();
     process.env = originalEnv;
   });
 
@@ -85,12 +94,12 @@ describe('video processing clear encode requirements', () => {
     const body = await response.json();
 
     expect(response.status).toBe(500);
-    expect(body.error).toMatch(/AXINOM_ENCODING_PROFILE_CLEAR/);
+    expect(body.error).toBe('Video processing submission failed');
     expect(mockedEncodeVideoViaService).not.toHaveBeenCalled();
     expect(mockedPrisma.video.update).not.toHaveBeenCalled();
   });
 
-  test('submits DRM and clear encodes and stores both Axinom IDs', async () => {
+  test('submits DRM and clear encodes and stores both Axinom IDs for legacy rows', async () => {
     process.env.AXINOM_ENCODING_PROFILE_CLEAR = 'clear-profile';
     mockedEncodeVideoViaService
       .mockResolvedValueOnce({

@@ -151,6 +151,14 @@ model Video {
   vdocipherPosterUrl String?
   vdocipherSyncedAt  DateTime?
   vdocipherError     String?
+  mediaProvider       String?
+  providerContentId   String?
+  providerJobId       String?
+  providerStatus      String?
+  sourceStorageBucket String?
+  sourceStorageKey    String?
+  outputStoragePath   String?
+  providerSyncedAt    DateTime?
   viewLimit     Int?
   courseId      String          @db.ObjectId
   createdAt     DateTime        @default(now())
@@ -174,6 +182,10 @@ model Video {
   @@index([vdocipherAccountId])
   @@index([vdocipherVideoId])
   @@index([vdocipherStatus])
+  @@index([mediaProvider])
+  @@index([providerContentId])
+  @@index([providerJobId])
+  @@index([providerStatus])
 }
 
 model WatchRecord {

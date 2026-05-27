@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { uploadFileToVdoCipher } from '@/lib/vdocipher-browser-upload';
 
 type Video = {
     id: string;
@@ -60,8 +59,6 @@ export default function AdminVideosPage() {
     const [status, setStatus] = useState('');
     const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
     const [selectedCourseId, setSelectedCourseId] = useState('');
-    const [vdocipherAccounts, setVdocipherAccounts] = useState<{ id: string; isDefault: boolean; configured: boolean }[]>([]);
-    const [selectedVdocipherAccountId, setSelectedVdocipherAccountId] = useState('');
 
     // Shared hooks implementation
     const {
@@ -103,16 +100,6 @@ export default function AdminVideosPage() {
                     if (data.length > 0) setSelectedCourseId(data[0].id);
                 })
                 .catch((err) => console.error('Failed to load courses', err));
-            fetch('/api/vdocipher/accounts')
-                .then((res) => res.json())
-                .then((data) => {
-                    const accounts = Array.isArray(data.accounts) ? data.accounts : [];
-                    setVdocipherAccounts(accounts);
-                    const defaultAccount = accounts.find((account: { isDefault: boolean; configured: boolean }) => account.isDefault && account.configured);
-                    const firstConfigured = accounts.find((account: { configured: boolean }) => account.configured);
-                    setSelectedVdocipherAccountId((defaultAccount || firstConfigured)?.id || '');
-                })
-                .catch((err) => console.error('Failed to load VdoCipher accounts', err));
         }
     }, [uploadDialogOpen]);
 
@@ -188,10 +175,10 @@ export default function AdminVideosPage() {
         if (!file || !selectedCourseId) return;
 
         setUploading(true);
-        setStatus('Creating VdoCipher upload...');
+        setStatus('Getting S3 upload URL...');
 
         try {
-            const res = await fetch('/api/vdocipher/upload-credentials', {
+            const res = await fetch('/api/upload/presigned', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -199,27 +186,42 @@ export default function AdminVideosPage() {
                     contentType: file.type,
                     title: title,
                     courseId: selectedCourseId,
-                    accountId: selectedVdocipherAccountId || undefined,
                 }),
             });
 
             if (!res.ok) {
                 const err = await res.text();
-                throw new Error(`Failed to create VdoCipher upload: ${err}`);
+                throw new Error(`Failed to create S3 upload URL: ${err}`);
             }
-            const { clientPayload } = await res.json();
+            const { signedUrl, videoId } = await res.json();
 
-            setStatus('Uploading to VdoCipher...');
-            const uploadRes = await uploadFileToVdoCipher({
-                file,
-                clientPayload,
+            setStatus('Uploading to S3...');
+            const uploadRes = await fetch(signedUrl, {
+                method: 'PUT',
+                body: file,
+                headers: {
+                    'Content-Type': file.type,
+                },
             });
 
             if (!uploadRes.ok) {
-                throw new Error(`VdoCipher upload failed: ${uploadRes.status}`);
+                const errorText = await uploadRes.text();
+                throw new Error(`S3 upload failed: ${uploadRes.status} - ${errorText}`);
             }
 
-            setStatus('Upload sent to VdoCipher. Use Sync Status after processing completes.');
+            setStatus('Starting DoveRunner processing...');
+            const processRes = await fetch('/api/video/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ videoId }),
+            });
+
+            const processBody = await processRes.json().catch(() => ({}));
+            if (!processRes.ok) {
+                throw new Error(processBody.error || `DoveRunner processing failed: ${processRes.status}`);
+            }
+
+            setStatus(`DoveRunner job started: ${processBody.providerJobId || 'check console'}`);
 
             // Reset form and close dialog
             setTimeout(() => {
@@ -227,7 +229,6 @@ export default function AdminVideosPage() {
                 setFile(null);
                 setTitle('');
                 setStatus('');
-                setSelectedVdocipherAccountId('');
                 fetchVideos(); // Refresh video list
             }, 1500);
         } catch (error) {
@@ -521,7 +522,7 @@ export default function AdminVideosPage() {
                     <DialogHeader>
                         <DialogTitle>Upload Video</DialogTitle>
                         <DialogDescription>
-                            Upload a new video to the platform
+                            Upload a new video to AWS S3 and start a DoveRunner T&P job
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleUpload} className="space-y-4">
@@ -553,24 +554,6 @@ export default function AdminVideosPage() {
                                 required
                             />
                         </div>
-                        {vdocipherAccounts.length > 1 && (
-                            <div>
-                                <Label htmlFor="vdocipherAccount">VdoCipher Account</Label>
-                                <select
-                                    id="vdocipherAccount"
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                    value={selectedVdocipherAccountId}
-                                    onChange={(e) => setSelectedVdocipherAccountId(e.target.value)}
-                                    required
-                                >
-                                    {vdocipherAccounts.map((account) => (
-                                        <option key={account.id} value={account.id} disabled={!account.configured}>
-                                            {account.id}{account.isDefault ? ' (default)' : ''}{account.configured ? '' : ' - missing secret'}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
                         <div>
                             <Label htmlFor="file">Video File</Label>
                             <Input
