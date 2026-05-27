@@ -45,10 +45,12 @@ export async function createVdoCipherUpload(options: {
   apiSecret: string;
   title: string;
 }): Promise<VdoCipherUploadResponse> {
-  const response = await fetch(`${VDOCIPHER_API_BASE}/videos`, {
+  const url = new URL(`${VDOCIPHER_API_BASE}/videos`);
+  url.searchParams.set('title', options.title);
+
+  const response = await fetch(url.toString(), {
     method: 'PUT',
     headers: authHeaders(options.apiSecret),
-    body: JSON.stringify({ title: options.title }),
   });
 
   return parseVdoCipherResponse<VdoCipherUploadResponse>(response);

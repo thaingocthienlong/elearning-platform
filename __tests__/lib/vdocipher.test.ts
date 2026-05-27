@@ -37,14 +37,13 @@ describe('vdocipher api client', () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://dev.vdocipher.com/api/videos',
+      'https://dev.vdocipher.com/api/videos?title=Lesson+01',
       expect.objectContaining({
         method: 'PUT',
         headers: expect.objectContaining({
           Authorization: 'Apisecret secret-a',
           'Content-Type': 'application/json',
         }),
-        body: JSON.stringify({ title: 'Lesson 01' }),
       })
     );
     expect(result).toEqual({
