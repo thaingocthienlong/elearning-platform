@@ -14,11 +14,12 @@ export type ResolvedVdoCipherAccount = {
 
 function splitAccountIds(value: string | undefined) {
   const rawValue = value?.trim() ? value : 'primary';
-
-  return rawValue
+  const ids = rawValue
     .split(',')
     .map((id) => id.trim())
     .filter(Boolean);
+
+  return ids.length > 0 ? ids : ['primary'];
 }
 
 function getVdoCipherAccountIds(env: NodeJS.ProcessEnv = process.env) {

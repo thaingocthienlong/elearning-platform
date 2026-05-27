@@ -106,6 +106,17 @@ describe('vdocipher account registry', () => {
     });
   });
 
+  it('treats delimiter-only account ID config as the primary default account', () => {
+    process.env.VDOCIPHER_ACCOUNT_IDS = ',,,';
+    process.env.VDOCIPHER_API_SECRET_PRIMARY = 'secret-a';
+
+    expect(resolveVdoCipherAccount()).toEqual({
+      id: 'primary',
+      apiSecret: 'secret-a',
+      isDefault: true,
+    });
+  });
+
   it('throws for unknown requested account', () => {
     process.env.VDOCIPHER_ACCOUNT_IDS = 'primary';
     process.env.VDOCIPHER_API_SECRET_PRIMARY = 'secret-a';
