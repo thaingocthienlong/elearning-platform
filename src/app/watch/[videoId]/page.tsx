@@ -5,6 +5,9 @@ import { authOptions } from '@/lib/auth';
 import { SecurityWrapper } from '@/components/video/SecurityWrapper';
 import WatchPageClient from '@/components/course/WatchPageClient';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
+import { resolveVdoCipherAccount } from '@/lib/vdocipher-accounts';
+import { getVdoCipherOtp } from '@/lib/vdocipher';
+import { buildVdoCipherAnnotate } from '@/lib/vdocipher-watermark';
 
 export const dynamic = 'force-dynamic';
 
@@ -96,10 +99,34 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         completed: !!watchRecords.find((r) => r.videoId === v.id)?.completedAt,
     }));
 
-    // Generate DRM token
-    const { generateAxinomToken } = await import('@/lib/axinom');
     let token = '';
-    if (video.drmKeyId) {
+    let providerPlayback:
+        | { provider: 'AXINOM' }
+        | { provider: 'VDOCIPHER'; otp: string; playbackInfo: string } = { provider: 'AXINOM' };
+
+    if (video.provider === 'VDOCIPHER') {
+        if (video.vdocipherStatus !== 'READY' || !video.vdocipherVideoId || !video.vdocipherAccountId) {
+            notFound();
+        }
+
+        const account = resolveVdoCipherAccount(video.vdocipherAccountId);
+        const watermarkText = whitelistEntry?.fullname && whitelistEntry?.phone
+            ? `${whitelistEntry.fullname} • ${whitelistEntry.phone}`
+            : user.name || user.email!;
+        const otp = await getVdoCipherOtp({
+            apiSecret: account.apiSecret,
+            vdoCipherVideoId: video.vdocipherVideoId,
+            ttl: 300,
+            annotate: buildVdoCipherAnnotate(watermarkText),
+        });
+
+        providerPlayback = {
+            provider: 'VDOCIPHER',
+            otp: otp.otp,
+            playbackInfo: otp.playbackInfo,
+        };
+    } else if (video.drmKeyId) {
+        const { generateAxinomToken } = await import('@/lib/axinom');
         token = generateAxinomToken(video.drmKeyId);
     }
 
@@ -125,6 +152,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 hlsUrl={video.hlsUrl ?? null}
                 hlsUrlClear={video.hlsUrlClear ?? null}
                 isFairPlayConfigured={Boolean(process.env.AXINOM_FAIRPLAY_CERT_URL)}
+                providerPlayback={providerPlayback}
                 chatLog={(video as any).chatLog}
             />
         </SecurityWrapper>

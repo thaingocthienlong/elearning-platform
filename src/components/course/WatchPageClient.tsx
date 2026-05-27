@@ -12,12 +12,26 @@ const DRMPlayerWrapper = dynamic(() => import('@/components/video/DRMPlayerWrapp
     ssr: false,
     loading: () => <PlayerLoading />
 });
+const VdoCipherPlayer = dynamic(() => import('@/components/video/VdoCipherPlayer'), {
+    ssr: false,
+    loading: () => <PlayerLoading />
+});
 import BrowserBanner from '@/components/BrowserBanner';
 import IPRConsentOverlay from '@/components/course/IPRConsentOverlay';
 import { useSessionValidator } from '@/hooks/useSessionValidator';
 import ChatLogViewer from '@/components/course/ChatLogViewer';
 import { Badge } from '@/components/ui/badge';
 import { selectWatchPlaybackSources } from '@/lib/playback-routing';
+
+type VdoCipherPlayback = {
+    provider: 'VDOCIPHER';
+    otp: string;
+    playbackInfo: string;
+};
+
+type AxinomPlayback = {
+    provider: 'AXINOM';
+};
 
 interface WatchPageClientProps {
     videoId: string;
@@ -37,6 +51,7 @@ interface WatchPageClientProps {
     hlsUrl: string | null;
     hlsUrlClear: string | null;
     isFairPlayConfigured: boolean;
+    providerPlayback: AxinomPlayback | VdoCipherPlayback;
     chatLog?: any;
 }
 
@@ -55,6 +70,7 @@ export default function WatchPageClient({
     hlsUrl,
     hlsUrlClear,
     isFairPlayConfigured,
+    providerPlayback,
     chatLog,
 }: WatchPageClientProps & { chatLog?: any }) {
     const { t } = useLanguage();
@@ -124,19 +140,27 @@ export default function WatchPageClient({
                             </div>
                         ) : (
                             <>
-                                <DRMPlayerWrapper
-                                    dashUrl={playbackSources.dashUrl}
-                                    hlsUrl={playbackSources.hlsUrl}
-                                    drmToken={playbackSources.drmToken}
-                                    videoId={videoId}
-                                    viewCount={viewCount}
-                                    viewLimit={viewLimit}
-                                    watermarkText={watermarkText}
-                                    requireHD={false}
-                                    isClearHlsFallback={playbackSources.isClearHlsFallback}
-                                    isFairPlayConfigured={isFairPlayConfigured}
-                                    onFullscreenChange={setIsVideoFullscreen}
-                                />
+                                {providerPlayback.provider === 'VDOCIPHER' ? (
+                                    <VdoCipherPlayer
+                                        otp={providerPlayback.otp}
+                                        playbackInfo={providerPlayback.playbackInfo}
+                                        title={courseTitle}
+                                    />
+                                ) : (
+                                    <DRMPlayerWrapper
+                                        dashUrl={playbackSources.dashUrl}
+                                        hlsUrl={playbackSources.hlsUrl}
+                                        drmToken={playbackSources.drmToken}
+                                        videoId={videoId}
+                                        viewCount={viewCount}
+                                        viewLimit={viewLimit}
+                                        watermarkText={watermarkText}
+                                        requireHD={false}
+                                        isClearHlsFallback={playbackSources.isClearHlsFallback}
+                                        isFairPlayConfigured={isFairPlayConfigured}
+                                        onFullscreenChange={setIsVideoFullscreen}
+                                    />
+                                )}
                                 {/* Chat Log Viewer */}
                                 <div className="rounded-lg border border-border bg-card p-4 shadow-none">
                                     <ChatLogViewer chatLog={chatLog} />
