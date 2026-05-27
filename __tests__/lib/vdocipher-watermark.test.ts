@@ -7,13 +7,13 @@ describe('buildVdoCipherAnnotate', () => {
 
     expect(parsed).toEqual([
       {
-        type: 'rtext',
+        type: 'text',
         text: 'Nguyen Van A - 0900000000',
         alpha: '0.60',
         color: '0xFFFFFF',
         size: '15',
-        interval: '5000',
-        skip: '5000',
+        x: '10',
+        y: '10',
       },
     ]);
   });
