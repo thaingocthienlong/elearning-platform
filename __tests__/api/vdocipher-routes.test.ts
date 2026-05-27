@@ -39,10 +39,6 @@ jest.mock('@/lib/media-entitlement', () => ({
   mapMediaEntitlementToHttp: jest.fn(),
 }));
 
-jest.mock('@/lib/vdocipher-watermark', () => ({
-  buildVdoCipherAnnotate: jest.fn(),
-}));
-
 jest.mock('@/lib/redis', () => ({
   invalidateCacheKey: jest.fn(),
 }));
@@ -62,7 +58,6 @@ import {
   evaluateMediaEntitlement,
   mapMediaEntitlementToHttp,
 } from '@/lib/media-entitlement';
-import { buildVdoCipherAnnotate } from '@/lib/vdocipher-watermark';
 import { invalidateCacheKey } from '@/lib/redis';
 const mockedGetServerSession = getServerSession as jest.Mock;
 const mockedListVdoCipherAccounts = listVdoCipherAccounts as jest.Mock;
@@ -72,7 +67,6 @@ const mockedGetVdoCipherVideoStatus = getVdoCipherVideoStatus as jest.Mock;
 const mockedGetVdoCipherOtp = getVdoCipherOtp as jest.Mock;
 const mockedEvaluateMediaEntitlement = evaluateMediaEntitlement as jest.Mock;
 const mockedMapMediaEntitlementToHttp = mapMediaEntitlementToHttp as jest.Mock;
-const mockedBuildVdoCipherAnnotate = buildVdoCipherAnnotate as jest.Mock;
 const mockedInvalidateCacheKey = invalidateCacheKey as jest.Mock;
 const mockedPrisma = prisma as unknown as {
   course: {
@@ -310,7 +304,6 @@ describe('vdocipher routes', () => {
       apiSecret: 'secret',
       isDefault: true,
     });
-    mockedBuildVdoCipherAnnotate.mockReturnValue('[{"type":"rtext","text":"Learner"}]');
     mockedGetVdoCipherOtp.mockResolvedValue({ otp: 'otp', playbackInfo: 'playback' });
 
     const response = await getOtp(
@@ -330,7 +323,6 @@ describe('vdocipher routes', () => {
       apiSecret: 'secret',
       vdoCipherVideoId: 'vdo-id',
       ttl: 300,
-      annotate: '[{"type":"rtext","text":"Learner"}]',
     });
     expect(body).toEqual({ otp: 'otp', playbackInfo: 'playback', expiresIn: 300 });
   });

@@ -115,6 +115,30 @@ describe('vdocipher api client', () => {
     expect(result).toEqual({ otp: 'otp-value', playbackInfo: 'playback-info' });
   });
 
+  it('gets OTP without annotation when app overlay watermark is used', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ otp: 'otp-value', playbackInfo: 'playback-info' }),
+    });
+
+    const result = await getVdoCipherOtp({
+      apiSecret: 'secret-a',
+      vdoCipherVideoId: 'vdo-1',
+      ttl: 300,
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://dev.vdocipher.com/api/videos/vdo-1/otp',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          ttl: 300,
+        }),
+      })
+    );
+    expect(result).toEqual({ otp: 'otp-value', playbackInfo: 'playback-info' });
+  });
+
   it('throws VdoCipher message from non-OK JSON response', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,

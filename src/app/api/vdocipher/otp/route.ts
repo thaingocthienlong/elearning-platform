@@ -7,7 +7,6 @@ import {
 } from '@/lib/media-entitlement';
 import { resolveVdoCipherAccount } from '@/lib/vdocipher-accounts';
 import { getVdoCipherOtp } from '@/lib/vdocipher';
-import { buildVdoCipherAnnotate } from '@/lib/vdocipher-watermark';
 
 const OTP_TTL_SECONDS = 300;
 
@@ -30,7 +29,7 @@ export async function POST(req: Request) {
     return new NextResponse(denial.body, { status: denial.status });
   }
 
-  const { video, user } = entitlement;
+  const { video } = entitlement;
 
   if (
     video.provider !== 'VDOCIPHER' ||
@@ -42,12 +41,10 @@ export async function POST(req: Request) {
   }
 
   const account = resolveVdoCipherAccount(video.vdocipherAccountId);
-  const watermarkText = user.name || user.email || user.id;
   const otp = await getVdoCipherOtp({
     apiSecret: account.apiSecret,
     vdoCipherVideoId: video.vdocipherVideoId,
     ttl: OTP_TTL_SECONDS,
-    annotate: buildVdoCipherAnnotate(watermarkText),
   });
 
   return NextResponse.json({

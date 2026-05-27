@@ -145,6 +145,8 @@ export default function WatchPageClient({
                                         otp={providerPlayback.otp}
                                         playbackInfo={providerPlayback.playbackInfo}
                                         title={courseTitle}
+                                        videoId={videoId}
+                                        watermarkText={watermarkText}
                                     />
                                 ) : (
                                     <DRMPlayerWrapper

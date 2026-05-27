@@ -9,7 +9,6 @@ import { UnsupportedPlaybackBrowser } from '@/components/video/UnsupportedPlayba
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
 import { resolveVdoCipherAccount } from '@/lib/vdocipher-accounts';
 import { getVdoCipherOtp } from '@/lib/vdocipher';
-import { buildVdoCipherAnnotate } from '@/lib/vdocipher-watermark';
 import { getPlaybackBrowserGate } from '@/lib/playback-browser-allowlist';
 
 export const dynamic = 'force-dynamic';
@@ -107,6 +106,9 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         ...v,
         completed: !!watchRecords.find((r) => r.videoId === v.id)?.completedAt,
     }));
+    const watermarkText = whitelistEntry?.fullname && whitelistEntry?.phone
+        ? `${whitelistEntry.fullname} • ${whitelistEntry.phone}`
+        : user.name || user.email!;
 
     let token = '';
     let providerPlayback:
@@ -119,14 +121,10 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         }
 
         const account = resolveVdoCipherAccount(video.vdocipherAccountId);
-        const watermarkText = whitelistEntry?.fullname && whitelistEntry?.phone
-            ? `${whitelistEntry.fullname} • ${whitelistEntry.phone}`
-            : user.name || user.email!;
         const otp = await getVdoCipherOtp({
             apiSecret: account.apiSecret,
             vdoCipherVideoId: video.vdocipherVideoId,
             ttl: 300,
-            annotate: buildVdoCipherAnnotate(watermarkText),
         });
 
         providerPlayback = {
@@ -153,9 +151,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 currentVideoId={videoId}
                 viewCount={currentWatchRecord?.viewCount || 0}
                 viewLimit={effectiveViewLimit}
-                watermarkText={whitelistEntry?.fullname && whitelistEntry?.phone
-                    ? `${whitelistEntry.fullname} • ${whitelistEntry.phone}`
-                    : user.name || user.email!}
+                watermarkText={watermarkText}
                 drmToken={token}
                 dashUrl={video.dashUrl ?? null}
                 hlsUrl={video.hlsUrl ?? null}

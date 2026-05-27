@@ -72,15 +72,20 @@ export async function getVdoCipherOtp(options: {
   apiSecret: string;
   vdoCipherVideoId: string;
   ttl: number;
-  annotate: string;
+  annotate?: string;
 }): Promise<VdoCipherOtpResponse> {
+  const body: { ttl: number; annotate?: string } = {
+    ttl: options.ttl,
+  };
+
+  if (options.annotate) {
+    body.annotate = options.annotate;
+  }
+
   const response = await fetch(`${VDOCIPHER_API_BASE}/videos/${options.vdoCipherVideoId}/otp`, {
     method: 'POST',
     headers: authHeaders(options.apiSecret),
-    body: JSON.stringify({
-      ttl: options.ttl,
-      annotate: options.annotate,
-    }),
+    body: JSON.stringify(body),
   });
 
   return parseVdoCipherResponse<VdoCipherOtpResponse>(response);
