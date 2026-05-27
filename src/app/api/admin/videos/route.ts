@@ -18,6 +18,7 @@ export async function GET() {
                 title: true,
                 createdAt: true,
                 published: true,
+                provider: true,
                 description: true,
                 dashUrl: true,
                 hlsUrl: true,
@@ -27,6 +28,12 @@ export async function GET() {
                 axinomEncodingStatus: true,
                 axinomOutputLocation: true,
                 axinomSyncedAt: true,
+                vdocipherVideoId: true,
+                vdocipherAccountId: true,
+                vdocipherStatus: true,
+                vdocipherPosterUrl: true,
+                vdocipherSyncedAt: true,
+                vdocipherError: true,
             }
         });
 

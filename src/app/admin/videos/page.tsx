@@ -27,6 +27,7 @@ type Video = {
     title: string;
     createdAt: string;
     published: boolean;
+    provider: 'AXINOM' | 'VDOCIPHER';
     description: string | null;
     dashUrl: string | null;
     hlsUrl: string | null;
@@ -36,6 +37,12 @@ type Video = {
     axinomEncodingStatus: string | null;
     axinomOutputLocation: string | null;
     axinomSyncedAt: string | null;
+    vdocipherVideoId: string | null;
+    vdocipherAccountId: string | null;
+    vdocipherStatus: string | null;
+    vdocipherPosterUrl: string | null;
+    vdocipherSyncedAt: string | null;
+    vdocipherError: string | null;
 };
 
 export default function AdminVideosPage() {
@@ -51,6 +58,8 @@ export default function AdminVideosPage() {
     const [status, setStatus] = useState('');
     const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
     const [selectedCourseId, setSelectedCourseId] = useState('');
+    const [vdocipherAccounts, setVdocipherAccounts] = useState<{ id: string; isDefault: boolean; configured: boolean }[]>([]);
+    const [selectedVdocipherAccountId, setSelectedVdocipherAccountId] = useState('');
 
     // Shared hooks implementation
     const {
@@ -65,7 +74,7 @@ export default function AdminVideosPage() {
         searchQuery,
         setSearchQuery,
         filteredData: filteredVideos
-    } = useAdminFilters(videos, ['title', 'id', 'axinomIdClear', 'description']);
+    } = useAdminFilters(videos, ['title', 'id', 'axinomIdClear', 'vdocipherVideoId', 'vdocipherAccountId', 'description']);
 
     const {
         paginatedData,
@@ -92,13 +101,27 @@ export default function AdminVideosPage() {
                     if (data.length > 0) setSelectedCourseId(data[0].id);
                 })
                 .catch((err) => console.error('Failed to load courses', err));
+            fetch('/api/vdocipher/accounts')
+                .then((res) => res.json())
+                .then((data) => {
+                    const accounts = Array.isArray(data.accounts) ? data.accounts : [];
+                    setVdocipherAccounts(accounts);
+                    const defaultAccount = accounts.find((account: { isDefault: boolean; configured: boolean }) => account.isDefault && account.configured);
+                    const firstConfigured = accounts.find((account: { configured: boolean }) => account.configured);
+                    setSelectedVdocipherAccountId((defaultAccount || firstConfigured)?.id || '');
+                })
+                .catch((err) => console.error('Failed to load VdoCipher accounts', err));
         }
     }, [uploadDialogOpen]);
 
     const handleSync = async (videoId: string) => {
         setSyncingId(videoId);
         try {
-            const res = await fetch('/api/video/sync', {
+            const selectedVideo = videos.find((video) => video.id === videoId);
+            const endpoint = selectedVideo?.provider === 'VDOCIPHER'
+                ? '/api/video/vdocipher/sync'
+                : '/api/video/sync';
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ videoId }),
@@ -139,11 +162,10 @@ export default function AdminVideosPage() {
         if (!file || !selectedCourseId) return;
 
         setUploading(true);
-        setStatus('Getting presigned URL...');
+        setStatus('Creating VdoCipher upload...');
 
         try {
-            // 1. Get presigned URL
-            const res = await fetch('/api/upload/presigned', {
+            const res = await fetch('/api/vdocipher/upload-credentials', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -151,47 +173,35 @@ export default function AdminVideosPage() {
                     contentType: file.type,
                     title: title,
                     courseId: selectedCourseId,
+                    accountId: selectedVdocipherAccountId || undefined,
                 }),
             });
 
             if (!res.ok) {
                 const err = await res.text();
-                throw new Error(`Failed to get upload URL: ${err}`);
+                throw new Error(`Failed to create VdoCipher upload: ${err}`);
             }
-            const { signedUrl, videoId } = await res.json();
+            const { clientPayload } = await res.json();
+            const uploadLink = clientPayload?.uploadLink;
 
-            // 2. Upload to R2
-            setStatus('Uploading to R2...');
-            const uploadRes = await fetch(signedUrl, {
+            if (typeof uploadLink !== 'string') {
+                throw new Error('VdoCipher upload response did not include uploadLink');
+            }
+
+            setStatus('Uploading to VdoCipher...');
+            const uploadRes = await fetch(uploadLink, {
                 method: 'PUT',
                 body: file,
                 headers: {
                     'Content-Type': file.type,
-                    'x-ms-blob-type': 'BlockBlob'
                 },
             });
 
             if (!uploadRes.ok) {
-                const errorText = await uploadRes.text();
-                console.error('Upload failed with status:', uploadRes.status);
-                console.error('Error details:', errorText);
-                throw new Error(`Upload failed: ${uploadRes.status} - ${errorText}`);
+                throw new Error(`VdoCipher upload failed: ${uploadRes.status}`);
             }
 
-            // 3. Trigger processing
-            setStatus('Triggering processing...');
-            const processRes = await fetch('/api/video/process', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ videoId }),
-            });
-
-            if (!processRes.ok) {
-                const errData = await processRes.json().catch(() => ({ error: 'Unknown processing error' }));
-                throw new Error(errData.error || `Processing failed: ${processRes.status}`);
-            }
-
-            setStatus('Upload and processing started successfully!');
+            setStatus('Upload sent to VdoCipher. Use Sync Status after processing completes.');
 
             // Reset form and close dialog
             setTimeout(() => {
@@ -199,6 +209,7 @@ export default function AdminVideosPage() {
                 setFile(null);
                 setTitle('');
                 setStatus('');
+                setSelectedVdocipherAccountId('');
                 fetchVideos(); // Refresh video list
             }, 1500);
         } catch (error) {
@@ -285,7 +296,8 @@ export default function AdminVideosPage() {
                                     <tr>
                                         <th className="p-4 font-medium">Title</th>
                                         <th className="p-4 font-medium">Date</th>
-                                        <th className="p-4 font-medium">Axinom ID</th>
+                                        <th className="p-4 font-medium">Provider</th>
+                                        <th className="p-4 font-medium">Provider ID</th>
                                         <th className="p-4 font-medium">Status</th>
                                         <th className="p-4 font-medium text-right">Actions</th>
                                     </tr>
@@ -293,28 +305,44 @@ export default function AdminVideosPage() {
                                 <tbody>
                                     {paginatedData.map((video) => {
                                         const axinomId = getPrimaryAxinomId(video);
-                                        const drmReady = Boolean(video.dashUrl && video.hlsUrl) || isReadyStatus(video.axinomEncodingStatus);
-                                        const canUpdateStatus = Boolean(axinomId);
+                                        const isVdoCipher = video.provider === 'VDOCIPHER';
+                                        const providerReady = isVdoCipher
+                                            ? video.vdocipherStatus === 'READY'
+                                            : Boolean(video.dashUrl && video.hlsUrl) || isReadyStatus(video.axinomEncodingStatus);
+                                        const canUpdateStatus = isVdoCipher ? Boolean(video.vdocipherVideoId) : Boolean(axinomId);
                                         return (
                                             <tr key={video.id} className="border-t hover:bg-muted/50">
                                                 <td className="p-4 font-medium">{video.title}</td>
                                                 <td className="p-4 text-muted-foreground">
                                                     {new Date(video.createdAt).toLocaleDateString()}
                                                 </td>
+                                                <td className="p-4">
+                                                    <Badge variant={isVdoCipher ? 'default' : 'secondary'}>
+                                                        {isVdoCipher ? 'VdoCipher' : 'Axinom'}
+                                                    </Badge>
+                                                </td>
                                                 <td className="p-4 font-mono text-xs text-muted-foreground">
-                                                    <div className="space-y-1">
-                                                        <div>{axinomId || 'N/A'}</div>
-                                                        {video.axinomIdClear && (
-                                                            <div>clear: {video.axinomIdClear}</div>
-                                                        )}
-                                                    </div>
+                                                    {isVdoCipher ? (
+                                                        <div className="space-y-1">
+                                                            <div>{video.vdocipherVideoId || 'N/A'}</div>
+                                                            {video.vdocipherAccountId && (
+                                                                <div>acct: {video.vdocipherAccountId}</div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="space-y-1">
+                                                            <div>{axinomId || 'N/A'}</div>
+                                                            {video.axinomIdClear && (
+                                                                <div>clear: {video.axinomIdClear}</div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="flex flex-col gap-1">
-                                                        {/* DRM Status */}
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-xs text-muted-foreground w-12">DRM:</span>
-                                                            {drmReady ? (
+                                                            <span className="text-xs text-muted-foreground w-12">{isVdoCipher ? 'Video:' : 'DRM:'}</span>
+                                                            {providerReady ? (
                                                                 <Badge className="bg-green-500 hover:bg-green-600 text-xs">
                                                                     <CheckCircle className="w-3 h-3 mr-1" /> Ready
                                                                 </Badge>
@@ -324,7 +352,15 @@ export default function AdminVideosPage() {
                                                                 </Badge>
                                                             )}
                                                         </div>
-                                                        {video.axinomEncodingStatus && (
+                                                        {isVdoCipher && video.vdocipherStatus && (
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xs text-muted-foreground w-12">State:</span>
+                                                                <Badge variant="outline" className="text-xs">
+                                                                    {video.vdocipherStatus}
+                                                                </Badge>
+                                                            </div>
+                                                        )}
+                                                        {!isVdoCipher && video.axinomEncodingStatus && (
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-xs text-muted-foreground w-12">State:</span>
                                                                 <Badge variant="outline" className="text-xs">
@@ -332,25 +368,36 @@ export default function AdminVideosPage() {
                                                                 </Badge>
                                                             </div>
                                                         )}
-                                                        {/* Clear Status */}
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-xs text-muted-foreground w-12">Clear:</span>
-                                                            {video.axinomIdClear ? (
-                                                                video.hlsUrlClear ? (
-                                                                    <Badge className="bg-blue-500 hover:bg-blue-600 text-xs">
-                                                                        <CheckCircle className="w-3 h-3 mr-1" /> Ready
-                                                                    </Badge>
+                                                        {isVdoCipher && video.vdocipherSyncedAt && (
+                                                            <div className="text-xs text-muted-foreground">
+                                                                synced: {new Date(video.vdocipherSyncedAt).toLocaleString()}
+                                                            </div>
+                                                        )}
+                                                        {isVdoCipher && video.vdocipherError && (
+                                                            <div className="text-xs text-destructive">
+                                                                {video.vdocipherError}
+                                                            </div>
+                                                        )}
+                                                        {!isVdoCipher && (
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xs text-muted-foreground w-12">Clear:</span>
+                                                                {video.axinomIdClear ? (
+                                                                    video.hlsUrlClear ? (
+                                                                        <Badge className="bg-blue-500 hover:bg-blue-600 text-xs">
+                                                                            <CheckCircle className="w-3 h-3 mr-1" /> Ready
+                                                                        </Badge>
+                                                                    ) : (
+                                                                        <Badge variant="secondary" className="text-xs">
+                                                                            <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing
+                                                                        </Badge>
+                                                                    )
                                                                 ) : (
-                                                                    <Badge variant="secondary" className="text-xs">
-                                                                        <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing
+                                                                    <Badge variant="outline" className="text-xs">
+                                                                        <XCircle className="w-3 h-3 mr-1" /> Not Started
                                                                     </Badge>
-                                                                )
-                                                            ) : (
-                                                                <Badge variant="outline" className="text-xs">
-                                                                    <XCircle className="w-3 h-3 mr-1" /> Not Started
-                                                                </Badge>
-                                                            )}
-                                                        </div>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </td>
                                                 <td className="p-4 text-right space-x-2">
@@ -378,7 +425,7 @@ export default function AdminVideosPage() {
                                                             size="sm"
                                                             onClick={() => handleSync(video.id)}
                                                             disabled={syncingId === video.id}
-                                                            title="Update Axinom status and sync manifest URLs"
+                                                            title={isVdoCipher ? 'Sync VdoCipher status' : 'Update Axinom status and sync manifest URLs'}
                                                         >
                                                             {syncingId === video.id ? (
                                                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -395,7 +442,7 @@ export default function AdminVideosPage() {
                                     })}
                                     {paginatedData.length === 0 && (
                                         <tr>
-                                            <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                                            <td colSpan={6} className="p-8 text-center text-muted-foreground">
                                                 No videos found. Upload one to get started.
                                             </td>
                                         </tr>
@@ -471,6 +518,24 @@ export default function AdminVideosPage() {
                                 required
                             />
                         </div>
+                        {vdocipherAccounts.length > 1 && (
+                            <div>
+                                <Label htmlFor="vdocipherAccount">VdoCipher Account</Label>
+                                <select
+                                    id="vdocipherAccount"
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    value={selectedVdocipherAccountId}
+                                    onChange={(e) => setSelectedVdocipherAccountId(e.target.value)}
+                                    required
+                                >
+                                    {vdocipherAccounts.map((account) => (
+                                        <option key={account.id} value={account.id} disabled={!account.configured}>
+                                            {account.id}{account.isDefault ? ' (default)' : ''}{account.configured ? '' : ' - missing secret'}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                         <div>
                             <Label htmlFor="file">Video File</Label>
                             <Input
