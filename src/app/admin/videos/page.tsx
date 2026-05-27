@@ -50,6 +50,7 @@ export default function AdminVideosPage() {
 
 
     const [syncingId, setSyncingId] = useState<string | null>(null);
+    const [publishingId, setPublishingId] = useState<string | null>(null);
 
     // Upload dialog state
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -145,6 +146,30 @@ export default function AdminVideosPage() {
             toast.error('Failed to sync video');
         } finally {
             setSyncingId(null);
+        }
+    };
+
+    const handlePublish = async (videoId: string) => {
+        setPublishingId(videoId);
+        try {
+            const res = await fetch('/api/admin/videos/publish', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ videoId }),
+            });
+            const result = await res.json();
+
+            if (res.ok && result.success) {
+                await fetchVideos();
+                toast.success('Video published');
+            } else {
+                toast.error(`Publish failed: ${result.error || res.status}`);
+            }
+        } catch (error) {
+            console.error('Publish error:', error);
+            toast.error('Failed to publish video');
+        } finally {
+            setPublishingId(null);
         }
     };
 
@@ -394,6 +419,23 @@ export default function AdminVideosPage() {
                                                     </div>
                                                 </td>
                                                 <td className="p-4 text-right space-x-2">
+                                                    {!video.published && isVdoCipher && video.vdocipherStatus === 'READY' && (
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => handlePublish(video.id)}
+                                                            disabled={publishingId === video.id}
+                                                            title="Publish ready VdoCipher video"
+                                                        >
+                                                            {publishingId === video.id ? (
+                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                            ) : (
+                                                                <>
+                                                                    <CheckCircle className="w-4 h-4 mr-1" /> Publish
+                                                                </>
+                                                            )}
+                                                        </Button>
+                                                    )}
+
                                                     {video.published && (
                                                         <Button size="sm" variant="outline" asChild>
                                                             <Link href={`/watch/${video.id}`}>

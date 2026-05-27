@@ -43,6 +43,10 @@ jest.mock('@/lib/vdocipher-watermark', () => ({
   buildVdoCipherAnnotate: jest.fn(),
 }));
 
+jest.mock('@/lib/redis', () => ({
+  invalidateCacheKey: jest.fn(),
+}));
+
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import {
@@ -59,6 +63,7 @@ import {
   mapMediaEntitlementToHttp,
 } from '@/lib/media-entitlement';
 import { buildVdoCipherAnnotate } from '@/lib/vdocipher-watermark';
+import { invalidateCacheKey } from '@/lib/redis';
 const mockedGetServerSession = getServerSession as jest.Mock;
 const mockedListVdoCipherAccounts = listVdoCipherAccounts as jest.Mock;
 const mockedResolveVdoCipherAccount = resolveVdoCipherAccount as jest.Mock;
@@ -68,6 +73,7 @@ const mockedGetVdoCipherOtp = getVdoCipherOtp as jest.Mock;
 const mockedEvaluateMediaEntitlement = evaluateMediaEntitlement as jest.Mock;
 const mockedMapMediaEntitlementToHttp = mapMediaEntitlementToHttp as jest.Mock;
 const mockedBuildVdoCipherAnnotate = buildVdoCipherAnnotate as jest.Mock;
+const mockedInvalidateCacheKey = invalidateCacheKey as jest.Mock;
 const mockedPrisma = prisma as unknown as {
   course: {
     findUnique: jest.Mock;
@@ -230,6 +236,40 @@ describe('vdocipher routes', () => {
       }),
     });
     expect(body).toMatchObject({ success: true, status: 'READY' });
+  });
+
+  it('publishes a ready VdoCipher video and invalidates the course cache', async () => {
+    const { POST: publishVideo } = await import('@/app/api/admin/videos/publish/route');
+    mockedGetServerSession.mockResolvedValue({ user: { role: 'ADMIN' } });
+    mockedPrisma.video.findUnique.mockResolvedValue({
+      id: 'local-video-id',
+      courseId: 'course-id',
+      provider: 'VDOCIPHER',
+      vdocipherStatus: 'READY',
+      vdocipherVideoId: 'vdo-id',
+      vdocipherAccountId: 'primary',
+      published: false,
+      isDeleted: false,
+    });
+    mockedPrisma.video.update.mockResolvedValue({
+      id: 'local-video-id',
+      published: true,
+    });
+
+    const response = await publishVideo(
+      jsonRequest('http://localhost.test/api/admin/videos/publish', {
+        videoId: 'local-video-id',
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockedPrisma.video.update).toHaveBeenCalledWith({
+      where: { id: 'local-video-id' },
+      data: { published: true },
+    });
+    expect(mockedInvalidateCacheKey).toHaveBeenCalledWith('course:course-id');
+    expect(body).toEqual({ success: true, published: true });
   });
 
   it('rejects sync for non-VdoCipher video rows', async () => {
