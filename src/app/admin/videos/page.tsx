@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { uploadFileToVdoCipher } from '@/lib/vdocipher-browser-upload';
 
 type Video = {
     id: string;
@@ -182,19 +183,11 @@ export default function AdminVideosPage() {
                 throw new Error(`Failed to create VdoCipher upload: ${err}`);
             }
             const { clientPayload } = await res.json();
-            const uploadLink = clientPayload?.uploadLink;
-
-            if (typeof uploadLink !== 'string') {
-                throw new Error('VdoCipher upload response did not include uploadLink');
-            }
 
             setStatus('Uploading to VdoCipher...');
-            const uploadRes = await fetch(uploadLink, {
-                method: 'PUT',
-                body: file,
-                headers: {
-                    'Content-Type': file.type,
-                },
+            const uploadRes = await uploadFileToVdoCipher({
+                file,
+                clientPayload,
             });
 
             if (!uploadRes.ok) {
