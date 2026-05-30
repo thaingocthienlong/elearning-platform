@@ -79,3 +79,31 @@ export async function getBunnyStreamVideo({
 
   return readJsonOrThrow<BunnyStreamVideo>(response);
 }
+
+export async function deleteBunnyStreamVideo({
+  libraryId,
+  apiKey,
+  videoId,
+}: {
+  libraryId: string;
+  apiKey: string;
+  videoId: string;
+}): Promise<void> {
+  const response = await fetch(
+    bunnyUrl(`/library/${libraryId}/videos/${videoId}`),
+    {
+      method: 'DELETE',
+      headers: {
+        AccessKey: apiKey,
+        Accept: 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new BunnyStreamApiError(
+      `Bunny Stream API failed with HTTP ${response.status}`,
+      response.status
+    );
+  }
+}

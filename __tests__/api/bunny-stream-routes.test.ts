@@ -3,7 +3,12 @@
  */
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
-import { createBunnyStreamVideo } from '@/lib/bunny-stream/client';
+import {
+  BunnyStreamApiError,
+  createBunnyStreamVideo,
+  deleteBunnyStreamVideo,
+} from '@/lib/bunny-stream/client';
+import { serverLog } from '@/lib/server-log';
 import { POST as uploadCredentialsPost } from '@/app/api/bunny-stream/upload-credentials/route';
 
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
@@ -19,13 +24,32 @@ jest.mock('@/lib/prisma', () => ({
     },
   },
 }));
-jest.mock('@/lib/bunny-stream/client', () => ({
-  createBunnyStreamVideo: jest.fn(),
-  getBunnyStreamVideo: jest.fn(),
+jest.mock('@/lib/bunny-stream/client', () => {
+  const actual = jest.requireActual('@/lib/bunny-stream/client');
+
+  return {
+    ...actual,
+    createBunnyStreamVideo: jest.fn(),
+    deleteBunnyStreamVideo: jest.fn(),
+    getBunnyStreamVideo: jest.fn(),
+  };
+});
+jest.mock('@/lib/server-log', () => ({
+  serverLog: {
+    error: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+  },
 }));
 
 const mockedSession = getServerSession as jest.Mock;
 const mockedCreateBunnyVideo = createBunnyStreamVideo as jest.Mock;
+const mockedDeleteBunnyVideo = deleteBunnyStreamVideo as jest.Mock;
+const mockedServerLog = serverLog as unknown as {
+  error: jest.Mock;
+  info: jest.Mock;
+  warn: jest.Mock;
+};
 const mockedPrisma = prisma as unknown as {
   course: { findUnique: jest.Mock };
   video: {
@@ -44,6 +68,14 @@ function jsonRequest(path: string, body: unknown) {
   });
 }
 
+function invalidJsonRequest(path: string) {
+  return new Request(`http://localhost.test${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"incomplete"',
+  });
+}
+
 describe('Bunny Stream upload credentials route', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -52,6 +84,22 @@ describe('Bunny Stream upload credentials route', () => {
     process.env.BUNNY_STREAM_READ_ONLY_API_KEY = 'read-only';
     process.env.BUNNY_STREAM_TOKEN_SECURITY_KEY = 'token-key';
     process.env.BUNNY_STREAM_TUS_EXPIRE_SECONDS = '86400';
+  });
+
+  test('requires an authenticated session', async () => {
+    mockedSession.mockResolvedValue(null);
+
+    const response = await uploadCredentialsPost(
+      jsonRequest('/api/bunny-stream/upload-credentials', {
+        filename: 'lesson.mp4',
+        contentType: 'video/mp4',
+        courseId: '507f1f77bcf86cd799439011',
+        title: 'Lesson',
+      })
+    );
+
+    expect(response.status).toBe(401);
+    expect(mockedCreateBunnyVideo).not.toHaveBeenCalled();
   });
 
   test('requires admin session', async () => {
@@ -67,6 +115,36 @@ describe('Bunny Stream upload credentials route', () => {
     );
 
     expect(response.status).toBe(403);
+    expect(mockedCreateBunnyVideo).not.toHaveBeenCalled();
+  });
+
+  test('returns safe JSON 400 for malformed JSON before creating provider video', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+
+    const response = await uploadCredentialsPost(
+      invalidJsonRequest('/api/bunny-stream/upload-credentials')
+    );
+
+    await expect(response.json()).resolves.toEqual({
+      error: 'Validation failed',
+    });
+    expect(response.status).toBe(400);
+    expect(mockedCreateBunnyVideo).not.toHaveBeenCalled();
+  });
+
+  test('rejects non-hex course ID before creating provider video', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+
+    const response = await uploadCredentialsPost(
+      jsonRequest('/api/bunny-stream/upload-credentials', {
+        filename: 'lesson.mp4',
+        contentType: 'video/mp4',
+        courseId: '507f1f77bcf86cd79943901z',
+        title: 'Lesson',
+      })
+    );
+
+    expect(response.status).toBe(400);
     expect(mockedCreateBunnyVideo).not.toHaveBeenCalled();
   });
 
@@ -116,6 +194,151 @@ describe('Bunny Stream upload credentials route', () => {
       localVideoId: 'local-video-id',
     });
     expect(JSON.stringify(body)).not.toContain('api-key');
+  });
+
+  test('returns safe JSON 502 when Bunny Stream omits video GUID', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.course.findUnique.mockResolvedValue({
+      id: '507f1f77bcf86cd799439011',
+      isDeleted: false,
+    });
+    mockedCreateBunnyVideo.mockResolvedValue({});
+
+    const response = await uploadCredentialsPost(
+      jsonRequest('/api/bunny-stream/upload-credentials', {
+        filename: 'lesson.mp4',
+        contentType: 'video/mp4',
+        courseId: '507f1f77bcf86cd799439011',
+        title: 'Lesson',
+      })
+    );
+
+    await expect(response.json()).resolves.toEqual({
+      error: 'Bunny Stream did not return a video ID',
+    });
+    expect(response.status).toBe(502);
+    expect(mockedPrisma.video.create).not.toHaveBeenCalled();
+    expect(mockedDeleteBunnyVideo).not.toHaveBeenCalled();
+  });
+
+  test('maps Bunny Stream API failures to safe JSON 502', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.course.findUnique.mockResolvedValue({
+      id: '507f1f77bcf86cd799439011',
+      isDeleted: false,
+    });
+    mockedCreateBunnyVideo.mockRejectedValue(
+      new BunnyStreamApiError('raw sentinel provider detail', 429)
+    );
+
+    const response = await uploadCredentialsPost(
+      jsonRequest('/api/bunny-stream/upload-credentials', {
+        filename: 'lesson.mp4',
+        contentType: 'video/mp4',
+        courseId: '507f1f77bcf86cd799439011',
+        title: 'Lesson',
+      })
+    );
+
+    await expect(response.json()).resolves.toEqual({
+      error: 'Bunny Stream upload failed to initialize',
+    });
+    expect(response.status).toBe(502);
+    expect(mockedDeleteBunnyVideo).not.toHaveBeenCalled();
+    expect(mockedServerLog.error).toHaveBeenCalledWith(
+      'bunny_stream_upload_credentials_failed',
+      {
+        errorName: 'BunnyStreamApiError',
+        apiStatus: 429,
+      }
+    );
+    expect(JSON.stringify(mockedServerLog.error.mock.calls)).not.toContain(
+      'raw sentinel provider detail'
+    );
+  });
+
+  test('deletes provider video when local row persistence fails', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.course.findUnique.mockResolvedValue({
+      id: '507f1f77bcf86cd799439011',
+      isDeleted: false,
+    });
+    mockedCreateBunnyVideo.mockResolvedValue({ guid: 'bunny-video-guid' });
+    mockedPrisma.video.create.mockRejectedValue(new Error('database rejected row'));
+    mockedDeleteBunnyVideo.mockResolvedValue(undefined);
+
+    const response = await uploadCredentialsPost(
+      jsonRequest('/api/bunny-stream/upload-credentials', {
+        filename: 'lesson.mp4',
+        contentType: 'video/mp4',
+        courseId: '507f1f77bcf86cd799439011',
+        title: 'Lesson',
+      })
+    );
+
+    expect(response.status).toBe(500);
+    expect(mockedDeleteBunnyVideo).toHaveBeenCalledWith({
+      libraryId: '123456',
+      apiKey: 'api-key',
+      videoId: 'bunny-video-guid',
+    });
+    expect(mockedServerLog.info).toHaveBeenCalledWith(
+      'bunny_stream_orphan_cleanup_succeeded',
+      {
+        libraryId: '123456',
+        videoId: 'bunny-video-guid',
+      }
+    );
+  });
+
+  test('does not mask persistence failure or log raw errors when provider cleanup fails', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.course.findUnique.mockResolvedValue({
+      id: '507f1f77bcf86cd799439011',
+      isDeleted: false,
+    });
+    mockedCreateBunnyVideo.mockResolvedValue({ guid: 'bunny-video-guid' });
+    mockedPrisma.video.create.mockRejectedValue(
+      new Error('raw sentinel persistence detail')
+    );
+    mockedDeleteBunnyVideo.mockRejectedValue(
+      new BunnyStreamApiError('raw sentinel cleanup detail', 503)
+    );
+
+    const response = await uploadCredentialsPost(
+      jsonRequest('/api/bunny-stream/upload-credentials', {
+        filename: 'lesson.mp4',
+        contentType: 'video/mp4',
+        courseId: '507f1f77bcf86cd799439011',
+        title: 'Lesson',
+      })
+    );
+
+    await expect(response.json()).resolves.toEqual({
+      error: 'Bunny Stream upload failed to initialize',
+    });
+    expect(response.status).toBe(500);
+    expect(mockedServerLog.warn).toHaveBeenCalledWith(
+      'bunny_stream_orphan_cleanup_failed',
+      {
+        libraryId: '123456',
+        videoId: 'bunny-video-guid',
+        errorName: 'BunnyStreamApiError',
+        apiStatus: 503,
+      }
+    );
+    expect(mockedServerLog.error).toHaveBeenCalledWith(
+      'bunny_stream_upload_credentials_failed',
+      {
+        errorName: 'Error',
+      }
+    );
+    expect(
+      JSON.stringify([
+        ...mockedServerLog.warn.mock.calls,
+        ...mockedServerLog.error.mock.calls,
+      ])
+    ).not.toContain('raw sentinel');
   });
 
   test('rejects deleted or missing course before creating provider video', async () => {

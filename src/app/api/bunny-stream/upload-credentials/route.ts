@@ -3,9 +3,14 @@ import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { createBunnyStreamVideo } from '@/lib/bunny-stream/client';
+import {
+  BunnyStreamApiError,
+  createBunnyStreamVideo,
+  deleteBunnyStreamVideo,
+} from '@/lib/bunny-stream/client';
 import { readBunnyStreamConfig } from '@/lib/bunny-stream/config';
 import { generateBunnyTusSignature } from '@/lib/bunny-stream/signing';
+import { serverLog } from '@/lib/server-log';
 
 const uploadSchema = z.object({
   filename: z
@@ -14,10 +19,17 @@ const uploadSchema = z.object({
     .max(255)
     .regex(/^[\w\-. ]+$/),
   contentType: z.string().regex(/^video\//),
-  courseId: z.string().length(24),
+  courseId: z.string().regex(/^[a-f0-9]{24}$/i, 'Invalid course ID format'),
   title: z.string().min(1).max(255),
   collectionId: z.string().min(1).max(128).optional(),
 });
+
+function getErrorMetadata(error: unknown) {
+  return {
+    errorName: error instanceof Error ? error.name : 'UnknownError',
+    ...(error instanceof BunnyStreamApiError ? { apiStatus: error.status } : {}),
+  };
+}
 
 export async function POST(req: Request) {
   try {
@@ -27,7 +39,14 @@ export async function POST(req: Request) {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
-    const parsed = uploadSchema.safeParse(await req.json());
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Validation failed' }, { status: 400 });
+    }
+
+    const parsed = uploadSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         { error: 'Validation failed', details: parsed.error.flatten().fieldErrors },
@@ -62,18 +81,41 @@ export async function POST(req: Request) {
       );
     }
 
-    const video = await prisma.video.create({
-      data: {
-        title,
-        courseId,
-        provider: 'BUNNY_STREAM',
-        bunnyLibraryId: config.libraryId,
-        bunnyVideoId: bunnyVideo.guid,
-        bunnyCollectionId: resolvedCollectionId,
-        bunnyStatus: 'CREATED',
-        published: false,
-      },
-    });
+    let video;
+    try {
+      video = await prisma.video.create({
+        data: {
+          title,
+          courseId,
+          provider: 'BUNNY_STREAM',
+          bunnyLibraryId: config.libraryId,
+          bunnyVideoId: bunnyVideo.guid,
+          bunnyCollectionId: resolvedCollectionId,
+          bunnyStatus: 'CREATED',
+          published: false,
+        },
+      });
+    } catch (error) {
+      try {
+        await deleteBunnyStreamVideo({
+          libraryId: config.libraryId,
+          apiKey: config.apiKey,
+          videoId: bunnyVideo.guid,
+        });
+        serverLog.info('bunny_stream_orphan_cleanup_succeeded', {
+          libraryId: config.libraryId,
+          videoId: bunnyVideo.guid,
+        });
+      } catch (cleanupError) {
+        serverLog.warn('bunny_stream_orphan_cleanup_failed', {
+          libraryId: config.libraryId,
+          videoId: bunnyVideo.guid,
+          ...getErrorMetadata(cleanupError),
+        });
+      }
+
+      throw error;
+    }
 
     const authorizationExpire =
       Math.floor(Date.now() / 1000) + config.tusExpireSeconds;
@@ -93,10 +135,13 @@ export async function POST(req: Request) {
       localVideoId: video.id,
     });
   } catch (error) {
-    console.error('Bunny Stream upload credentials error:', error);
+    serverLog.error(
+      'bunny_stream_upload_credentials_failed',
+      getErrorMetadata(error)
+    );
     return NextResponse.json(
       { error: 'Bunny Stream upload failed to initialize' },
-      { status: 500 }
+      { status: error instanceof BunnyStreamApiError ? 502 : 500 }
     );
   }
 }

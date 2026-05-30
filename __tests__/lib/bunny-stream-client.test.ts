@@ -1,6 +1,7 @@
 import {
   BunnyStreamApiError,
   createBunnyStreamVideo,
+  deleteBunnyStreamVideo,
   getBunnyStreamVideo,
 } from '@/lib/bunny-stream/client';
 
@@ -90,6 +91,47 @@ describe('Bunny Stream API client', () => {
           Accept: 'application/json',
         },
       }
+    );
+  });
+
+  test('deletes a Bunny video with library AccessKey', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+    }) as jest.Mock;
+
+    await deleteBunnyStreamVideo({
+      libraryId: '123',
+      apiKey: 'api-key',
+      videoId: 'video-guid',
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://video.bunnycdn.com/library/123/videos/video-guid',
+      {
+        method: 'DELETE',
+        headers: {
+          AccessKey: 'api-key',
+          Accept: 'application/json',
+        },
+      }
+    );
+  });
+
+  test('throws sanitized API error when deleting a Bunny video fails', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      text: async () => 'bad key value should not leak',
+    }) as jest.Mock;
+
+    await expect(
+      deleteBunnyStreamVideo({
+        libraryId: '123',
+        apiKey: 'api-key',
+        videoId: 'video-guid',
+      })
+    ).rejects.toEqual(
+      new BunnyStreamApiError('Bunny Stream API failed with HTTP 401', 401)
     );
   });
 
