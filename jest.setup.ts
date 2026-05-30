@@ -55,3 +55,12 @@ process.env.NEXT_PUBLIC_AX_FP_LS_URL = 'http://localhost:8080/license';
 // Zoom Mocks
 process.env.ZOOM_MEETING_SDK_KEY = 'test-zoom-sdk-key';
 process.env.ZOOM_MEETING_SDK_SECRET = 'test-zoom-sdk-secret';
+
+// Bunny Stream Mocks
+process.env.BUNNY_STREAM_LIBRARY_ID = '123456';
+process.env.BUNNY_STREAM_API_KEY = 'test-bunny-stream-api-key';
+process.env.BUNNY_STREAM_READ_ONLY_API_KEY = 'test-bunny-stream-read-only-key';
+process.env.BUNNY_STREAM_TOKEN_SECURITY_KEY = 'test-bunny-stream-token-security-key';
+process.env.BUNNY_STREAM_TUS_EXPIRE_SECONDS = '86400';
+process.env.BUNNY_STREAM_EMBED_TOKEN_TTL_SECONDS = '300';
+process.env.BUNNY_STREAM_PULL_ZONE_HOSTNAME = 'vz-test.b-cdn.net';

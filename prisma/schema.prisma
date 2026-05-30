@@ -121,6 +121,7 @@ model Video {
   duration      Float?
   position      Int             @default(0)
   published     Boolean         @default(false)
+  provider      VideoProvider   @default(AXINOM)
   r2Key         String?
   dashUrl       String?
   hlsUrl        String?
@@ -132,6 +133,15 @@ model Video {
   axinomEncodingStatus String?
   axinomOutputLocation String?
   axinomSyncedAt DateTime?
+  bunnyLibraryId      String?
+  bunnyVideoId        String?
+  bunnyCollectionId   String?
+  bunnyStatus         BunnyStreamStatus?
+  bunnyEncodeProgress Int?
+  bunnyAvailableRes   String?
+  bunnyThumbnailUrl   String?
+  bunnySyncedAt       DateTime?
+  bunnyError          String?
   viewLimit     Int?
   courseId      String          @db.ObjectId
   createdAt     DateTime        @default(now())
@@ -148,9 +158,13 @@ model Video {
   @@index([courseId, published, isDeleted])
   @@index([courseId, position])
   @@index([drmKeyId])  // For DRM license lookups
+  @@index([provider])
   @@index([axinomVideoId])
   @@index([axinomIdClear])
   @@index([axinomEncodingStatus])
+  @@index([bunnyLibraryId])
+  @@index([bunnyVideoId])
+  @@index([bunnyStatus])
 }
 
 model WatchRecord {
@@ -301,4 +315,20 @@ enum TicketStatus {
 enum CourseAccessType {
   OPEN
   VERIFY
+}
+
+enum VideoProvider {
+  AXINOM
+  BUNNY_STREAM
+}
+
+enum BunnyStreamStatus {
+  CREATED
+  UPLOADING
+  QUEUED
+  PROCESSING
+  ENCODING
+  PLAYABLE
+  READY
+  FAILED
 }
