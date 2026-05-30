@@ -20,13 +20,13 @@ const uploadSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) return new NextResponse('Unauthorized', { status: 401 });
-  if (session.user?.role !== 'ADMIN') {
-    return new NextResponse('Forbidden', { status: 403 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) return new NextResponse('Unauthorized', { status: 401 });
+    if (session.user?.role !== 'ADMIN') {
+      return new NextResponse('Forbidden', { status: 403 });
+    }
+
     const parsed = uploadSchema.safeParse(await req.json());
     if (!parsed.success) {
       return NextResponse.json(
