@@ -75,6 +75,7 @@ export async function POST(req: Request) {
       apiKey: config.apiKey,
       title,
       collectionId: resolvedCollectionId,
+      timeoutMs: config.apiTimeoutMs,
     });
 
     if (!bunnyVideo.guid) {
@@ -104,6 +105,7 @@ export async function POST(req: Request) {
           libraryId: config.libraryId,
           apiKey: config.apiKey,
           videoId: bunnyVideo.guid,
+          timeoutMs: config.apiTimeoutMs,
         });
         serverLog.info('bunny_stream_orphan_cleanup_succeeded', {
           libraryId: config.libraryId,

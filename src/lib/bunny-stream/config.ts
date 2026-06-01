@@ -9,6 +9,7 @@ export type BunnyStreamConfig = {
   tokenSecurityKey: string;
   tusExpireSeconds: number;
   embedTokenTtlSeconds: number;
+  apiTimeoutMs: number;
   pullZoneHostname: string | null;
   defaultCollectionId: string | null;
 };
@@ -25,6 +26,20 @@ const REQUIRED = [
   'BUNNY_STREAM_READ_ONLY_API_KEY',
   'BUNNY_STREAM_TOKEN_SECURITY_KEY',
 ] as const;
+
+const TUS_EXPIRE_SECONDS_POLICY = {
+  name: 'BUNNY_STREAM_TUS_EXPIRE_SECONDS',
+  fallback: 86400,
+  min: 3600,
+  max: 604800,
+} as const;
+
+const API_TIMEOUT_MS_POLICY = {
+  name: 'BUNNY_STREAM_API_TIMEOUT_MS',
+  fallback: 10000,
+  min: 1000,
+  max: 60000,
+} as const;
 
 function readRequired(env: Env, name: (typeof REQUIRED)[number]) {
   const value = env[name]?.trim();
@@ -46,6 +61,34 @@ function readPositiveInteger(env: Env, name: string, fallback: number) {
   return parsed;
 }
 
+function getBoundedIntegerError(
+  env: Env,
+  policy: { name: string; min: number; max: number }
+) {
+  const raw = env[policy.name]?.trim();
+  if (!raw) return null;
+
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed < policy.min || parsed > policy.max) {
+    return `${policy.name} must be between ${policy.min} and ${policy.max}.`;
+  }
+
+  return null;
+}
+
+function readBoundedInteger(
+  env: Env,
+  policy: { name: string; fallback: number; min: number; max: number }
+) {
+  const raw = env[policy.name]?.trim();
+  if (!raw) return policy.fallback;
+
+  const error = getBoundedIntegerError(env, policy);
+  if (error) throw new Error(error);
+
+  return Number(raw);
+}
+
 export function validateBunnyStreamConfig(
   env: Env = process.env,
   mode: BunnyStreamValidationMode = 'local'
@@ -58,16 +101,18 @@ export function validateBunnyStreamConfig(
     }
   }
 
-  for (const name of [
-    'BUNNY_STREAM_TUS_EXPIRE_SECONDS',
-    'BUNNY_STREAM_EMBED_TOKEN_TTL_SECONDS',
-  ]) {
+  for (const name of ['BUNNY_STREAM_EMBED_TOKEN_TTL_SECONDS']) {
     const raw = env[name]?.trim();
     if (!raw) continue;
     const parsed = Number(raw);
     if (!Number.isInteger(parsed) || parsed <= 0) {
       errors.push(`${name} must be a positive integer.`);
     }
+  }
+
+  for (const policy of [TUS_EXPIRE_SECONDS_POLICY, API_TIMEOUT_MS_POLICY]) {
+    const error = getBoundedIntegerError(env, policy);
+    if (error) errors.push(error);
   }
 
   return { ok: errors.length === 0, mode, errors };
@@ -81,16 +126,13 @@ export function readBunnyStreamConfig(
     apiKey: readRequired(env, 'BUNNY_STREAM_API_KEY'),
     readOnlyApiKey: readRequired(env, 'BUNNY_STREAM_READ_ONLY_API_KEY'),
     tokenSecurityKey: readRequired(env, 'BUNNY_STREAM_TOKEN_SECURITY_KEY'),
-    tusExpireSeconds: readPositiveInteger(
-      env,
-      'BUNNY_STREAM_TUS_EXPIRE_SECONDS',
-      86400
-    ),
+    tusExpireSeconds: readBoundedInteger(env, TUS_EXPIRE_SECONDS_POLICY),
     embedTokenTtlSeconds: readPositiveInteger(
       env,
       'BUNNY_STREAM_EMBED_TOKEN_TTL_SECONDS',
       300
     ),
+    apiTimeoutMs: readBoundedInteger(env, API_TIMEOUT_MS_POLICY),
     pullZoneHostname: env.BUNNY_STREAM_PULL_ZONE_HOSTNAME?.trim() || null,
     defaultCollectionId:
       env.BUNNY_STREAM_DEFAULT_COLLECTION_ID?.trim() || null,

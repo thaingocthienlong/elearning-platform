@@ -40,6 +40,7 @@ describe('Bunny Stream API client', () => {
           title: 'Lesson 01',
           collectionId: 'collection-guid',
         }),
+        signal: expect.any(AbortSignal),
       }
     );
   });
@@ -90,6 +91,7 @@ describe('Bunny Stream API client', () => {
           AccessKey: 'api-key',
           Accept: 'application/json',
         },
+        signal: expect.any(AbortSignal),
       }
     );
   });
@@ -97,6 +99,7 @@ describe('Bunny Stream API client', () => {
   test('deletes a Bunny video with library AccessKey', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
+      json: async () => ({ success: true }),
     }) as jest.Mock;
 
     await deleteBunnyStreamVideo({
@@ -113,7 +116,67 @@ describe('Bunny Stream API client', () => {
           AccessKey: 'api-key',
           Accept: 'application/json',
         },
+        signal: expect.any(AbortSignal),
       }
+    );
+  });
+
+  test('passes caller timeout to Bunny Stream API fetch', async () => {
+    const timeoutSpy = jest.spyOn(AbortSignal, 'timeout');
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ guid: 'video-guid' }),
+    }) as jest.Mock;
+
+    await getBunnyStreamVideo({
+      libraryId: '123',
+      apiKey: 'api-key',
+      videoId: 'video-guid',
+      timeoutMs: 2500,
+    });
+
+    expect(timeoutSpy).toHaveBeenCalledWith(2500);
+  });
+
+  test.each([null, {}, { success: false }])(
+    'throws sanitized API error when Bunny Stream returns invalid delete response: %p',
+    async (providerBody) => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => providerBody,
+      }) as jest.Mock;
+
+      await expect(
+        deleteBunnyStreamVideo({
+          libraryId: '123',
+          apiKey: 'api-key',
+          videoId: 'video-guid',
+        })
+      ).rejects.toEqual(
+        new BunnyStreamApiError(
+          'Bunny Stream API returned invalid delete response',
+          502
+        )
+      );
+    }
+  );
+
+  test('throws sanitized API error when Bunny Stream returns malformed delete JSON', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => {
+        throw new Error('raw sentinel delete response');
+      },
+    }) as jest.Mock;
+
+    await expect(
+      deleteBunnyStreamVideo({
+        libraryId: '123',
+        apiKey: 'api-key',
+        videoId: 'video-guid',
+      })
+    ).rejects.toEqual(
+      new BunnyStreamApiError('Bunny Stream API returned invalid JSON', 502)
     );
   });
 

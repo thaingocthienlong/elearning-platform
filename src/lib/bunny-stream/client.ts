@@ -15,13 +15,22 @@ export class BunnyStreamApiError extends Error {
   }
 }
 
+const DEFAULT_BUNNY_STREAM_API_TIMEOUT_MS = 10000;
+
 function bunnyUrl(path: string) {
   return `https://video.bunnycdn.com${path}`;
 }
 
-async function fetchOrThrow(input: string, init: RequestInit) {
+async function fetchOrThrow(
+  input: string,
+  init: RequestInit,
+  timeoutMs = DEFAULT_BUNNY_STREAM_API_TIMEOUT_MS
+) {
   try {
-    return await fetch(input, init);
+    return await fetch(input, {
+      ...init,
+      signal: AbortSignal.timeout(timeoutMs),
+    });
   } catch {
     throw new BunnyStreamApiError('Bunny Stream API transport failed', 502);
   }
@@ -64,29 +73,49 @@ function validateCreateVideoResponse(value: unknown): BunnyStreamVideo {
   return { ...value, guid: guid.trim() } as BunnyStreamVideo;
 }
 
+function validateDeleteVideoResponse(value: unknown): void {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    !('success' in value) ||
+    value.success !== true
+  ) {
+    throw new BunnyStreamApiError(
+      'Bunny Stream API returned invalid delete response',
+      502
+    );
+  }
+}
+
 export async function createBunnyStreamVideo({
   libraryId,
   apiKey,
   title,
   collectionId,
+  timeoutMs = DEFAULT_BUNNY_STREAM_API_TIMEOUT_MS,
 }: {
   libraryId: string;
   apiKey: string;
   title: string;
   collectionId?: string | null;
+  timeoutMs?: number;
 }) {
   const body: { title: string; collectionId?: string } = { title };
   if (collectionId) body.collectionId = collectionId;
 
-  const response = await fetchOrThrow(bunnyUrl(`/library/${libraryId}/videos`), {
-    method: 'POST',
-    headers: {
-      AccessKey: apiKey,
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
+  const response = await fetchOrThrow(
+    bunnyUrl(`/library/${libraryId}/videos`),
+    {
+      method: 'POST',
+      headers: {
+        AccessKey: apiKey,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
     },
-    body: JSON.stringify(body),
-  });
+    timeoutMs
+  );
 
   return validateCreateVideoResponse(await readJsonOrThrow<unknown>(response));
 }
@@ -95,10 +124,12 @@ export async function getBunnyStreamVideo({
   libraryId,
   apiKey,
   videoId,
+  timeoutMs = DEFAULT_BUNNY_STREAM_API_TIMEOUT_MS,
 }: {
   libraryId: string;
   apiKey: string;
   videoId: string;
+  timeoutMs?: number;
 }) {
   const response = await fetchOrThrow(
     bunnyUrl(`/library/${libraryId}/videos/${videoId}`),
@@ -108,7 +139,8 @@ export async function getBunnyStreamVideo({
         AccessKey: apiKey,
         Accept: 'application/json',
       },
-    }
+    },
+    timeoutMs
   );
 
   return readJsonOrThrow<BunnyStreamVideo>(response);
@@ -118,10 +150,12 @@ export async function deleteBunnyStreamVideo({
   libraryId,
   apiKey,
   videoId,
+  timeoutMs = DEFAULT_BUNNY_STREAM_API_TIMEOUT_MS,
 }: {
   libraryId: string;
   apiKey: string;
   videoId: string;
+  timeoutMs?: number;
 }): Promise<void> {
   const response = await fetchOrThrow(
     bunnyUrl(`/library/${libraryId}/videos/${videoId}`),
@@ -131,13 +165,9 @@ export async function deleteBunnyStreamVideo({
         AccessKey: apiKey,
         Accept: 'application/json',
       },
-    }
+    },
+    timeoutMs
   );
 
-  if (!response.ok) {
-    throw new BunnyStreamApiError(
-      `Bunny Stream API failed with HTTP ${response.status}`,
-      response.status
-    );
-  }
+  validateDeleteVideoResponse(await readJsonOrThrow<unknown>(response));
 }

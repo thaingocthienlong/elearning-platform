@@ -84,6 +84,7 @@ describe('Bunny Stream upload credentials route', () => {
     process.env.BUNNY_STREAM_READ_ONLY_API_KEY = 'read-only';
     process.env.BUNNY_STREAM_TOKEN_SECURITY_KEY = 'token-key';
     process.env.BUNNY_STREAM_TUS_EXPIRE_SECONDS = '86400';
+    process.env.BUNNY_STREAM_API_TIMEOUT_MS = '15000';
   });
 
   test('requires an authenticated session', async () => {
@@ -173,6 +174,7 @@ describe('Bunny Stream upload credentials route', () => {
       apiKey: 'api-key',
       title: 'Lesson',
       collectionId: null,
+      timeoutMs: 15000,
     });
     expect(mockedPrisma.video.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
@@ -281,6 +283,7 @@ describe('Bunny Stream upload credentials route', () => {
       libraryId: '123456',
       apiKey: 'api-key',
       videoId: 'bunny-video-guid',
+      timeoutMs: 15000,
     });
     expect(mockedServerLog.info).toHaveBeenCalledWith(
       'bunny_stream_orphan_cleanup_succeeded',
