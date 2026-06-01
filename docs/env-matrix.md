@@ -29,6 +29,7 @@ This matrix is the source of truth for environment variables used by the platfor
 | VdoCipher | VDOCIPHER_DEFAULT_ACCOUNT_ID | operational config | optional | required for VdoCipher migration | src/lib/vdocipher-accounts.ts | Default account for new uploads; must match one configured account ID when set. |
 | VdoCipher | VDOCIPHER_API_SECRET_<ACCOUNT> | server secret | optional | required for each configured account | src/lib/vdocipher-accounts.ts | Account-specific VdoCipher API secret, where `<ACCOUNT>` is the uppercase normalized account ID. |
 | VdoCipher | VDOCIPHER_WEBHOOK_SECRET | server secret | optional | recommended | src/app/api/webhook/vdocipher/route.ts | Shared webhook secret when using query-secret webhook protection. |
+| VdoCipher | VDOCIPHER_PLAYBACK_WHITELIST_HREF | operational config | optional | optional | src/lib/vdocipher-playback.ts | Optional VdoCipher OTP `whitelisthref` override. When unset, playback OTPs use the hostname from `NEXTAUTH_URL`; production can set `elearning.vienphuongnam.com.vn` or a VdoCipher regex group such as `(elearning.vienphuongnam.com.vn|vienphuongnam.com.vn)`. |
 | Storage | AZURE_STORAGE_ACCOUNT | operational secret | optional | required | src/lib/azure-storage.ts | Azure Blob account for upload/input/output containers. |
 | Storage | AZURE_STORAGE_KEY | server secret | optional | required | src/lib/azure-storage.ts | Azure Blob account key. |
 | Storage | AZURE_VIDEO_INPUT_CONTAINER | operational secret | optional | required | src/lib/azure-storage.ts | Azure input container for source media. |
@@ -77,6 +78,7 @@ Staging-specific callback and origin values must be configured outside the repos
 | Axinom | Webhook URL | `<STAGING_ORIGIN>/api/webhook/axinom` |
 | VdoCipher | Webhook URL | `<STAGING_ORIGIN>/api/webhook/vdocipher?secret=<VDOCIPHER_WEBHOOK_SECRET>` |
 | VdoCipher | Upload/playback accounts | Every ID in `VDOCIPHER_ACCOUNT_IDS` has a matching `VDOCIPHER_API_SECRET_<ACCOUNT>` value; `VDOCIPHER_DEFAULT_ACCOUNT_ID` matches one account. |
+| VdoCipher | Playback URL whitelist | `VDOCIPHER_PLAYBACK_WHITELIST_HREF=<STAGING_HOSTNAME>` or ensure `NEXTAUTH_URL` hostname matches the domain allowed in each VdoCipher account dashboard. |
 | Zoom | Meeting SDK domain/origin allowlist | The exact staging origin or domain used by `/meeting` |
 | Storage | Azure Blob CORS | Staging origin allowed where browser upload/output reads are required |
 | Storage | Cloudflare R2/S3 CORS and asset origin | Staging origin and `NEXT_PUBLIC_ASSET_BASE` aligned with the playback bucket/prefix |

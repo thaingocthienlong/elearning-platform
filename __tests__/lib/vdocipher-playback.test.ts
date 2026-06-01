@@ -25,6 +25,7 @@ import {
   VdoCipherApiError,
 } from '@/lib/vdocipher';
 import {
+  getVdoCipherPlaybackWhitelistHref,
   getVdoCipherOtpWithAccountFallback,
   getVdoCipherVideoStatusWithAccountFallback,
 } from '@/lib/vdocipher-playback';
@@ -65,12 +66,14 @@ describe('vdocipher account fallback', () => {
       vdoCipherVideoId: 'vdo-id',
       ttl: 300,
       annotate: undefined,
+      whitelisthref: 'localhost',
     });
     expect(mockedGetVdoCipherOtp).toHaveBeenNthCalledWith(2, {
       apiSecret: 'secret-primary',
       vdoCipherVideoId: 'vdo-id',
       ttl: 300,
       annotate: undefined,
+      whitelisthref: 'localhost',
     });
     expect(result).toEqual({
       accountId: 'primary',
@@ -92,6 +95,43 @@ describe('vdocipher account fallback', () => {
     ).rejects.toMatchObject({ status: 401 });
 
     expect(mockedGetVdoCipherOtp).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses explicit VdoCipher whitelist href over NEXTAUTH_URL hostname', async () => {
+    mockedGetVdoCipherOtp.mockResolvedValueOnce({ otp: 'otp', playbackInfo: 'playback' });
+
+    await getVdoCipherOtpWithAccountFallback({
+      preferredAccountId: 'primary',
+      vdoCipherVideoId: 'vdo-id',
+      ttl: 300,
+      whitelisthref: 'elearning.vienphuongnam.com.vn',
+    });
+
+    expect(mockedGetVdoCipherOtp).toHaveBeenCalledWith({
+      apiSecret: 'secret-primary',
+      vdoCipherVideoId: 'vdo-id',
+      ttl: 300,
+      annotate: undefined,
+      whitelisthref: 'elearning.vienphuongnam.com.vn',
+    });
+  });
+
+  it('derives VdoCipher whitelist href from NEXTAUTH_URL when no override is configured', () => {
+    expect(
+      getVdoCipherPlaybackWhitelistHref({
+        NEXTAUTH_URL: 'https://elearning.vienphuongnam.com.vn',
+      } as NodeJS.ProcessEnv)
+    ).toBe('elearning.vienphuongnam.com.vn');
+  });
+
+  it('prefers VdoCipher whitelist env override for multi-domain rules', () => {
+    expect(
+      getVdoCipherPlaybackWhitelistHref({
+        NEXTAUTH_URL: 'https://elearning.vienphuongnam.com.vn',
+        VDOCIPHER_PLAYBACK_WHITELIST_HREF:
+          '(elearning.vienphuongnam.com.vn|vienphuongnam.com.vn)',
+      } as NodeJS.ProcessEnv)
+    ).toBe('(elearning.vienphuongnam.com.vn|vienphuongnam.com.vn)');
   });
 
   it('tries another account when status lookup returns provider 404', async () => {

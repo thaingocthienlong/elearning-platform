@@ -83,13 +83,18 @@ export async function getVdoCipherOtp(options: {
   vdoCipherVideoId: string;
   ttl: number;
   annotate?: string;
+  whitelisthref?: string;
 }): Promise<VdoCipherOtpResponse> {
-  const body: { ttl: number; annotate?: string } = {
+  const body: { ttl: number; annotate?: string; whitelisthref?: string } = {
     ttl: options.ttl,
   };
 
   if (options.annotate) {
     body.annotate = options.annotate;
+  }
+
+  if (options.whitelisthref) {
+    body.whitelisthref = options.whitelisthref;
   }
 
   const response = await fetch(`${VDOCIPHER_API_BASE}/videos/${options.vdoCipherVideoId}/otp`, {

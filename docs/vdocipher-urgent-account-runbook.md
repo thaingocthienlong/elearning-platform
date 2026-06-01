@@ -12,6 +12,7 @@ Do not paste VdoCipher API secrets, webhook secrets, OTP values, playbackInfo va
 - Upload file with credentials: https://www.vdocipher.com/docs/server/upload/file/
 - OTP API: https://www.vdocipher.com/docs/server/playbackauth/otp/
 - OTP TTL: https://www.vdocipher.com/docs/server/playbackauth/ttl
+- OTP URL whitelist: https://www.vdocipher.com/docs/server/playbackauth/whitelist/
 - Player iframe: https://www.vdocipher.com/docs/player/v2/
 - Webhooks: https://www.vdocipher.com/docs/server/account/hooks
 
@@ -79,6 +80,7 @@ VDOCIPHER_API_SECRET_BACKUP_2=<secret from backup_2 account>
 VDOCIPHER_API_SECRET_BACKUP_3=<secret from backup_3 account>
 VDOCIPHER_API_SECRET_BACKUP_4=<secret from backup_4 account>
 VDOCIPHER_WEBHOOK_SECRET=<random long secret>
+VDOCIPHER_PLAYBACK_WHITELIST_HREF=elearning.vienphuongnam.com.vn
 ```
 
 Rules:
@@ -86,6 +88,7 @@ Rules:
 - `VDOCIPHER_ACCOUNT_IDS` controls which accounts admin can select.
 - `VDOCIPHER_DEFAULT_ACCOUNT_ID` is used when admin does not choose one.
 - Each account must have one matching `VDOCIPHER_API_SECRET_<SUFFIX>`.
+- `VDOCIPHER_PLAYBACK_WHITELIST_HREF` is the VdoCipher OTP URL whitelist value. Use only the hostname, not `https://` and not a trailing slash. If unset, the app derives this from `NEXTAUTH_URL`.
 - Suffix is uppercase and non-alphanumeric characters become `_`.
 - Example: `backup-1`, `backup_1`, and `backup 1` all normalize to `BACKUP_1`; avoid duplicates.
 
@@ -113,6 +116,7 @@ VDOCIPHER_API_SECRET_BACKUP_2
 VDOCIPHER_API_SECRET_BACKUP_3
 VDOCIPHER_API_SECRET_BACKUP_4
 VDOCIPHER_WEBHOOK_SECRET
+VDOCIPHER_PLAYBACK_WHITELIST_HREF
 ```
 
 Then redeploy the app. Env changes do not affect an already-running deployment until redeploy.
@@ -190,7 +194,7 @@ For every published VdoCipher video:
 What the app does:
 
 - Server checks existing course/video entitlement first.
-- Server calls VdoCipher OTP API with `ttl: 300`.
+- Server calls VdoCipher OTP API with `ttl: 300` and a `whitelisthref` value for the active playback hostname.
 - VdoCipher returns `otp` and `playbackInfo`.
 - Player iframe loads `https://player.vdocipher.com/v2/?otp=...&playbackInfo=...`.
 
@@ -237,6 +241,17 @@ Check:
 3. Video is published.
 4. Learner has course/video access.
 5. Correct account secret is still configured for the stored account ID.
+6. The active VdoCipher account allows the exact playback hostname.
+7. `VDOCIPHER_PLAYBACK_WHITELIST_HREF` is only the hostname, for example `elearning.vienphuongnam.com.vn`.
+
+### `Error 2138 Website not allowed for playback`
+
+This is a VdoCipher license-domain rejection after the app has already generated an OTP. Fix both sides:
+
+1. In the VdoCipher dashboard for the account that owns the video, allow `elearning.vienphuongnam.com.vn`.
+2. In Vercel, set `VDOCIPHER_PLAYBACK_WHITELIST_HREF=elearning.vienphuongnam.com.vn` or ensure `NEXTAUTH_URL=https://elearning.vienphuongnam.com.vn`.
+3. Redeploy after changing Vercel env.
+4. Reload the watch page to generate a fresh OTP.
 
 ### OTP expired before user clicked play
 
