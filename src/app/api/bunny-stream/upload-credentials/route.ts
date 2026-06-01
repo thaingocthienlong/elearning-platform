@@ -64,6 +64,15 @@ function isPrismaUniqueConstraintError(error: unknown) {
   );
 }
 
+function isPrismaRecordNotFoundError(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code === 'P2025'
+  );
+}
+
 function getPayloadFingerprint(payload: {
   filename: string;
   contentType: string;
@@ -139,36 +148,21 @@ async function cleanupKnownProviderInitialization({
   initializationId,
   libraryId,
   bunnyVideoId,
-  localVideoId,
   config,
 }: {
   initializationId: string;
   libraryId: string;
   bunnyVideoId: string;
-  localVideoId?: string;
   config: BunnyStreamConfig;
 }) {
-  if (localVideoId) {
-    try {
-      await prisma.video.delete({ where: { id: localVideoId } });
-    } catch (error) {
-      serverLog.warn('bunny_stream_local_video_cleanup_failed', {
-        initializationId,
-        localVideoId,
-        ...getErrorMetadata(error),
-      });
-      await updateInitializationStateBestEffort(
-        initializationId,
-        'ORPHANED',
-        'LOCAL_VIDEO_CLEANUP_FAILED',
-        {
-          bunnyLibraryId: libraryId,
-          bunnyVideoId,
-          localVideoId,
-        }
-      );
-      return false;
-    }
+  const recoveredLocalVideoId = await recoverKnownProviderInitialization({
+    initializationId,
+    libraryId,
+    bunnyVideoId,
+  });
+
+  if (recoveredLocalVideoId) {
+    return true;
   }
 
   try {
@@ -195,7 +189,6 @@ async function cleanupKnownProviderInitialization({
       {
         bunnyLibraryId: libraryId,
         bunnyVideoId,
-        localVideoId,
       }
     );
     return false;
@@ -206,6 +199,14 @@ async function cleanupKnownProviderInitialization({
       where: { id: initializationId },
     });
   } catch (error) {
+    if (isPrismaRecordNotFoundError(error)) {
+      serverLog.info('bunny_stream_initialization_already_cleared', {
+        initializationId,
+        libraryId,
+        videoId: bunnyVideoId,
+      });
+      return true;
+    }
     serverLog.warn('bunny_stream_initialization_delete_failed', {
       initializationId,
       ...getErrorMetadata(error),
@@ -599,7 +600,6 @@ export async function POST(req: Request) {
         initializationId: initialization.id,
         libraryId: config.libraryId,
         bunnyVideoId: bunnyVideo.guid,
-        localVideoId: video.id,
         config,
       });
       throw error;
