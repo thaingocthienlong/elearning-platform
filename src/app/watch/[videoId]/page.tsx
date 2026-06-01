@@ -5,13 +5,20 @@ import { authOptions } from '@/lib/auth';
 import { SecurityWrapper } from '@/components/video/SecurityWrapper';
 import WatchPageClient from '@/components/course/WatchPageClient';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
-import {
-    createBunnyStreamPlayback,
-    type BunnyStreamPlayback,
-    readBunnyStreamConfig,
-} from '@/lib/bunny-stream';
+import type { BunnyStreamPlayback } from '@/lib/bunny-stream';
 
 export const dynamic = 'force-dynamic';
+
+type ChatLogEntry = {
+    timestamp: string;
+    sender: string;
+    message: string;
+    type?: 'reaction' | 'reply';
+    replyTo?: string;
+    emoji?: string;
+    originalSender?: string;
+    originalMessage?: string;
+};
 
 export default async function WatchPage({ params }: { params: Promise<{ videoId: string }> }) {
     const session = await getServerSession(authOptions);
@@ -71,13 +78,10 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
             notFound();
         }
 
-        const bunnyConfig = readBunnyStreamConfig();
-        bunnyPlayback = createBunnyStreamPlayback({
+        bunnyPlayback = {
             libraryId: video.bunnyLibraryId,
-            videoId: video.bunnyVideoId,
-            tokenSecurityKey: bunnyConfig.tokenSecurityKey,
-            embedTokenTtlSeconds: bunnyConfig.embedTokenTtlSeconds,
-        });
+            bunnyVideoId: video.bunnyVideoId,
+        };
     } else {
         // Generate DRM token
         const { generateAxinomToken } = await import('@/lib/axinom');
@@ -153,7 +157,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 isFairPlayConfigured={Boolean(process.env.AXINOM_FAIRPLAY_CERT_URL)}
                 provider={provider}
                 bunnyPlayback={bunnyPlayback}
-                chatLog={(video as any).chatLog}
+                chatLog={(video as { chatLog?: ChatLogEntry[] | null }).chatLog ?? null}
             />
         </SecurityWrapper>
     );

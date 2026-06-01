@@ -1,12 +1,12 @@
-import { createBunnyStreamPlayback } from '@/lib/bunny-stream/playback';
+import { createBunnyStreamSignedPlayback } from '@/lib/bunny-stream/playback';
 import { generateBunnyEmbedToken } from '@/lib/bunny-stream/signing';
 
 describe('Bunny Stream playback', () => {
   test('builds a signed embed url with encoded path segments and player flags', () => {
     const now = new Date('2026-06-01T00:00:00.000Z');
-    const playback = createBunnyStreamPlayback({
+    const playback = createBunnyStreamSignedPlayback({
       libraryId: '759/alpha',
-      videoId: 'video guid/1',
+      bunnyVideoId: 'video guid/1',
       tokenSecurityKey: 'token-key',
       embedTokenTtlSeconds: 300,
       now,
@@ -20,42 +20,38 @@ describe('Bunny Stream playback', () => {
     });
 
     expect(playback).toEqual({
-      embedUrl:
+      signedEmbedUrl:
         'https://player.mediadelivery.net/embed/759%2Falpha/video%20guid%2F1?token=' +
         `${token}&expires=${expires}&autoplay=false&preload=true&responsive=true`,
       libraryId: '759/alpha',
-      videoId: 'video guid/1',
-      token,
+      bunnyVideoId: 'video guid/1',
       expires,
-      autoplay: false,
-      preload: true,
-      responsive: true,
     });
   });
 
   test('rejects empty path segments and non-positive ttl values', () => {
     expect(() =>
-      createBunnyStreamPlayback({
+      createBunnyStreamSignedPlayback({
         libraryId: ' ',
-        videoId: 'video-guid',
+        bunnyVideoId: 'video-guid',
         tokenSecurityKey: 'token-key',
         embedTokenTtlSeconds: 300,
       })
     ).toThrow('libraryId is required for Bunny Stream playback.');
 
     expect(() =>
-      createBunnyStreamPlayback({
+      createBunnyStreamSignedPlayback({
         libraryId: '123',
-        videoId: '',
+        bunnyVideoId: '',
         tokenSecurityKey: 'token-key',
         embedTokenTtlSeconds: 300,
       })
-    ).toThrow('videoId is required for Bunny Stream playback.');
+    ).toThrow('bunnyVideoId is required for Bunny Stream playback.');
 
     expect(() =>
-      createBunnyStreamPlayback({
+      createBunnyStreamSignedPlayback({
         libraryId: '123',
-        videoId: 'video-guid',
+        bunnyVideoId: 'video-guid',
         tokenSecurityKey: 'token-key',
         embedTokenTtlSeconds: 0,
       })

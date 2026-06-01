@@ -72,9 +72,11 @@ jest.mock('@/components/video/DRMPlayerWrapper', () => ({
   default: () => <div data-testid="drm-player" />,
 }));
 
+const mockBunnyPlayer = jest.fn((_: Record<string, unknown>) => <div data-testid="bunny-player" />);
+
 jest.mock('@/components/video/BunnyStreamPlayer', () => ({
   __esModule: true,
-  default: () => <div data-testid="bunny-player" />,
+  default: (props: Record<string, unknown>) => mockBunnyPlayer(props),
 }));
 
 jest.mock('@/lib/playback-routing', () => ({
@@ -87,7 +89,11 @@ jest.mock('@/lib/playback-routing', () => ({
 }));
 
 describe('WatchPageClient', () => {
-  test('renders Bunny playback instead of DRM playback when the provider is Bunny Stream', async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('renders Bunny playback start flow instead of DRM playback when the provider is Bunny Stream', async () => {
     render(
       <WatchPageClient
         videoId="video-abc"
@@ -109,15 +115,8 @@ describe('WatchPageClient', () => {
         isFairPlayConfigured={false}
         provider="BUNNY_STREAM"
         bunnyPlayback={{
-          embedUrl:
-            'https://player.mediadelivery.net/embed/123456/video-abc?token=signed-token',
           libraryId: '123456',
-          videoId: 'video-abc',
-          token: 'signed-token',
-          expires: 1717200000,
-          autoplay: false,
-          preload: true,
-          responsive: true,
+          bunnyVideoId: 'video-abc',
         }}
       />
     );
@@ -128,6 +127,12 @@ describe('WatchPageClient', () => {
       expect(screen.getByTestId('bunny-player')).toBeInTheDocument();
     });
 
+    expect(mockBunnyPlayer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        libraryId: '123456',
+        bunnyVideoId: 'video-abc',
+      })
+    );
     expect(screen.queryByTestId('drm-player')).not.toBeInTheDocument();
     expect(screen.getByTestId('video-sidebar')).toBeInTheDocument();
     expect(screen.getByTestId('chat-log')).toBeInTheDocument();

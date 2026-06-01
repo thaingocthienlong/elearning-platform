@@ -1,14 +1,14 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
-import BunnyStreamPlayer from '@/components/video/BunnyStreamPlayer';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { toast } from 'sonner';
-
-const mockToastError = toast.error as jest.MockedFunction<typeof toast.error>;
+import BunnyStreamPlayer from '@/components/video/BunnyStreamPlayer';
 
 jest.mock('sonner', () => ({
   toast: {
     error: jest.fn(),
   },
 }));
+
+const mockToastError = toast.error as jest.MockedFunction<typeof toast.error>;
 
 describe('BunnyStreamPlayer', () => {
   beforeEach(() => {
@@ -21,34 +21,51 @@ describe('BunnyStreamPlayer', () => {
     jest.restoreAllMocks();
   });
 
-  test('renders a signed Bunny iframe without exposing any API key material', () => {
-    const signedEmbedUrl =
-      'https://player.mediadelivery.net/embed/123456/video-abc?token=signed-token&expires=1717200000';
+  test('renders start control and does not send heartbeat before click', () => {
+    const fetchMock = jest.fn();
+    global.fetch = fetchMock as unknown as typeof fetch;
 
-    const { container } = render(
+    render(
       <BunnyStreamPlayer
         videoId="video-abc"
         libraryId="123456"
         bunnyVideoId="video-abc"
-        signedEmbedUrl={signedEmbedUrl}
         viewCount={1}
         viewLimit={5}
         watermarkText="Test User"
       />
     );
 
-    const iframe = screen.getByTitle('Secure Bunny Stream player');
-    expect(iframe).toHaveAttribute('src', signedEmbedUrl);
-    expect(iframe).toHaveAttribute('allow', expect.stringContaining('encrypted-media'));
-    expect(iframe).toHaveAttribute('allowfullscreen');
-    expect(container.innerHTML).not.toContain('BUNNY_STREAM_API_KEY');
-    expect(container.innerHTML).not.toContain('api-key');
+    expect(screen.getByRole('button', { name: /start secure player/i })).toBeInTheDocument();
+    expect(screen.queryByTitle('Secure Bunny Stream player')).not.toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  test('sends the initial heartbeat and then continues every 60 seconds as a returning view', async () => {
-    const fetchMock = jest.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
+  test('click fetches playback url, renders iframe, and starts heartbeat after load', async () => {
+    const fetchMock = jest.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
+      if (input === '/api/video/bunny-stream/playback') {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            signedEmbedUrl:
+              'https://player.mediadelivery.net/embed/123456/video-abc?token=signed-token&expires=1717200300&autoplay=false&preload=true&responsive=true',
+            expires: 1_717_200_300,
+            libraryId: '123456',
+            bunnyVideoId: 'video-abc',
+          }),
+        } as Response;
+      }
+
+      if (input === '/api/watch/heartbeat') {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ success: true }),
+        } as Response;
+      }
+
+      throw new Error(`Unexpected fetch: ${String(input)}`);
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
@@ -57,18 +74,37 @@ describe('BunnyStreamPlayer', () => {
         videoId="video-abc"
         libraryId="123456"
         bunnyVideoId="video-abc"
-        signedEmbedUrl="https://player.mediadelivery.net/embed/123456/video-abc?token=signed-token"
         viewCount={1}
         viewLimit={5}
         watermarkText="Test User"
       />
     );
 
+    fireEvent.click(screen.getByRole('button', { name: /start secure player/i }));
+
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/video/bunny-stream/playback',
+        expect.objectContaining({
+          method: 'POST',
+        })
+      );
     });
 
-    expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string)).toEqual({
+    await waitFor(() => {
+      expect(screen.getByTitle('Secure Bunny Stream player')).toHaveAttribute(
+        'src',
+        'https://player.mediadelivery.net/embed/123456/video-abc?token=signed-token&expires=1717200300&autoplay=false&preload=true&responsive=true'
+      );
+    });
+
+    await waitFor(() => {
+      const heartbeatCalls = fetchMock.mock.calls.filter(([input]) => input === '/api/watch/heartbeat');
+      expect(heartbeatCalls).toHaveLength(1);
+    });
+
+    const firstHeartbeat = fetchMock.mock.calls.find(([input]) => input === '/api/watch/heartbeat');
+    expect(JSON.parse(firstHeartbeat?.[1]?.body as string)).toEqual({
       videoId: 'video-abc',
       position: 0,
       isNewView: true,
@@ -80,10 +116,12 @@ describe('BunnyStreamPlayer', () => {
     });
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const heartbeatCalls = fetchMock.mock.calls.filter(([input]) => input === '/api/watch/heartbeat');
+      expect(heartbeatCalls).toHaveLength(2);
     });
 
-    expect(JSON.parse(fetchMock.mock.calls[1][1]?.body as string)).toEqual({
+    const secondHeartbeat = fetchMock.mock.calls.filter(([input]) => input === '/api/watch/heartbeat')[1];
+    expect(JSON.parse(secondHeartbeat?.[1]?.body as string)).toEqual({
       videoId: 'video-abc',
       position: 0,
       isNewView: false,
@@ -91,11 +129,17 @@ describe('BunnyStreamPlayer', () => {
     });
   });
 
-  test('blocks playback and toasts a safe access message on heartbeat 403', async () => {
-    const fetchMock = jest.fn().mockResolvedValue({
-      ok: false,
-      status: 403,
-      json: async () => ({ viewCount: 3, viewLimit: 2 }),
+  test('toasts a safe error and leaves player closed when playback fetch fails', async () => {
+    const fetchMock = jest.fn(async (input: RequestInfo | URL) => {
+      if (input === '/api/video/bunny-stream/playback') {
+        return {
+          ok: false,
+          status: 403,
+          json: async () => ({ error: 'Access denied' }),
+        } as Response;
+      }
+
+      throw new Error(`Unexpected fetch: ${String(input)}`);
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
@@ -104,20 +148,19 @@ describe('BunnyStreamPlayer', () => {
         videoId="video-abc"
         libraryId="123456"
         bunnyVideoId="video-abc"
-        signedEmbedUrl="https://player.mediadelivery.net/embed/123456/video-abc?token=signed-token"
-        viewCount={3}
-        viewLimit={2}
+        viewCount={1}
+        viewLimit={5}
         watermarkText="Test User"
       />
     );
 
+    fireEvent.click(screen.getByRole('button', { name: /start secure player/i }));
+
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith(
-        'Playback blocked. Your access window or view limit has been reached.'
-      );
+      expect(mockToastError).toHaveBeenCalledWith('Unable to start secure playback.');
     });
 
     expect(screen.queryByTitle('Secure Bunny Stream player')).not.toBeInTheDocument();
-    expect(screen.getByText('Playback blocked')).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([input]) => input === '/api/watch/heartbeat')).toBe(false);
   });
 });

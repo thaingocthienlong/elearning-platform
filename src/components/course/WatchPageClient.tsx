@@ -155,8 +155,7 @@ export default function WatchPageClient({
                                     <BunnyStreamPlayer
                                         videoId={videoId}
                                         libraryId={bunnyPlayback.libraryId}
-                                        bunnyVideoId={bunnyPlayback.videoId}
-                                        signedEmbedUrl={bunnyPlayback.embedUrl}
+                                        bunnyVideoId={bunnyPlayback.bunnyVideoId}
                                         viewCount={viewCount}
                                         viewLimit={viewLimit}
                                         watermarkText={watermarkText}

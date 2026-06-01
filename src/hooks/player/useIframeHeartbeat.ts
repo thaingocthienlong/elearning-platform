@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 interface UseIframeHeartbeatProps {
   videoId?: string;
+  isActive: boolean;
 }
 
 type HeartbeatPayload = {
@@ -17,21 +18,24 @@ type HeartbeatPayload = {
 const HEARTBEAT_INTERVAL_MS = 60_000;
 const BLOCKED_HEARTBEAT_MESSAGE =
   'Playback blocked. Your access window or view limit has been reached.';
+const HEARTBEAT_FAILURE_MESSAGE = 'Playback heartbeat failed.';
 
-export function useIframeHeartbeat({ videoId }: UseIframeHeartbeatProps) {
+export function useIframeHeartbeat({ videoId, isActive }: UseIframeHeartbeatProps) {
   const [blockedVideoId, setBlockedVideoId] = useState<string | null>(null);
   const heartbeatIntervalRef = useRef<number | null>(null);
   const blockedRef = useRef(false);
   const hasSuccessfulInitialHeartbeatRef = useRef(false);
+  const hasShownHeartbeatFailureRef = useRef(false);
   const isBlocked = blockedVideoId === videoId;
 
   useEffect(() => {
-    if (!videoId) {
+    if (!videoId || !isActive) {
       return;
     }
 
     blockedRef.current = false;
     hasSuccessfulInitialHeartbeatRef.current = false;
+    hasShownHeartbeatFailureRef.current = false;
 
     const clearHeartbeatInterval = () => {
       if (heartbeatIntervalRef.current) {
@@ -68,6 +72,10 @@ export function useIframeHeartbeat({ videoId }: UseIframeHeartbeatProps) {
         }
 
         if (!response.ok) {
+          if (!hasShownHeartbeatFailureRef.current) {
+            hasShownHeartbeatFailureRef.current = true;
+            toast.error(HEARTBEAT_FAILURE_MESSAGE);
+          }
           return;
         }
 
@@ -81,7 +89,10 @@ export function useIframeHeartbeat({ videoId }: UseIframeHeartbeatProps) {
           }
         }
       } catch {
-        // Silent failure keeps playback from surfacing noisy transport errors.
+        if (!hasShownHeartbeatFailureRef.current) {
+          hasShownHeartbeatFailureRef.current = true;
+          toast.error(HEARTBEAT_FAILURE_MESSAGE);
+        }
       }
     };
 
@@ -90,7 +101,7 @@ export function useIframeHeartbeat({ videoId }: UseIframeHeartbeatProps) {
     return () => {
       clearHeartbeatInterval();
     };
-  }, [videoId]);
+  }, [videoId, isActive]);
 
   return { isBlocked };
 }

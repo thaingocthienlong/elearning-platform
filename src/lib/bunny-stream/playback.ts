@@ -1,19 +1,18 @@
 import { generateBunnyEmbedToken } from '@/lib/bunny-stream/signing';
 
 export type BunnyStreamPlayback = {
-  embedUrl: string;
   libraryId: string;
-  videoId: string;
-  token: string;
-  expires: number;
-  autoplay: false;
-  preload: true;
-  responsive: true;
+  bunnyVideoId: string;
 };
 
-type CreateBunnyStreamPlaybackInput = {
+export type BunnyStreamSignedPlayback = BunnyStreamPlayback & {
+  signedEmbedUrl: string;
+  expires: number;
+};
+
+type CreateBunnyStreamSignedPlaybackInput = {
   libraryId: string;
-  videoId: string;
+  bunnyVideoId: string;
   tokenSecurityKey: string;
   embedTokenTtlSeconds: number;
   now?: Date;
@@ -36,15 +35,15 @@ function readPositiveInteger(value: number, name: string) {
   return value;
 }
 
-export function createBunnyStreamPlayback({
+export function createBunnyStreamSignedPlayback({
   libraryId,
-  videoId,
+  bunnyVideoId,
   tokenSecurityKey,
   embedTokenTtlSeconds,
   now = new Date(),
-}: CreateBunnyStreamPlaybackInput): BunnyStreamPlayback {
+}: CreateBunnyStreamSignedPlaybackInput): BunnyStreamSignedPlayback {
   const safeLibraryId = readRequiredSegment(libraryId, 'libraryId');
-  const safeVideoId = readRequiredSegment(videoId, 'videoId');
+  const safeBunnyVideoId = readRequiredSegment(bunnyVideoId, 'bunnyVideoId');
   const ttlSeconds = readPositiveInteger(
     embedTokenTtlSeconds,
     'embedTokenTtlSeconds'
@@ -53,23 +52,19 @@ export function createBunnyStreamPlayback({
   const expires = Math.floor(now.getTime() / 1000) + ttlSeconds;
   const token = generateBunnyEmbedToken({
     tokenSecurityKey,
-    videoId: safeVideoId,
+    videoId: safeBunnyVideoId,
     expires,
   });
   const embedUrl = [
     'https://player.mediadelivery.net/embed',
     encodeURIComponent(safeLibraryId),
-    encodeURIComponent(safeVideoId),
+    encodeURIComponent(safeBunnyVideoId),
   ].join('/');
 
   return {
-    embedUrl: `${embedUrl}?token=${token}&expires=${expires}&autoplay=false&preload=true&responsive=true`,
+    signedEmbedUrl: `${embedUrl}?token=${token}&expires=${expires}&autoplay=false&preload=true&responsive=true`,
     libraryId: safeLibraryId,
-    videoId: safeVideoId,
-    token,
+    bunnyVideoId: safeBunnyVideoId,
     expires,
-    autoplay: false,
-    preload: true,
-    responsive: true,
   };
 }
