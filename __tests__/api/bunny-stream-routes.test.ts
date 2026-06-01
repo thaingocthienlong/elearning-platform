@@ -12,6 +12,14 @@ import { serverLog } from '@/lib/server-log';
 import { POST as uploadCredentialsPost } from '@/app/api/bunny-stream/upload-credentials/route';
 
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
+jest.mock('next/server', () => {
+  const actual = jest.requireActual('next/server');
+
+  return {
+    ...actual,
+    after: jest.fn((callback: () => unknown) => callback()),
+  };
+});
 jest.mock('@/lib/auth', () => ({ authOptions: {} }));
 jest.mock('@/lib/prisma', () => ({
   prisma: {
@@ -120,6 +128,12 @@ function invalidJsonRequest(path: string) {
     headers: { 'Content-Type': 'application/json' },
     body: '{"incomplete"',
   });
+}
+
+async function flushMicrotasks() {
+  for (let index = 0; index < 20; index += 1) {
+    await Promise.resolve();
+  }
 }
 
 describe('Bunny Stream upload credentials route', () => {
@@ -649,6 +663,8 @@ describe('Bunny Stream upload credentials route', () => {
       jsonRequest('/api/bunny-stream/upload-credentials', validUploadBody)
     );
 
+    await flushMicrotasks();
+
     expect(response.status).toBe(200);
     expect(mockedDeleteBunnyVideo).toHaveBeenCalledWith({
       libraryId: '123456',
@@ -660,6 +676,64 @@ describe('Bunny Stream upload credentials route', () => {
       where: { id: 'stale-initialization-id' },
     });
     expect(mockedCreateBunnyVideo).toHaveBeenCalledTimes(1);
+  });
+
+  test('returns current upload response before stale provider cleanup resolves', async () => {
+    let resolveDelete: (() => void) | undefined;
+    const staleCleanup = new Promise<void>((resolve) => {
+      resolveDelete = resolve;
+    });
+
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.course.findUnique.mockResolvedValue({
+      id: '507f1f77bcf86cd799439011',
+      isDeleted: false,
+    });
+    mockedPrisma.bunnyUploadInitialization.findMany.mockResolvedValue([
+      {
+        id: 'stale-initialization-id',
+        bunnyLibraryId: '123456',
+        bunnyVideoId: 'stale-bunny-video-guid',
+        localVideoId: null,
+      },
+    ]);
+    mockedDeleteBunnyVideo.mockReturnValueOnce(staleCleanup);
+    mockedCreateBunnyVideo.mockResolvedValue({ guid: 'fresh-bunny-video-guid' });
+    mockedPrisma.video.create.mockResolvedValue({ id: 'fresh-local-video-id' });
+
+    const responsePromise = uploadCredentialsPost(
+      jsonRequest('/api/bunny-stream/upload-credentials', validUploadBody)
+    );
+    let response: Response | undefined;
+    void responsePromise.then((resolvedResponse) => {
+      response = resolvedResponse;
+    });
+
+    await flushMicrotasks();
+
+    try {
+      expect(mockedDeleteBunnyVideo).toHaveBeenCalledWith({
+        libraryId: '123456',
+        apiKey: 'api-key',
+        videoId: 'stale-bunny-video-guid',
+        timeoutMs: 15000,
+      });
+      expect(response?.status).toBe(200);
+      expect(
+        mockedPrisma.bunnyUploadInitialization.delete
+      ).not.toHaveBeenCalledWith({
+        where: { id: 'stale-initialization-id' },
+      });
+    } finally {
+      resolveDelete?.();
+      await staleCleanup;
+      await responsePromise;
+      await flushMicrotasks();
+    }
+
+    expect(mockedPrisma.bunnyUploadInitialization.delete).toHaveBeenCalledWith({
+      where: { id: 'stale-initialization-id' },
+    });
   });
 
   test('does not block current request when stale provider cleanup fails', async () => {
@@ -685,6 +759,8 @@ describe('Bunny Stream upload credentials route', () => {
     const response = await uploadCredentialsPost(
       jsonRequest('/api/bunny-stream/upload-credentials', validUploadBody)
     );
+
+    await flushMicrotasks();
 
     expect(response.status).toBe(200);
     expect(mockedPrisma.bunnyUploadInitialization.update).toHaveBeenCalledWith({

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
@@ -279,7 +279,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
-    await reconcileStaleInitializations(config);
+    // Keep best-effort cleanup alive after response without delaying fresh uploads.
+    after(() =>
+      reconcileStaleInitializations(config).catch((error) => {
+        serverLog.warn('bunny_stream_stale_reconciliation_unhandled', {
+          ...getErrorMetadata(error),
+        });
+      })
+    );
 
     const payloadFingerprint = getPayloadFingerprint({
       filename,
