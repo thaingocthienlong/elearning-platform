@@ -424,10 +424,25 @@ export async function POST(req: Request) {
         !existing.bunnyVideoId &&
         !existing.localVideoId
       ) {
-        await prisma.bunnyUploadInitialization.update({
-          where: { id: existing.id },
+        const retryClaim = await prisma.bunnyUploadInitialization.updateMany({
+          where: {
+            id: existing.id,
+            uploadRequestId,
+            payloadFingerprint,
+            state: 'UNCERTAIN',
+            bunnyVideoId: null,
+            localVideoId: null,
+          },
           data: { state: 'INITIALIZING', failureMarker: null },
         });
+
+        if (retryClaim.count !== 1) {
+          return NextResponse.json(
+            { error: 'Upload initialization is already being retried' },
+            { status: 409 }
+          );
+        }
+
         initialization = { id: existing.id };
       } else if (existing.state === 'ORPHANED' && existing.bunnyVideoId) {
         const recoveredLocalVideoId = await recoverKnownProviderInitialization({

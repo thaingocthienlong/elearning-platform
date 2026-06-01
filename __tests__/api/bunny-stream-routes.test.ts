@@ -37,6 +37,7 @@ jest.mock('@/lib/prisma', () => ({
       findMany: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
     },
   },
 }));
@@ -81,6 +82,7 @@ const mockedPrisma = prisma as unknown as {
     findMany: jest.Mock;
     findUnique: jest.Mock;
     update: jest.Mock;
+    updateMany: jest.Mock;
   };
 };
 
@@ -151,6 +153,9 @@ describe('Bunny Stream upload credentials route', () => {
     });
     mockedPrisma.bunnyUploadInitialization.update.mockResolvedValue({
       id: 'initialization-id',
+    });
+    mockedPrisma.bunnyUploadInitialization.updateMany.mockResolvedValue({
+      count: 1,
     });
     mockedPrisma.bunnyUploadInitialization.delete.mockResolvedValue({
       id: 'initialization-id',
@@ -447,8 +452,75 @@ describe('Bunny Stream upload credentials route', () => {
     });
     expect(response.status).toBe(200);
     expect(mockedCreateBunnyVideo).toHaveBeenCalledTimes(1);
-    expect(mockedPrisma.bunnyUploadInitialization.update).toHaveBeenCalledWith({
-      where: { id: 'existing-initialization-id' },
+    expect(mockedPrisma.bunnyUploadInitialization.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: 'existing-initialization-id',
+        uploadRequestId: 'upload-request-1',
+        payloadFingerprint: expect.stringMatching(/^[0-9a-f]{64}$/),
+        state: 'UNCERTAIN',
+        bunnyVideoId: null,
+        localVideoId: null,
+      },
+      data: { state: 'INITIALIZING', failureMarker: null },
+    });
+  });
+
+  test('allows only one same-fingerprint UNCERTAIN retry to claim before provider create', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.course.findUnique.mockResolvedValue({
+      id: '507f1f77bcf86cd799439011',
+      isDeleted: false,
+    });
+    mockedPrisma.bunnyUploadInitialization.create.mockImplementation(
+      async ({ data }: { data: { payloadFingerprint: string } }) => {
+        mockedPrisma.bunnyUploadInitialization.findUnique.mockResolvedValue({
+          id: 'existing-initialization-id',
+          uploadRequestId: 'upload-request-1',
+          payloadFingerprint: data.payloadFingerprint,
+          bunnyLibraryId: '123456',
+          bunnyVideoId: null,
+          localVideoId: null,
+          state: 'UNCERTAIN',
+        });
+
+        throw Object.assign(new Error('unique constraint'), { code: 'P2002' });
+      }
+    );
+    mockedPrisma.bunnyUploadInitialization.updateMany
+      .mockResolvedValueOnce({ count: 1 })
+      .mockResolvedValueOnce({ count: 0 });
+    mockedCreateBunnyVideo.mockResolvedValue({
+      guid: 'retry-bunny-video-guid',
+    });
+    mockedPrisma.video.create.mockResolvedValue({ id: 'retry-local-video-id' });
+
+    const firstResponse = await uploadCredentialsPost(
+      jsonRequest('/api/bunny-stream/upload-credentials', validUploadBody)
+    );
+    const secondResponse = await uploadCredentialsPost(
+      jsonRequest('/api/bunny-stream/upload-credentials', validUploadBody)
+    );
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(409);
+    await expect(secondResponse.json()).resolves.toEqual({
+      error: 'Upload initialization is already being retried',
+    });
+    expect(mockedCreateBunnyVideo).toHaveBeenCalledTimes(1);
+    expect(mockedPrisma.bunnyUploadInitialization.updateMany).toHaveBeenCalledTimes(
+      2
+    );
+    expect(
+      mockedPrisma.bunnyUploadInitialization.updateMany
+    ).toHaveBeenNthCalledWith(1, {
+      where: {
+        id: 'existing-initialization-id',
+        uploadRequestId: 'upload-request-1',
+        payloadFingerprint: expect.stringMatching(/^[0-9a-f]{64}$/),
+        state: 'UNCERTAIN',
+        bunnyVideoId: null,
+        localVideoId: null,
+      },
       data: { state: 'INITIALIZING', failureMarker: null },
     });
   });
