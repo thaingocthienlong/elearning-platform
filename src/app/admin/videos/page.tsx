@@ -67,30 +67,54 @@ type BunnyUploadCredentials = {
   localVideoId: string;
 };
 
-type UploadSession = {
-  requestIdByFingerprint: Map<string, string>;
+type BunnyUploadIntent = {
+  filename: string;
+  contentType: string;
+  courseId: string;
+  title: string;
+  collectionId?: string;
 };
 
-function createUploadRequestId() {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
+const BUNNY_UPLOAD_REQUEST_NAMESPACE = 'bunny-stream-upload-request';
+const FNV_OFFSET_BASIS_32 = 0x811c9dc5;
+const FNV_PRIME_32 = 0x01000193;
 
-  return `upload_${Date.now().toString(36)}_${Math.random()
-    .toString(36)
-    .slice(2, 12)}`;
-}
-
-function getFileFingerprint(file: File) {
-  return `${file.name}:${file.size}:${file.lastModified}:${file.type}`;
-}
-
-function getUploadIntentFingerprint(
+function getCanonicalUploadIntent(
   file: File,
   courseId: string,
-  title: string
+  title: string,
+  collectionId?: string
 ) {
-  return `${getFileFingerprint(file)}:${courseId}:${title.trim()}`;
+  const effectiveTitle = title.trim() || file.name;
+  const contentType = file.type.startsWith('video/') ? file.type : 'video/mp4';
+
+  return {
+    filename: file.name,
+    contentType,
+    courseId,
+    title: effectiveTitle,
+    ...(collectionId ? { collectionId } : {}),
+  };
+}
+
+function hashCanonicalUploadIntent(intent: BunnyUploadIntent) {
+  const canonicalJson = JSON.stringify({
+    namespace: BUNNY_UPLOAD_REQUEST_NAMESPACE,
+    ...intent,
+  });
+  const bytes = new TextEncoder().encode(canonicalJson);
+
+  let hash = FNV_OFFSET_BASIS_32;
+  for (const byte of bytes) {
+    hash ^= byte;
+    hash = Math.imul(hash, FNV_PRIME_32) >>> 0;
+  }
+
+  return hash.toString(36);
+}
+
+function createUploadRequestId(intent: BunnyUploadIntent) {
+  return `${BUNNY_UPLOAD_REQUEST_NAMESPACE}:${hashCanonicalUploadIntent(intent)}`;
 }
 
 function getBunnyStatusBadge(status: string | null) {
@@ -147,7 +171,6 @@ export default function AdminVideosPage() {
   const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
 
-  const uploadSessionRef = useRef<UploadSession | null>(null);
   const uploadRef = useRef<TusUpload | null>(null);
 
   const { data: videos, loading, refetch: fetchVideos } = useAdminData<Video>({
@@ -194,7 +217,6 @@ export default function AdminVideosPage() {
 
   const resetUploadForm = useCallback(() => {
     stopActiveUpload();
-    uploadSessionRef.current = null;
     setFile(null);
     setTitle('');
     setSelectedCourseId('');
@@ -202,30 +224,6 @@ export default function AdminVideosPage() {
     setStatus('');
     setUploading(false);
   }, [stopActiveUpload]);
-
-  const ensureUploadSession = useCallback(
-    (selectedFile: File, courseId: string, titleValue: string) => {
-      const fingerprint = getUploadIntentFingerprint(
-        selectedFile,
-        courseId,
-        titleValue
-      );
-      const existing = uploadSessionRef.current;
-
-      if (!existing) {
-        uploadSessionRef.current = {
-          requestIdByFingerprint: new Map([
-            [fingerprint, createUploadRequestId()],
-          ]),
-        };
-      } else if (!existing.requestIdByFingerprint.has(fingerprint)) {
-        existing.requestIdByFingerprint.set(fingerprint, createUploadRequestId());
-      }
-
-      return uploadSessionRef.current!.requestIdByFingerprint.get(fingerprint)!;
-    },
-    []
-  );
 
   const handleUploadDialogOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -244,15 +242,8 @@ export default function AdminVideosPage() {
       setFile(nextFile);
       setUploadProgress(0);
       setStatus('');
-
-      if (!nextFile) {
-        uploadSessionRef.current = null;
-        return;
-      }
-
-      ensureUploadSession(nextFile, selectedCourseId, title);
     },
-    [ensureUploadSession, selectedCourseId, title]
+    []
   );
 
   const handleAxinomSync = async (videoId: string) => {
@@ -329,12 +320,13 @@ export default function AdminVideosPage() {
 
     if (!file || !selectedCourseId || uploading) return;
 
-    const uploadRequestId = ensureUploadSession(
+    const canonicalUploadIntent = getCanonicalUploadIntent(
       file,
       selectedCourseId,
       title
     );
-    const contentType = file.type.startsWith('video/') ? file.type : 'video/mp4';
+    const uploadRequestId = createUploadRequestId(canonicalUploadIntent);
+    const { contentType, title: effectiveTitle } = canonicalUploadIntent;
 
     setUploading(true);
     setUploadProgress(0);
@@ -347,7 +339,7 @@ export default function AdminVideosPage() {
         body: JSON.stringify({
           filename: file.name,
           contentType,
-          title: title.trim(),
+          title: effectiveTitle,
           courseId: selectedCourseId,
           uploadRequestId,
         }),
@@ -369,7 +361,7 @@ export default function AdminVideosPage() {
           endpoint: credentials.uploadEndpoint,
           metadata: {
             filetype: contentType,
-            title: title.trim(),
+            title: effectiveTitle,
           },
           headers: {
             AuthorizationSignature: credentials.authorizationSignature,
