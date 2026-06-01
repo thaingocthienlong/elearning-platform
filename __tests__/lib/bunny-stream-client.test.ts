@@ -152,4 +152,39 @@ describe('Bunny Stream API client', () => {
       new BunnyStreamApiError('Bunny Stream API failed with HTTP 401', 401)
     );
   });
+
+  test('throws sanitized API error when Bunny Stream transport fails', async () => {
+    global.fetch = jest
+      .fn()
+      .mockRejectedValue(new Error('raw sentinel transport detail')) as jest.Mock;
+
+    await expect(
+      createBunnyStreamVideo({
+        libraryId: '123',
+        apiKey: 'api-key',
+        title: 'Lesson 01',
+      })
+    ).rejects.toEqual(
+      new BunnyStreamApiError('Bunny Stream API transport failed', 502)
+    );
+  });
+
+  test('throws sanitized API error when Bunny Stream returns malformed JSON', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => {
+        throw new Error('raw sentinel provider body');
+      },
+    }) as jest.Mock;
+
+    await expect(
+      createBunnyStreamVideo({
+        libraryId: '123',
+        apiKey: 'api-key',
+        title: 'Lesson 01',
+      })
+    ).rejects.toEqual(
+      new BunnyStreamApiError('Bunny Stream API returned invalid JSON', 502)
+    );
+  });
 });

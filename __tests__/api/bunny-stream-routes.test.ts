@@ -298,9 +298,9 @@ describe('Bunny Stream upload credentials route', () => {
       isDeleted: false,
     });
     mockedCreateBunnyVideo.mockResolvedValue({ guid: 'bunny-video-guid' });
-    mockedPrisma.video.create.mockRejectedValue(
-      new Error('raw sentinel persistence detail')
-    );
+    const persistenceError = new Error('raw sentinel persistence detail');
+    persistenceError.name = 'raw sentinel persistence name';
+    mockedPrisma.video.create.mockRejectedValue(persistenceError);
     mockedDeleteBunnyVideo.mockRejectedValue(
       new BunnyStreamApiError('raw sentinel cleanup detail', 503)
     );
@@ -330,7 +330,7 @@ describe('Bunny Stream upload credentials route', () => {
     expect(mockedServerLog.error).toHaveBeenCalledWith(
       'bunny_stream_upload_credentials_failed',
       {
-        errorName: 'Error',
+        errorName: 'UnexpectedError',
       }
     );
     expect(

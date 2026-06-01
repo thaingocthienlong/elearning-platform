@@ -19,6 +19,14 @@ function bunnyUrl(path: string) {
   return `https://video.bunnycdn.com${path}`;
 }
 
+async function fetchOrThrow(input: string, init: RequestInit) {
+  try {
+    return await fetch(input, init);
+  } catch {
+    throw new BunnyStreamApiError('Bunny Stream API transport failed', 502);
+  }
+}
+
 async function readJsonOrThrow<T>(response: Response): Promise<T> {
   if (!response.ok) {
     throw new BunnyStreamApiError(
@@ -27,7 +35,14 @@ async function readJsonOrThrow<T>(response: Response): Promise<T> {
     );
   }
 
-  return response.json() as Promise<T>;
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new BunnyStreamApiError(
+      'Bunny Stream API returned invalid JSON',
+      502
+    );
+  }
 }
 
 export async function createBunnyStreamVideo({
@@ -44,7 +59,7 @@ export async function createBunnyStreamVideo({
   const body: { title: string; collectionId?: string } = { title };
   if (collectionId) body.collectionId = collectionId;
 
-  const response = await fetch(bunnyUrl(`/library/${libraryId}/videos`), {
+  const response = await fetchOrThrow(bunnyUrl(`/library/${libraryId}/videos`), {
     method: 'POST',
     headers: {
       AccessKey: apiKey,
@@ -66,7 +81,7 @@ export async function getBunnyStreamVideo({
   apiKey: string;
   videoId: string;
 }) {
-  const response = await fetch(
+  const response = await fetchOrThrow(
     bunnyUrl(`/library/${libraryId}/videos/${videoId}`),
     {
       method: 'GET',
@@ -89,7 +104,7 @@ export async function deleteBunnyStreamVideo({
   apiKey: string;
   videoId: string;
 }): Promise<void> {
-  const response = await fetch(
+  const response = await fetchOrThrow(
     bunnyUrl(`/library/${libraryId}/videos/${videoId}`),
     {
       method: 'DELETE',

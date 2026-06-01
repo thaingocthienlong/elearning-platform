@@ -26,7 +26,10 @@ const uploadSchema = z.object({
 
 function getErrorMetadata(error: unknown) {
   return {
-    errorName: error instanceof Error ? error.name : 'UnknownError',
+    errorName:
+      error instanceof BunnyStreamApiError
+        ? 'BunnyStreamApiError'
+        : 'UnexpectedError',
     ...(error instanceof BunnyStreamApiError ? { apiStatus: error.status } : {}),
   };
 }
