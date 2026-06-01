@@ -5,6 +5,7 @@ import {
   createVdoCipherUpload,
   getVdoCipherOtp,
   getVdoCipherVideoStatus,
+  VdoCipherApiError,
 } from '@/lib/vdocipher';
 
 describe('vdocipher api client', () => {
@@ -139,19 +140,43 @@ describe('vdocipher api client', () => {
     expect(result).toEqual({ otp: 'otp-value', playbackInfo: 'playback-info' });
   });
 
-  it('throws VdoCipher message from non-OK JSON response', async () => {
+  it('throws typed VdoCipher error from non-OK JSON response', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
       status: 401,
       json: async () => ({ message: 'Invalid API secret' }),
     });
 
+    const promise = getVdoCipherVideoStatus({
+      apiSecret: 'bad-secret',
+      vdoCipherVideoId: 'vdo-1',
+    });
+
+    await expect(promise).rejects.toThrow('Invalid API secret');
+    await expect(promise).rejects.toMatchObject({
+      name: 'VdoCipherApiError',
+      status: 401,
+    });
+    await expect(promise).rejects.toBeInstanceOf(VdoCipherApiError);
+  });
+
+  it('includes provider status when OTP video is missing', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({ message: 'video not found' }),
+    });
+
     await expect(
-      getVdoCipherVideoStatus({
-        apiSecret: 'bad-secret',
-        vdoCipherVideoId: 'vdo-1',
+      getVdoCipherOtp({
+        apiSecret: 'secret-a',
+        vdoCipherVideoId: 'missing-vdo-id',
+        ttl: 300,
       })
-    ).rejects.toThrow('Invalid API secret');
+    ).rejects.toMatchObject({
+      message: 'video not found',
+      status: 404,
+    });
   });
 
   it('throws fallback message when non-OK response has no string message', async () => {
@@ -166,6 +191,9 @@ describe('vdocipher api client', () => {
         apiSecret: 'secret-a',
         vdoCipherVideoId: 'vdo-1',
       })
-    ).rejects.toThrow('VdoCipher API failed with 500');
+    ).rejects.toMatchObject({
+      message: 'VdoCipher API failed with 500',
+      status: 500,
+    });
   });
 });

@@ -19,6 +19,16 @@ export type VdoCipherOtpResponse = {
   playbackInfo: string;
 };
 
+export class VdoCipherApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'VdoCipherApiError';
+    this.status = status;
+  }
+}
+
 async function parseVdoCipherResponse<T>(response: Response): Promise<T> {
   const body = await response.json().catch(() => ({}));
 
@@ -27,7 +37,7 @@ async function parseVdoCipherResponse<T>(response: Response): Promise<T> {
       typeof body?.message === 'string'
         ? body.message
         : `VdoCipher API failed with ${response.status}`;
-    throw new Error(message);
+    throw new VdoCipherApiError(message, response.status);
   }
 
   return body as T;

@@ -6,9 +6,17 @@ import {
   mapMediaEntitlementToHttp,
 } from '@/lib/media-entitlement';
 import { resolveVdoCipherAccount } from '@/lib/vdocipher-accounts';
-import { getVdoCipherOtp } from '@/lib/vdocipher';
+import { getVdoCipherOtp, VdoCipherApiError } from '@/lib/vdocipher';
 
 const OTP_TTL_SECONDS = 300;
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : 'Unknown VdoCipher OTP error';
+}
+
+function getVdoCipherErrorStatus(error: unknown) {
+  return error instanceof VdoCipherApiError ? error.status : undefined;
+}
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -40,12 +48,26 @@ export async function POST(req: Request) {
     return new NextResponse('Video is not ready for VdoCipher playback', { status: 404 });
   }
 
-  const account = resolveVdoCipherAccount(video.vdocipherAccountId);
-  const otp = await getVdoCipherOtp({
-    apiSecret: account.apiSecret,
-    vdoCipherVideoId: video.vdocipherVideoId,
-    ttl: OTP_TTL_SECONDS,
-  });
+  let otp;
+
+  try {
+    const account = resolveVdoCipherAccount(video.vdocipherAccountId);
+    otp = await getVdoCipherOtp({
+      apiSecret: account.apiSecret,
+      vdoCipherVideoId: video.vdocipherVideoId,
+      ttl: OTP_TTL_SECONDS,
+    });
+  } catch (error) {
+    console.error('VdoCipher OTP generation failed', {
+      videoId,
+      vdoCipherVideoId: video.vdocipherVideoId,
+      vdocipherAccountId: video.vdocipherAccountId,
+      providerStatus: getVdoCipherErrorStatus(error),
+      message: getErrorMessage(error),
+    });
+
+    return new NextResponse('Playback provider unavailable', { status: 502 });
+  }
 
   return NextResponse.json({
     otp: otp.otp,

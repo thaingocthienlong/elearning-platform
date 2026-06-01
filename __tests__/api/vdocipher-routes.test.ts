@@ -29,6 +29,15 @@ jest.mock('@/lib/vdocipher-accounts', () => ({
 }));
 
 jest.mock('@/lib/vdocipher', () => ({
+  VdoCipherApiError: class VdoCipherApiError extends Error {
+    status: number;
+
+    constructor(message: string, status: number) {
+      super(message);
+      this.name = 'VdoCipherApiError';
+      this.status = status;
+    }
+  },
   createVdoCipherUpload: jest.fn(),
   getVdoCipherVideoStatus: jest.fn(),
   getVdoCipherOtp: jest.fn(),
@@ -53,6 +62,7 @@ import {
   createVdoCipherUpload,
   getVdoCipherOtp,
   getVdoCipherVideoStatus,
+  VdoCipherApiError,
 } from '@/lib/vdocipher';
 import {
   evaluateMediaEntitlement,
@@ -325,6 +335,50 @@ describe('vdocipher routes', () => {
       ttl: 300,
     });
     expect(body).toEqual({ otp: 'otp', playbackInfo: 'playback', expiresIn: 300 });
+  });
+
+  it('returns a controlled provider error when OTP generation fails upstream', async () => {
+    const { POST: getOtp } = await import('@/app/api/vdocipher/otp/route');
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockedGetServerSession.mockResolvedValue({ user: { id: 'user-id' } });
+    mockedEvaluateMediaEntitlement.mockResolvedValue({
+      allowed: true,
+      user: { id: 'user-id', name: 'Learner', email: 'user@example.test' },
+      video: {
+        id: 'local-video-id',
+        provider: 'VDOCIPHER',
+        vdocipherAccountId: 'primary',
+        vdocipherVideoId: 'missing-vdo-id',
+        vdocipherStatus: 'READY',
+      },
+    });
+    mockedResolveVdoCipherAccount.mockReturnValue({
+      id: 'primary',
+      apiSecret: 'secret',
+      isDefault: true,
+    });
+    mockedGetVdoCipherOtp.mockRejectedValue(new VdoCipherApiError('video not found', 404));
+
+    const response = await getOtp(
+      jsonRequest('http://localhost.test/api/vdocipher/otp', {
+        videoId: 'local-video-id',
+      })
+    );
+
+    expect(response.status).toBe(502);
+    await expect(response.text()).resolves.toBe('Playback provider unavailable');
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'VdoCipher OTP generation failed',
+      expect.objectContaining({
+        videoId: 'local-video-id',
+        vdoCipherVideoId: 'missing-vdo-id',
+        vdocipherAccountId: 'primary',
+        providerStatus: 404,
+        message: 'video not found',
+      })
+    );
+
+    consoleSpy.mockRestore();
   });
 
   it('rejects denied entitlement before VdoCipher call', async () => {

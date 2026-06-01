@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { notFound, redirect } from 'next/navigation';
 import { headers } from 'next/headers';
+import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { SecurityWrapper } from '@/components/video/SecurityWrapper';
@@ -8,10 +9,43 @@ import WatchPageClient from '@/components/course/WatchPageClient';
 import { UnsupportedPlaybackBrowser } from '@/components/video/UnsupportedPlaybackBrowser';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
 import { resolveVdoCipherAccount } from '@/lib/vdocipher-accounts';
-import { getVdoCipherOtp } from '@/lib/vdocipher';
+import { getVdoCipherOtp, VdoCipherApiError } from '@/lib/vdocipher';
 import { getPlaybackBrowserGate } from '@/lib/playback-browser-allowlist';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
+function PlaybackUnavailable() {
+    return (
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-background px-4">
+            <div className="w-full max-w-xl rounded-lg border border-border bg-card p-6 text-center shadow-sm">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                    <AlertTriangle className="h-6 w-6" />
+                </div>
+                <p className="mt-4 text-sm font-medium text-muted-foreground">Playback provider unavailable</p>
+                <h1 className="mt-2 text-2xl font-semibold">Video temporarily unavailable</h1>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                    This lesson is available in the course, but the video provider could not prepare playback right now.
+                    Please try again later or contact support.
+                </p>
+                <div className="mt-5 flex justify-center">
+                    <Button asChild variant="outline">
+                        <Link href="/courses">Back to courses</Link>
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function getErrorMessage(error: unknown) {
+    return error instanceof Error ? error.message : 'Unknown VdoCipher playback error';
+}
+
+function getVdoCipherErrorStatus(error: unknown) {
+    return error instanceof VdoCipherApiError ? error.status : undefined;
+}
 
 export default async function WatchPage({ params }: { params: Promise<{ videoId: string }> }) {
     const session = await getServerSession(authOptions);
@@ -120,12 +154,26 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
             notFound();
         }
 
-        const account = resolveVdoCipherAccount(video.vdocipherAccountId);
-        const otp = await getVdoCipherOtp({
-            apiSecret: account.apiSecret,
-            vdoCipherVideoId: video.vdocipherVideoId,
-            ttl: 300,
-        });
+        let otp;
+
+        try {
+            const account = resolveVdoCipherAccount(video.vdocipherAccountId);
+            otp = await getVdoCipherOtp({
+                apiSecret: account.apiSecret,
+                vdoCipherVideoId: video.vdocipherVideoId,
+                ttl: 300,
+            });
+        } catch (error) {
+            console.error('VdoCipher playback initialization failed', {
+                videoId,
+                vdoCipherVideoId: video.vdocipherVideoId,
+                vdocipherAccountId: video.vdocipherAccountId,
+                providerStatus: getVdoCipherErrorStatus(error),
+                message: getErrorMessage(error),
+            });
+
+            return <PlaybackUnavailable />;
+        }
 
         providerPlayback = {
             provider: 'VDOCIPHER',
@@ -158,7 +206,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 hlsUrlClear={video.hlsUrlClear ?? null}
                 isFairPlayConfigured={Boolean(process.env.AXINOM_FAIRPLAY_CERT_URL)}
                 providerPlayback={providerPlayback}
-                chatLog={(video as any).chatLog}
+                chatLog={video.chatLog}
             />
         </SecurityWrapper>
     );

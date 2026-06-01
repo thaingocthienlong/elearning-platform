@@ -48,6 +48,7 @@ export type MediaEntitlementAllowed = {
     vdocipherAccountId?: string | null;
     vdocipherStatus?: string | null;
     viewLimit?: number | null;
+    chatLog?: unknown;
     Course?: {
       id?: string;
       title?: string | null;
