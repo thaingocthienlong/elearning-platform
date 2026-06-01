@@ -91,18 +91,34 @@ const mockedPrisma = prisma as unknown as {
   };
 };
 
-const validUploadBody = {
-  uploadRequestId: 'upload-request-1',
-  filename: 'lesson.mp4',
-  contentType: 'video/mp4',
-  courseId: '507f1f77bcf86cd799439011',
-  title: 'Lesson',
-  fileSize: 123456,
-  fileLastModified: 1717000000000,
+type UploadRequestBody = {
+  uploadRequestId: string;
+  filename: string;
+  contentType: string;
+  courseId: string;
+  title: string;
+  fileSize: number;
+  fileLastModified: number;
+  collectionId?: string;
 };
 
+function createUploadBody(overrides: Partial<UploadRequestBody> = {}) {
+  return {
+    uploadRequestId: 'upload-request-1',
+    filename: 'lesson.mp4',
+    contentType: 'video/mp4',
+    courseId: '507f1f77bcf86cd799439011',
+    title: 'Lesson',
+    fileSize: 123456,
+    fileLastModified: 1717000000000,
+    ...overrides,
+  };
+}
+
+const validUploadBody = createUploadBody();
+
 function getUploadPayloadFingerprint(
-  body: typeof validUploadBody,
+  body: UploadRequestBody,
   bunnyCollectionId: string | null = null
 ) {
   return crypto
@@ -220,13 +236,7 @@ describe('Bunny Stream upload credentials route', () => {
     mockedSession.mockResolvedValue(null);
 
     const response = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', {
-        uploadRequestId: 'upload-request-1',
-        filename: 'lesson.mp4',
-        contentType: 'video/mp4',
-        courseId: '507f1f77bcf86cd799439011',
-        title: 'Lesson',
-      })
+      jsonRequest('/api/bunny-stream/upload-credentials', createUploadBody())
     );
 
     expect(response.status).toBe(401);
@@ -237,13 +247,7 @@ describe('Bunny Stream upload credentials route', () => {
     mockedSession.mockResolvedValue({ user: { id: 'user-1', role: 'USER' } });
 
     const response = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', {
-        uploadRequestId: 'upload-request-1',
-        filename: 'lesson.mp4',
-        contentType: 'video/mp4',
-        courseId: '507f1f77bcf86cd799439011',
-        title: 'Lesson',
-      })
+      jsonRequest('/api/bunny-stream/upload-credentials', createUploadBody())
     );
 
     expect(response.status).toBe(403);
@@ -290,11 +294,8 @@ describe('Bunny Stream upload credentials route', () => {
 
     const response = await uploadCredentialsPost(
       jsonRequest('/api/bunny-stream/upload-credentials', {
-        uploadRequestId: 'upload-request-1',
-        filename: 'lesson.mp4',
-        contentType: 'video/mp4',
+        ...createUploadBody(),
         courseId: '507f1f77bcf86cd79943901z',
-        title: 'Lesson',
       })
     );
 
@@ -312,13 +313,7 @@ describe('Bunny Stream upload credentials route', () => {
     mockedPrisma.video.create.mockResolvedValue({ id: 'local-video-id' });
 
     const response = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', {
-        uploadRequestId: 'upload-request-1',
-        filename: 'lesson.mp4',
-        contentType: 'video/mp4',
-        courseId: '507f1f77bcf86cd799439011',
-        title: 'Lesson',
-      })
+      jsonRequest('/api/bunny-stream/upload-credentials', createUploadBody())
     );
     const body = await response.json();
 
@@ -805,13 +800,7 @@ describe('Bunny Stream upload credentials route', () => {
     mockedCreateBunnyVideo.mockResolvedValue({});
 
     const response = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', {
-        uploadRequestId: 'upload-request-1',
-        filename: 'lesson.mp4',
-        contentType: 'video/mp4',
-        courseId: '507f1f77bcf86cd799439011',
-        title: 'Lesson',
-      })
+      jsonRequest('/api/bunny-stream/upload-credentials', createUploadBody())
     );
 
     await expect(response.json()).resolves.toEqual({
@@ -840,13 +829,7 @@ describe('Bunny Stream upload credentials route', () => {
     );
 
     const response = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', {
-        uploadRequestId: 'upload-request-1',
-        filename: 'lesson.mp4',
-        contentType: 'video/mp4',
-        courseId: '507f1f77bcf86cd799439011',
-        title: 'Lesson',
-      })
+      jsonRequest('/api/bunny-stream/upload-credentials', createUploadBody())
     );
 
     await expect(response.json()).resolves.toEqual({
@@ -886,13 +869,7 @@ describe('Bunny Stream upload credentials route', () => {
     mockedDeleteBunnyVideo.mockResolvedValue(undefined);
 
     const response = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', {
-        uploadRequestId: 'upload-request-1',
-        filename: 'lesson.mp4',
-        contentType: 'video/mp4',
-        courseId: '507f1f77bcf86cd799439011',
-        title: 'Lesson',
-      })
+      jsonRequest('/api/bunny-stream/upload-credentials', createUploadBody())
     );
 
     expect(response.status).toBe(500);
@@ -936,13 +913,7 @@ describe('Bunny Stream upload credentials route', () => {
     );
 
     const response = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', {
-        uploadRequestId: 'upload-request-1',
-        filename: 'lesson.mp4',
-        contentType: 'video/mp4',
-        courseId: '507f1f77bcf86cd799439011',
-        title: 'Lesson',
-      })
+      jsonRequest('/api/bunny-stream/upload-credentials', createUploadBody())
     );
 
     await expect(response.json()).resolves.toEqual({
@@ -986,13 +957,7 @@ describe('Bunny Stream upload credentials route', () => {
     mockedPrisma.course.findUnique.mockResolvedValue(null);
 
     const response = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', {
-        uploadRequestId: 'upload-request-1',
-        filename: 'lesson.mp4',
-        contentType: 'video/mp4',
-        courseId: '507f1f77bcf86cd799439011',
-        title: 'Lesson',
-      })
+      jsonRequest('/api/bunny-stream/upload-credentials', createUploadBody())
     );
 
     expect(response.status).toBe(404);
@@ -1007,13 +972,7 @@ describe('Bunny Stream upload credentials route', () => {
     });
 
     const response = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', {
-        uploadRequestId: 'upload-request-1',
-        filename: 'lesson.mp4',
-        contentType: 'video/mp4',
-        courseId: '507f1f77bcf86cd799439011',
-        title: 'Lesson',
-      })
+      jsonRequest('/api/bunny-stream/upload-credentials', createUploadBody())
     );
 
     expect(response.status).toBe(404);
@@ -1024,13 +983,7 @@ describe('Bunny Stream upload credentials route', () => {
     mockedSession.mockRejectedValue(new Error('session lookup failed'));
 
     const response = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', {
-        uploadRequestId: 'upload-request-1',
-        filename: 'lesson.mp4',
-        contentType: 'video/mp4',
-        courseId: '507f1f77bcf86cd799439011',
-        title: 'Lesson',
-      })
+      jsonRequest('/api/bunny-stream/upload-credentials', createUploadBody())
     );
 
     await expect(response.json()).resolves.toEqual({
