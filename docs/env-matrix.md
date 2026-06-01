@@ -70,6 +70,7 @@ Use this matrix with `docs/vercel-staging-runbook.md` before accepting a Vercel 
 npm run verify:setup
 npm run verify:services:strict
 npm run verify:axinom -- --strict
+npm run verify:bunny-stream -- --strict
 npm run verify:staging
 ```
 

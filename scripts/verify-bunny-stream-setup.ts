@@ -1,10 +1,20 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as dotenv from 'dotenv';
 import { validateBunnyStreamConfig } from '../src/lib/bunny-stream/config';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local'), override: true });
+for (const envPath of [path.resolve(process.cwd(), '.env'), path.resolve(process.cwd(), '.env.local')]) {
+  if (!fs.existsSync(envPath)) continue;
+
+  const parsed = dotenv.parse(fs.readFileSync(envPath));
+
+  for (const [key, value] of Object.entries(parsed)) {
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
 
 const strict = process.argv.includes('--strict') || process.env.CI === 'true';
 const result = validateBunnyStreamConfig(process.env, strict ? 'strict' : 'local');
