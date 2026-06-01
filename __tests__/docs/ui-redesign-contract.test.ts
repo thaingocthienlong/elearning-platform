@@ -33,6 +33,7 @@ describe('Phase 7 UI redesign contract', () => {
     const watch = readText('src/components/course/WatchPageClient.tsx');
 
     expect(watch).toContain('DRMPlayerWrapper');
+    expect(watch).toContain('BunnyStreamPlayer');
     expect(watch).toContain('VideoSidebarWrapper');
     expect(watch).toContain("t('secureLecturePlayback')");
   });

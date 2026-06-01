@@ -12,6 +12,10 @@ const DRMPlayerWrapper = dynamic(() => import('@/components/video/DRMPlayerWrapp
     ssr: false,
     loading: () => <PlayerLoading />
 });
+const BunnyStreamPlayer = dynamic(() => import('@/components/video/BunnyStreamPlayer'), {
+    ssr: false,
+    loading: () => <PlayerLoading />
+});
 import BrowserBanner from '@/components/BrowserBanner';
 import IPRConsentOverlay from '@/components/course/IPRConsentOverlay';
 import { useSessionValidator } from '@/hooks/useSessionValidator';
@@ -19,6 +23,24 @@ import ChatLogViewer from '@/components/course/ChatLogViewer';
 import { Badge } from '@/components/ui/badge';
 import type { BunnyStreamPlayback } from '@/lib/bunny-stream';
 import { selectWatchPlaybackSources } from '@/lib/playback-routing';
+
+type SidebarVideo = {
+    id: string;
+    title: string;
+    position: number;
+    completed: boolean;
+};
+
+type ChatLogEntry = {
+    timestamp: string;
+    sender: string;
+    message: string;
+    type?: 'reaction' | 'reply';
+    replyTo?: string;
+    emoji?: string;
+    originalSender?: string;
+    originalMessage?: string;
+};
 
 interface WatchPageClientProps {
     videoId: string;
@@ -28,7 +50,7 @@ interface WatchPageClientProps {
         drmLicenseUrl: string;
     };
     courseTitle: string;
-    sidebarVideos: any[];
+    sidebarVideos: SidebarVideo[];
     currentVideoId: string;
     viewCount: number;
     viewLimit: number | null;
@@ -40,13 +62,13 @@ interface WatchPageClientProps {
     isFairPlayConfigured: boolean;
     provider?: 'AXINOM' | 'BUNNY_STREAM' | null;
     bunnyPlayback?: BunnyStreamPlayback | null;
-    chatLog?: any;
+    chatLog?: ChatLogEntry[] | null;
 }
 
 export default function WatchPageClient({
     videoId,
-    otp,
-    playbackInfo,
+    otp: _otp,
+    playbackInfo: _playbackInfo,
     courseTitle,
     sidebarVideos,
     currentVideoId,
@@ -58,8 +80,10 @@ export default function WatchPageClient({
     hlsUrl,
     hlsUrlClear,
     isFairPlayConfigured,
+    provider = 'AXINOM',
+    bunnyPlayback = null,
     chatLog,
-}: WatchPageClientProps & { chatLog?: any }) {
+}: WatchPageClientProps) {
     const { t } = useLanguage();
     const [isIPRAccepted, setIsIPRAccepted] = useState(false);
     const playbackSources = useMemo(() =>
@@ -127,22 +151,35 @@ export default function WatchPageClient({
                             </div>
                         ) : (
                             <>
-                                <DRMPlayerWrapper
-                                    dashUrl={playbackSources.dashUrl}
-                                    hlsUrl={playbackSources.hlsUrl}
-                                    drmToken={playbackSources.drmToken}
-                                    videoId={videoId}
-                                    viewCount={viewCount}
-                                    viewLimit={viewLimit}
-                                    watermarkText={watermarkText}
-                                    requireHD={false}
-                                    isClearHlsFallback={playbackSources.isClearHlsFallback}
-                                    isFairPlayConfigured={isFairPlayConfigured}
-                                    onFullscreenChange={setIsVideoFullscreen}
-                                />
+                                {provider === 'BUNNY_STREAM' && bunnyPlayback ? (
+                                    <BunnyStreamPlayer
+                                        videoId={videoId}
+                                        libraryId={bunnyPlayback.libraryId}
+                                        bunnyVideoId={bunnyPlayback.videoId}
+                                        signedEmbedUrl={bunnyPlayback.embedUrl}
+                                        viewCount={viewCount}
+                                        viewLimit={viewLimit}
+                                        watermarkText={watermarkText}
+                                        onFullscreenChange={setIsVideoFullscreen}
+                                    />
+                                ) : (
+                                    <DRMPlayerWrapper
+                                        dashUrl={playbackSources.dashUrl}
+                                        hlsUrl={playbackSources.hlsUrl}
+                                        drmToken={playbackSources.drmToken}
+                                        videoId={videoId}
+                                        viewCount={viewCount}
+                                        viewLimit={viewLimit}
+                                        watermarkText={watermarkText}
+                                        requireHD={false}
+                                        isClearHlsFallback={playbackSources.isClearHlsFallback}
+                                        isFairPlayConfigured={isFairPlayConfigured}
+                                        onFullscreenChange={setIsVideoFullscreen}
+                                    />
+                                )}
                                 {/* Chat Log Viewer */}
                                 <div className="rounded-lg border border-border bg-card p-4 shadow-none">
-                                    <ChatLogViewer chatLog={chatLog} />
+                                    <ChatLogViewer chatLog={chatLog ?? null} />
                                 </div>
                             </>
                         )}
