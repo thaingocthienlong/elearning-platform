@@ -36,12 +36,17 @@ function getErrorMetadata(error: unknown) {
       error instanceof BunnyStreamApiError
         ? 'BunnyStreamApiError'
         : 'UnexpectedError',
-    ...(error instanceof BunnyStreamApiError ? { apiStatus: error.status } : {}),
+    ...(error instanceof BunnyStreamApiError
+      ? { apiStatus: error.status }
+      : {}),
   };
 }
 
 const STALE_INITIALIZATION_TTL_MS = 15 * 60 * 1000;
-const STALE_INITIALIZATION_LIMIT = 5;
+const STALE_INITIALIZATION_LIMIT = 1;
+const BUNNY_STREAM_CLEANUP_TIMEOUT_MS = 2500;
+
+export const maxDuration = 60;
 
 type BunnyStreamConfig = ReturnType<typeof readBunnyStreamConfig>;
 type UploadInitializationState =
@@ -140,7 +145,7 @@ async function cleanupKnownProviderInitialization({
         'ORPHANED',
         'LOCAL_VIDEO_CLEANUP_FAILED'
       );
-      return;
+      return false;
     }
   }
 
@@ -149,7 +154,7 @@ async function cleanupKnownProviderInitialization({
       libraryId,
       apiKey: config.apiKey,
       videoId: bunnyVideoId,
-      timeoutMs: config.apiTimeoutMs,
+      timeoutMs: BUNNY_STREAM_CLEANUP_TIMEOUT_MS,
     });
     serverLog.info('bunny_stream_orphan_cleanup_succeeded', {
       libraryId,
@@ -166,7 +171,7 @@ async function cleanupKnownProviderInitialization({
       'ORPHANED',
       'PROVIDER_CLEANUP_FAILED'
     );
-    return;
+    return false;
   }
 
   try {
@@ -183,27 +188,88 @@ async function cleanupKnownProviderInitialization({
       'UNCERTAIN',
       'CLEANUP_SUCCEEDED_RESERVATION_DELETE_FAILED'
     );
+    return false;
   }
+
+  return true;
+}
+
+async function findLocalBunnyVideo(
+  libraryId: string,
+  bunnyVideoId: string
+): Promise<{ id: string } | null> {
+  return prisma.video.findFirst({
+    where: {
+      provider: 'BUNNY_STREAM',
+      bunnyLibraryId: libraryId,
+      bunnyVideoId,
+      isDeleted: false,
+    },
+    select: { id: true },
+  });
+}
+
+async function recoverKnownProviderInitialization({
+  initializationId,
+  libraryId,
+  bunnyVideoId,
+}: {
+  initializationId: string;
+  libraryId: string;
+  bunnyVideoId: string;
+}) {
+  const localVideo = await findLocalBunnyVideo(libraryId, bunnyVideoId);
+  if (!localVideo) return null;
+
+  await prisma.bunnyUploadInitialization.update({
+    where: { id: initializationId },
+    data: {
+      localVideoId: localVideo.id,
+      state: 'READY',
+      failureMarker: null,
+    },
+  });
+
+  serverLog.info('bunny_stream_initialization_recovered_from_local_video', {
+    libraryId,
+    videoId: bunnyVideoId,
+    localVideoId: localVideo.id,
+  });
+
+  return localVideo.id;
 }
 
 async function reconcileStaleInitializations(config: BunnyStreamConfig) {
   try {
-    const staleInitializations = await prisma.bunnyUploadInitialization.findMany({
-      where: {
-        state: 'INITIALIZING',
-        updatedAt: { lt: new Date(Date.now() - STALE_INITIALIZATION_TTL_MS) },
-      },
-      select: {
-        id: true,
-        bunnyLibraryId: true,
-        bunnyVideoId: true,
-        localVideoId: true,
-      },
-      orderBy: { updatedAt: 'asc' },
-      take: STALE_INITIALIZATION_LIMIT,
-    });
+    const staleInitializations =
+      await prisma.bunnyUploadInitialization.findMany({
+        where: {
+          state: 'INITIALIZING',
+          updatedAt: { lt: new Date(Date.now() - STALE_INITIALIZATION_TTL_MS) },
+        },
+        select: {
+          id: true,
+          bunnyLibraryId: true,
+          bunnyVideoId: true,
+          localVideoId: true,
+        },
+        orderBy: { updatedAt: 'asc' },
+        take: STALE_INITIALIZATION_LIMIT,
+      });
 
-    for (const initialization of staleInitializations) {
+    for (const initialization of staleInitializations.slice(
+      0,
+      STALE_INITIALIZATION_LIMIT
+    )) {
+      if (initialization.bunnyVideoId) {
+        const recoveredLocalVideoId = await recoverKnownProviderInitialization({
+          initializationId: initialization.id,
+          libraryId: initialization.bunnyLibraryId,
+          bunnyVideoId: initialization.bunnyVideoId,
+        });
+        if (recoveredLocalVideoId) continue;
+      }
+
       if (initialization.localVideoId) {
         await updateInitializationStateBestEffort(
           initialization.id,
@@ -254,7 +320,10 @@ export async function POST(req: Request) {
     const parsed = uploadSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Validation failed', details: parsed.error.flatten().fieldErrors },
+        {
+          error: 'Validation failed',
+          details: parsed.error.flatten().fieldErrors,
+        },
         { status: 400 }
       );
     }
@@ -297,7 +366,7 @@ export async function POST(req: Request) {
       bunnyCollectionId: resolvedCollectionId,
     });
 
-    let initialization: { id: string };
+    let initialization: { id: string } | null = null;
     try {
       initialization = await prisma.bunnyUploadInitialization.create({
         data: {
@@ -319,6 +388,7 @@ export async function POST(req: Request) {
       const existing = await prisma.bunnyUploadInitialization.findUnique({
         where: { uploadRequestId },
         select: {
+          id: true,
           payloadFingerprint: true,
           state: true,
           bunnyLibraryId: true,
@@ -349,6 +419,68 @@ export async function POST(req: Request) {
         );
       }
 
+      if (
+        existing.state === 'UNCERTAIN' &&
+        !existing.bunnyVideoId &&
+        !existing.localVideoId
+      ) {
+        await prisma.bunnyUploadInitialization.update({
+          where: { id: existing.id },
+          data: { state: 'INITIALIZING', failureMarker: null },
+        });
+        initialization = { id: existing.id };
+      } else if (existing.state === 'ORPHANED' && existing.bunnyVideoId) {
+        const recoveredLocalVideoId = await recoverKnownProviderInitialization({
+          initializationId: existing.id,
+          libraryId: existing.bunnyLibraryId,
+          bunnyVideoId: existing.bunnyVideoId,
+        });
+
+        if (recoveredLocalVideoId) {
+          return NextResponse.json(
+            getTusCredentials(config, {
+              libraryId: existing.bunnyLibraryId,
+              bunnyVideoId: existing.bunnyVideoId,
+              localVideoId: recoveredLocalVideoId,
+            })
+          );
+        }
+
+        const cleanupSucceeded = await cleanupKnownProviderInitialization({
+          initializationId: existing.id,
+          libraryId: existing.bunnyLibraryId,
+          bunnyVideoId: existing.bunnyVideoId,
+          config,
+        });
+
+        if (!cleanupSucceeded) {
+          return NextResponse.json(
+            {
+              error:
+                'Upload initialization requires provider cleanup before retry',
+            },
+            { status: 502 }
+          );
+        }
+
+        return NextResponse.json(
+          {
+            error:
+              'Previous upload initialization was cleaned up; retry upload initialization',
+          },
+          { status: 409 }
+        );
+      } else {
+        return NextResponse.json(
+          {
+            error: 'Upload initialization requires reconciliation before retry',
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    if (!initialization) {
       return NextResponse.json(
         { error: 'Upload initialization requires reconciliation before retry' },
         { status: 409 }
