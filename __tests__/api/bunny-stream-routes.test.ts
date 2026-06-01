@@ -1323,7 +1323,9 @@ describe('Bunny Stream webhook and manual sync routes', () => {
       jsonRequest('/api/video/bunny-stream/sync', { videoId: '507f1f77bcf86cd799439011' })
     );
 
-    await expect(response.json()).resolves.toEqual({ error: 'Video not found' });
+    await expect(response.json()).resolves.toEqual({
+      error: 'Bunny Stream video not found',
+    });
     expect(response.status).toBe(404);
     expect(mockedGetBunnyVideo).not.toHaveBeenCalled();
     expect(mockedPrisma.video.update).not.toHaveBeenCalled();
@@ -1358,7 +1360,9 @@ describe('Bunny Stream webhook and manual sync routes', () => {
       jsonRequest('/api/video/bunny-stream/sync', { videoId: '507f1f77bcf86cd799439011' })
     );
 
-    await expect(response.json()).resolves.toEqual({ error: 'Video not found' });
+    await expect(response.json()).resolves.toEqual({
+      error: 'Bunny Stream video not found',
+    });
     expect(response.status).toBe(404);
     expect(mockedGetBunnyVideo).not.toHaveBeenCalled();
     expect(mockedPrisma.video.update).not.toHaveBeenCalled();
@@ -1382,7 +1386,7 @@ describe('Bunny Stream webhook and manual sync routes', () => {
     );
 
     await expect(response.json()).resolves.toEqual({
-      error: 'Failed to sync Bunny Stream video',
+      error: 'Webhook processing failed',
     });
     expect(response.status).toBe(502);
     expect(mockedPrisma.video.update).not.toHaveBeenCalled();

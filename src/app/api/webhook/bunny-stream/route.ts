@@ -164,7 +164,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(
-      { error: 'Failed to sync Bunny Stream video' },
+      { error: 'Webhook processing failed' },
       { status: error instanceof BunnyStreamApiError ? 502 : 500 }
     );
   }

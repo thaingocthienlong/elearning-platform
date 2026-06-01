@@ -89,7 +89,10 @@ export async function POST(request: Request) {
       !video.bunnyLibraryId ||
       !video.bunnyVideoId
     ) {
-      return NextResponse.json({ error: 'Video not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Bunny Stream video not found' },
+        { status: 404 }
+      );
     }
 
     const bunnyVideo = await getBunnyStreamVideo({
