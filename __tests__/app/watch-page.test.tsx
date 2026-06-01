@@ -4,8 +4,8 @@ import { getServerSession } from 'next-auth';
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
-import { resolveVdoCipherAccount } from '@/lib/vdocipher-accounts';
-import { getVdoCipherOtp, VdoCipherApiError } from '@/lib/vdocipher';
+import { VdoCipherApiError } from '@/lib/vdocipher';
+import { getVdoCipherOtpWithAccountFallback } from '@/lib/vdocipher-playback';
 import { getPlaybackBrowserGate } from '@/lib/playback-browser-allowlist';
 
 jest.mock('next-auth', () => ({
@@ -36,6 +36,7 @@ jest.mock('@/lib/prisma', () => ({
     },
     video: {
       findMany: jest.fn(),
+      update: jest.fn(),
     },
     watchRecord: {
       findMany: jest.fn(),
@@ -45,10 +46,6 @@ jest.mock('@/lib/prisma', () => ({
 
 jest.mock('@/lib/media-entitlement', () => ({
   evaluateMediaEntitlement: jest.fn(),
-}));
-
-jest.mock('@/lib/vdocipher-accounts', () => ({
-  resolveVdoCipherAccount: jest.fn(),
 }));
 
 jest.mock('@/lib/vdocipher', () => ({
@@ -61,7 +58,10 @@ jest.mock('@/lib/vdocipher', () => ({
       this.status = status;
     }
   },
-  getVdoCipherOtp: jest.fn(),
+}));
+
+jest.mock('@/lib/vdocipher-playback', () => ({
+  getVdoCipherOtpWithAccountFallback: jest.fn(),
 }));
 
 jest.mock('@/lib/playback-browser-allowlist', () => ({
@@ -88,12 +88,11 @@ jest.mock('@/components/video/UnsupportedPlaybackBrowser', () => ({
 const mockedGetServerSession = getServerSession as jest.Mock;
 const mockedHeaders = headers as jest.Mock;
 const mockedEvaluateMediaEntitlement = evaluateMediaEntitlement as jest.Mock;
-const mockedResolveVdoCipherAccount = resolveVdoCipherAccount as jest.Mock;
-const mockedGetVdoCipherOtp = getVdoCipherOtp as jest.Mock;
+const mockedGetVdoCipherOtpWithAccountFallback = getVdoCipherOtpWithAccountFallback as jest.Mock;
 const mockedGetPlaybackBrowserGate = getPlaybackBrowserGate as jest.Mock;
 const mockedPrisma = prisma as unknown as {
   allowedEmail: { findUnique: jest.Mock };
-  video: { findMany: jest.Mock };
+  video: { findMany: jest.Mock; update: jest.Mock };
   watchRecord: { findMany: jest.Mock };
 };
 
@@ -122,17 +121,13 @@ describe('watch page', () => {
     });
     mockedPrisma.allowedEmail.findUnique.mockResolvedValue(null);
     mockedPrisma.video.findMany.mockResolvedValue([]);
+    mockedPrisma.video.update.mockResolvedValue({});
     mockedPrisma.watchRecord.findMany.mockResolvedValue([]);
-    mockedResolveVdoCipherAccount.mockReturnValue({
-      id: 'primary',
-      apiSecret: 'secret',
-      isDefault: true,
-    });
   });
 
   it('renders a stable unavailable state when VdoCipher OTP reports video not found', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    mockedGetVdoCipherOtp.mockRejectedValue(new VdoCipherApiError('video not found', 404));
+    mockedGetVdoCipherOtpWithAccountFallback.mockRejectedValue(new VdoCipherApiError('video not found', 404));
     const { default: WatchPage } = await import('@/app/watch/[videoId]/page');
 
     const ui = await WatchPage({
@@ -150,6 +145,56 @@ describe('watch page', () => {
         vdocipherAccountId: 'primary',
         providerStatus: 404,
         message: 'video not found',
+      })
+    );
+
+    consoleSpy.mockRestore();
+  });
+
+  it('repairs stale VdoCipher account mapping and renders playback', async () => {
+    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mockedEvaluateMediaEntitlement.mockResolvedValue({
+      allowed: true,
+      user: { id: 'user-id', name: 'Learner', email: 'learner@example.test' },
+      video: {
+        id: 'local-video-id',
+        courseId: 'course-id',
+        provider: 'VDOCIPHER',
+        vdocipherAccountId: 'backup-5',
+        vdocipherVideoId: 'vdo-id',
+        vdocipherStatus: 'READY',
+        Course: { title: 'Course title' },
+      },
+      watchRecord: null,
+      effectiveViewLimit: null,
+    });
+    mockedGetVdoCipherOtpWithAccountFallback.mockResolvedValue({
+      accountId: 'primary',
+      attemptedAccountIds: ['backup-5', 'primary'],
+      recovered: true,
+      result: { otp: 'otp', playbackInfo: 'playback' },
+    });
+    const { default: WatchPage } = await import('@/app/watch/[videoId]/page');
+
+    const ui = await WatchPage({
+      params: Promise.resolve({ videoId: 'local-video-id' }),
+    });
+    render(ui);
+
+    expect(screen.getByTestId('watch-page-client')).toBeInTheDocument();
+    expect(mockedPrisma.video.update).toHaveBeenCalledWith({
+      where: { id: 'local-video-id' },
+      data: {
+        vdocipherAccountId: 'primary',
+        vdocipherError: null,
+      },
+    });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Repaired VdoCipher account mapping during playback',
+      expect.objectContaining({
+        videoId: 'local-video-id',
+        previousAccountId: 'backup-5',
+        recoveredAccountId: 'primary',
       })
     );
 

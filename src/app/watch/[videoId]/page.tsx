@@ -8,8 +8,8 @@ import { SecurityWrapper } from '@/components/video/SecurityWrapper';
 import WatchPageClient from '@/components/course/WatchPageClient';
 import { UnsupportedPlaybackBrowser } from '@/components/video/UnsupportedPlaybackBrowser';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
-import { resolveVdoCipherAccount } from '@/lib/vdocipher-accounts';
-import { getVdoCipherOtp, VdoCipherApiError } from '@/lib/vdocipher';
+import { VdoCipherApiError } from '@/lib/vdocipher';
+import { getVdoCipherOtpWithAccountFallback } from '@/lib/vdocipher-playback';
 import { getPlaybackBrowserGate } from '@/lib/playback-browser-allowlist';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
@@ -154,15 +154,41 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
             notFound();
         }
 
-        let otp;
+        let playback;
 
         try {
-            const account = resolveVdoCipherAccount(video.vdocipherAccountId);
-            otp = await getVdoCipherOtp({
-                apiSecret: account.apiSecret,
+            playback = await getVdoCipherOtpWithAccountFallback({
+                preferredAccountId: video.vdocipherAccountId,
                 vdoCipherVideoId: video.vdocipherVideoId,
                 ttl: 300,
             });
+
+            if (playback.accountId !== video.vdocipherAccountId) {
+                try {
+                    await prisma.video.update({
+                        where: { id: video.id },
+                        data: {
+                            vdocipherAccountId: playback.accountId,
+                            vdocipherError: null,
+                        },
+                    });
+                    console.warn('Repaired VdoCipher account mapping during playback', {
+                        videoId,
+                        vdoCipherVideoId: video.vdocipherVideoId,
+                        previousAccountId: video.vdocipherAccountId,
+                        recoveredAccountId: playback.accountId,
+                        attemptedAccountIds: playback.attemptedAccountIds,
+                    });
+                } catch (repairError) {
+                    console.error('Failed to persist repaired VdoCipher account mapping', {
+                        videoId,
+                        vdoCipherVideoId: video.vdocipherVideoId,
+                        previousAccountId: video.vdocipherAccountId,
+                        recoveredAccountId: playback.accountId,
+                        message: getErrorMessage(repairError),
+                    });
+                }
+            }
         } catch (error) {
             console.error('VdoCipher playback initialization failed', {
                 videoId,
@@ -177,8 +203,8 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
 
         providerPlayback = {
             provider: 'VDOCIPHER',
-            otp: otp.otp,
-            playbackInfo: otp.playbackInfo,
+            otp: playback.result.otp,
+            playbackInfo: playback.result.playbackInfo,
         };
     } else if (video.drmKeyId) {
         const { generateAxinomToken } = await import('@/lib/axinom');

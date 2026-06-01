@@ -5,8 +5,9 @@ import {
   evaluateMediaEntitlement,
   mapMediaEntitlementToHttp,
 } from '@/lib/media-entitlement';
-import { resolveVdoCipherAccount } from '@/lib/vdocipher-accounts';
-import { getVdoCipherOtp, VdoCipherApiError } from '@/lib/vdocipher';
+import { prisma } from '@/lib/prisma';
+import { VdoCipherApiError } from '@/lib/vdocipher';
+import { getVdoCipherOtpWithAccountFallback } from '@/lib/vdocipher-playback';
 
 const OTP_TTL_SECONDS = 300;
 
@@ -48,15 +49,41 @@ export async function POST(req: Request) {
     return new NextResponse('Video is not ready for VdoCipher playback', { status: 404 });
   }
 
-  let otp;
+  let playback;
 
   try {
-    const account = resolveVdoCipherAccount(video.vdocipherAccountId);
-    otp = await getVdoCipherOtp({
-      apiSecret: account.apiSecret,
+    playback = await getVdoCipherOtpWithAccountFallback({
+      preferredAccountId: video.vdocipherAccountId,
       vdoCipherVideoId: video.vdocipherVideoId,
       ttl: OTP_TTL_SECONDS,
     });
+
+    if (playback.accountId !== video.vdocipherAccountId) {
+      try {
+        await prisma.video.update({
+          where: { id: video.id },
+          data: {
+            vdocipherAccountId: playback.accountId,
+            vdocipherError: null,
+          },
+        });
+        console.warn('Repaired VdoCipher account mapping during OTP generation', {
+          videoId,
+          vdoCipherVideoId: video.vdocipherVideoId,
+          previousAccountId: video.vdocipherAccountId,
+          recoveredAccountId: playback.accountId,
+          attemptedAccountIds: playback.attemptedAccountIds,
+        });
+      } catch (repairError) {
+        console.error('Failed to persist repaired VdoCipher account mapping', {
+          videoId,
+          vdoCipherVideoId: video.vdocipherVideoId,
+          previousAccountId: video.vdocipherAccountId,
+          recoveredAccountId: playback.accountId,
+          message: getErrorMessage(repairError),
+        });
+      }
+    }
   } catch (error) {
     console.error('VdoCipher OTP generation failed', {
       videoId,
@@ -70,8 +97,8 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({
-    otp: otp.otp,
-    playbackInfo: otp.playbackInfo,
+    otp: playback.result.otp,
+    playbackInfo: playback.result.playbackInfo,
     expiresIn: OTP_TTL_SECONDS,
   });
 }

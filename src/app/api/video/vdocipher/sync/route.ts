@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { resolveVdoCipherAccount } from '@/lib/vdocipher-accounts';
-import { getVdoCipherVideoStatus } from '@/lib/vdocipher';
+import { VdoCipherApiError } from '@/lib/vdocipher';
+import { getVdoCipherVideoStatusWithAccountFallback } from '@/lib/vdocipher-playback';
 
 function mapVdoCipherStatus(status: string | undefined) {
   const normalized = status?.toLowerCase();
@@ -14,6 +14,14 @@ function mapVdoCipherStatus(status: string | undefined) {
   if (normalized === 'error') return 'ERROR';
 
   return 'QUEUED';
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : 'Unknown VdoCipher sync error';
+}
+
+function getVdoCipherErrorStatus(error: unknown) {
+  return error instanceof VdoCipherApiError ? error.status : undefined;
 }
 
 export async function POST(req: Request) {
@@ -40,16 +48,41 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'VdoCipher video not found' }, { status: 404 });
   }
 
-  const account = resolveVdoCipherAccount(video.vdocipherAccountId);
-  const status = await getVdoCipherVideoStatus({
-    apiSecret: account.apiSecret,
-    vdoCipherVideoId: video.vdocipherVideoId,
-  });
+  let playback;
+
+  try {
+    playback = await getVdoCipherVideoStatusWithAccountFallback({
+      preferredAccountId: video.vdocipherAccountId,
+      vdoCipherVideoId: video.vdocipherVideoId,
+    });
+  } catch (error) {
+    console.error('VdoCipher status sync failed', {
+      videoId,
+      vdoCipherVideoId: video.vdocipherVideoId,
+      vdocipherAccountId: video.vdocipherAccountId,
+      providerStatus: getVdoCipherErrorStatus(error),
+      message: getErrorMessage(error),
+    });
+
+    await prisma.video.update({
+      where: { id: video.id },
+      data: {
+        vdocipherStatus: 'ERROR',
+        vdocipherSyncedAt: new Date(),
+        vdocipherError: getErrorMessage(error),
+      },
+    });
+
+    return NextResponse.json({ error: 'Playback provider unavailable' }, { status: 502 });
+  }
+
+  const status = playback.result;
   const mappedStatus = mapVdoCipherStatus(status.status);
 
   await prisma.video.update({
     where: { id: video.id },
     data: {
+      vdocipherAccountId: playback.accountId,
       vdocipherStatus: mappedStatus,
       vdocipherPosterUrl: status.poster,
       vdocipherSyncedAt: new Date(),
@@ -57,5 +90,10 @@ export async function POST(req: Request) {
     },
   });
 
-  return NextResponse.json({ success: true, status: mappedStatus });
+  return NextResponse.json({
+    success: true,
+    status: mappedStatus,
+    accountId: playback.accountId,
+    recoveredAccount: playback.recovered,
+  });
 }

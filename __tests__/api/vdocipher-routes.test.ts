@@ -43,6 +43,11 @@ jest.mock('@/lib/vdocipher', () => ({
   getVdoCipherOtp: jest.fn(),
 }));
 
+jest.mock('@/lib/vdocipher-playback', () => ({
+  getVdoCipherOtpWithAccountFallback: jest.fn(),
+  getVdoCipherVideoStatusWithAccountFallback: jest.fn(),
+}));
+
 jest.mock('@/lib/media-entitlement', () => ({
   evaluateMediaEntitlement: jest.fn(),
   mapMediaEntitlementToHttp: jest.fn(),
@@ -60,10 +65,12 @@ import {
 } from '@/lib/vdocipher-accounts';
 import {
   createVdoCipherUpload,
-  getVdoCipherOtp,
-  getVdoCipherVideoStatus,
   VdoCipherApiError,
 } from '@/lib/vdocipher';
+import {
+  getVdoCipherOtpWithAccountFallback,
+  getVdoCipherVideoStatusWithAccountFallback,
+} from '@/lib/vdocipher-playback';
 import {
   evaluateMediaEntitlement,
   mapMediaEntitlementToHttp,
@@ -73,8 +80,9 @@ const mockedGetServerSession = getServerSession as jest.Mock;
 const mockedListVdoCipherAccounts = listVdoCipherAccounts as jest.Mock;
 const mockedResolveVdoCipherAccount = resolveVdoCipherAccount as jest.Mock;
 const mockedCreateVdoCipherUpload = createVdoCipherUpload as jest.Mock;
-const mockedGetVdoCipherVideoStatus = getVdoCipherVideoStatus as jest.Mock;
-const mockedGetVdoCipherOtp = getVdoCipherOtp as jest.Mock;
+const mockedGetVdoCipherOtpWithAccountFallback = getVdoCipherOtpWithAccountFallback as jest.Mock;
+const mockedGetVdoCipherVideoStatusWithAccountFallback =
+  getVdoCipherVideoStatusWithAccountFallback as jest.Mock;
 const mockedEvaluateMediaEntitlement = evaluateMediaEntitlement as jest.Mock;
 const mockedMapMediaEntitlementToHttp = mapMediaEntitlementToHttp as jest.Mock;
 const mockedInvalidateCacheKey = invalidateCacheKey as jest.Mock;
@@ -209,14 +217,14 @@ describe('vdocipher routes', () => {
       vdocipherAccountId: 'primary',
       vdocipherVideoId: 'vdo-id',
     });
-    mockedResolveVdoCipherAccount.mockReturnValue({
-      id: 'primary',
-      apiSecret: 'secret',
-      isDefault: true,
-    });
-    mockedGetVdoCipherVideoStatus.mockResolvedValue({
-      status: 'ready',
-      poster: 'https://poster.example.test',
+    mockedGetVdoCipherVideoStatusWithAccountFallback.mockResolvedValue({
+      accountId: 'primary',
+      attemptedAccountIds: ['primary'],
+      recovered: false,
+      result: {
+        status: 'ready',
+        poster: 'https://poster.example.test',
+      },
     });
     mockedPrisma.video.update.mockResolvedValue({});
 
@@ -228,18 +236,67 @@ describe('vdocipher routes', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mockedGetVdoCipherVideoStatus).toHaveBeenCalledWith({
-      apiSecret: 'secret',
+    expect(mockedGetVdoCipherVideoStatusWithAccountFallback).toHaveBeenCalledWith({
+      preferredAccountId: 'primary',
       vdoCipherVideoId: 'vdo-id',
     });
     expect(mockedPrisma.video.update).toHaveBeenCalledWith({
       where: { id: 'local-video-id' },
       data: expect.objectContaining({
+        vdocipherAccountId: 'primary',
         vdocipherStatus: 'READY',
         vdocipherPosterUrl: 'https://poster.example.test',
       }),
     });
-    expect(body).toMatchObject({ success: true, status: 'READY' });
+    expect(body).toMatchObject({
+      success: true,
+      status: 'READY',
+      accountId: 'primary',
+      recoveredAccount: false,
+    });
+  });
+
+  it('repairs VdoCipher account mapping during status sync', async () => {
+    const { POST: syncVideo } = await import('@/app/api/video/vdocipher/sync/route');
+    mockedGetServerSession.mockResolvedValue({ user: { role: 'ADMIN' } });
+    mockedPrisma.video.findUnique.mockResolvedValue({
+      id: 'local-video-id',
+      provider: 'VDOCIPHER',
+      vdocipherAccountId: 'backup-5',
+      vdocipherVideoId: 'vdo-id',
+    });
+    mockedGetVdoCipherVideoStatusWithAccountFallback.mockResolvedValue({
+      accountId: 'primary',
+      attemptedAccountIds: ['backup-5', 'primary'],
+      recovered: true,
+      result: {
+        status: 'ready',
+        poster: 'https://poster.example.test',
+      },
+    });
+    mockedPrisma.video.update.mockResolvedValue({});
+
+    const response = await syncVideo(
+      jsonRequest('http://localhost.test/api/video/vdocipher/sync', {
+        videoId: 'local-video-id',
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockedPrisma.video.update).toHaveBeenCalledWith({
+      where: { id: 'local-video-id' },
+      data: expect.objectContaining({
+        vdocipherAccountId: 'primary',
+        vdocipherStatus: 'READY',
+      }),
+    });
+    expect(body).toMatchObject({
+      success: true,
+      status: 'READY',
+      accountId: 'primary',
+      recoveredAccount: true,
+    });
   });
 
   it('publishes a ready VdoCipher video and invalidates the course cache', async () => {
@@ -291,7 +348,7 @@ describe('vdocipher routes', () => {
     );
 
     expect(response.status).toBe(404);
-    expect(mockedGetVdoCipherVideoStatus).not.toHaveBeenCalled();
+    expect(mockedGetVdoCipherVideoStatusWithAccountFallback).not.toHaveBeenCalled();
   });
 
   it('generates OTP only after entitlement passes', async () => {
@@ -309,12 +366,12 @@ describe('vdocipher routes', () => {
         vdocipherStatus: 'READY',
       },
     });
-    mockedResolveVdoCipherAccount.mockReturnValue({
-      id: 'primary',
-      apiSecret: 'secret',
-      isDefault: true,
+    mockedGetVdoCipherOtpWithAccountFallback.mockResolvedValue({
+      accountId: 'primary',
+      attemptedAccountIds: ['primary'],
+      recovered: false,
+      result: { otp: 'otp', playbackInfo: 'playback' },
     });
-    mockedGetVdoCipherOtp.mockResolvedValue({ otp: 'otp', playbackInfo: 'playback' });
 
     const response = await getOtp(
       jsonRequest('http://localhost.test/api/vdocipher/otp', {
@@ -329,12 +386,61 @@ describe('vdocipher routes', () => {
       videoId: 'local-video-id',
       checkViewLimit: true,
     });
-    expect(mockedGetVdoCipherOtp).toHaveBeenCalledWith({
-      apiSecret: 'secret',
+    expect(mockedGetVdoCipherOtpWithAccountFallback).toHaveBeenCalledWith({
+      preferredAccountId: 'primary',
       vdoCipherVideoId: 'vdo-id',
       ttl: 300,
     });
     expect(body).toEqual({ otp: 'otp', playbackInfo: 'playback', expiresIn: 300 });
+  });
+
+  it('repairs VdoCipher account mapping during OTP generation', async () => {
+    const { POST: getOtp } = await import('@/app/api/vdocipher/otp/route');
+    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mockedGetServerSession.mockResolvedValue({ user: { id: 'user-id' } });
+    mockedEvaluateMediaEntitlement.mockResolvedValue({
+      allowed: true,
+      user: { id: 'user-id', name: 'Learner', email: 'user@example.test' },
+      video: {
+        id: 'local-video-id',
+        provider: 'VDOCIPHER',
+        vdocipherAccountId: 'backup-5',
+        vdocipherVideoId: 'vdo-id',
+        vdocipherStatus: 'READY',
+      },
+    });
+    mockedGetVdoCipherOtpWithAccountFallback.mockResolvedValue({
+      accountId: 'primary',
+      attemptedAccountIds: ['backup-5', 'primary'],
+      recovered: true,
+      result: { otp: 'otp', playbackInfo: 'playback' },
+    });
+    mockedPrisma.video.update.mockResolvedValue({});
+
+    const response = await getOtp(
+      jsonRequest('http://localhost.test/api/vdocipher/otp', {
+        videoId: 'local-video-id',
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedPrisma.video.update).toHaveBeenCalledWith({
+      where: { id: 'local-video-id' },
+      data: {
+        vdocipherAccountId: 'primary',
+        vdocipherError: null,
+      },
+    });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Repaired VdoCipher account mapping during OTP generation',
+      expect.objectContaining({
+        videoId: 'local-video-id',
+        previousAccountId: 'backup-5',
+        recoveredAccountId: 'primary',
+      })
+    );
+
+    consoleSpy.mockRestore();
   });
 
   it('returns a controlled provider error when OTP generation fails upstream', async () => {
@@ -352,12 +458,7 @@ describe('vdocipher routes', () => {
         vdocipherStatus: 'READY',
       },
     });
-    mockedResolveVdoCipherAccount.mockReturnValue({
-      id: 'primary',
-      apiSecret: 'secret',
-      isDefault: true,
-    });
-    mockedGetVdoCipherOtp.mockRejectedValue(new VdoCipherApiError('video not found', 404));
+    mockedGetVdoCipherOtpWithAccountFallback.mockRejectedValue(new VdoCipherApiError('video not found', 404));
 
     const response = await getOtp(
       jsonRequest('http://localhost.test/api/vdocipher/otp', {
@@ -401,7 +502,7 @@ describe('vdocipher routes', () => {
 
     expect(response.status).toBe(403);
     await expect(response.text()).resolves.toBe('Forbidden');
-    expect(mockedGetVdoCipherOtp).not.toHaveBeenCalled();
+    expect(mockedGetVdoCipherOtpWithAccountFallback).not.toHaveBeenCalled();
   });
 
   it('rejects non-ready VdoCipher videos', async () => {
@@ -426,7 +527,7 @@ describe('vdocipher routes', () => {
     );
 
     expect(response.status).toBe(404);
-    expect(mockedGetVdoCipherOtp).not.toHaveBeenCalled();
+    expect(mockedGetVdoCipherOtpWithAccountFallback).not.toHaveBeenCalled();
   });
 
   it('updates matching VdoCipher video from webhook payload', async () => {

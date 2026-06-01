@@ -86,6 +86,35 @@ export function listVdoCipherAccounts(env: NodeJS.ProcessEnv = process.env): Saf
   }));
 }
 
+export function listConfiguredVdoCipherAccounts(
+  preferredAccountId?: string | null,
+  env: NodeJS.ProcessEnv = process.env
+): ResolvedVdoCipherAccount[] {
+  const ids = getVdoCipherAccountIds(env);
+  const defaultId = getDefaultVdoCipherAccountId(env);
+  const preferred = preferredAccountId?.trim();
+  const orderedIds = [
+    preferred && ids.includes(preferred) ? preferred : null,
+    ids.includes(defaultId) ? defaultId : null,
+    ...ids,
+  ].filter((id): id is string => Boolean(id));
+  const uniqueOrderedIds = [...new Set(orderedIds)];
+
+  return uniqueOrderedIds.flatMap((id) => {
+    const apiSecret = readSecret(id, env);
+
+    if (!apiSecret) {
+      return [];
+    }
+
+    return [{
+      id,
+      apiSecret,
+      isDefault: id === defaultId,
+    }];
+  });
+}
+
 export function resolveVdoCipherAccount(
   requestedAccountId?: string | null,
   env: NodeJS.ProcessEnv = process.env

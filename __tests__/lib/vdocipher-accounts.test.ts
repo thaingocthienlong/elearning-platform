@@ -3,6 +3,7 @@ import path from 'path';
 
 import {
   listVdoCipherAccounts,
+  listConfiguredVdoCipherAccounts,
   resolveVdoCipherAccount,
   getVdoCipherAccountEnvSuffix,
 } from '@/lib/vdocipher-accounts';
@@ -17,6 +18,8 @@ describe('vdocipher account registry', () => {
     delete process.env.VDOCIPHER_DEFAULT_ACCOUNT_ID;
     delete process.env.VDOCIPHER_API_SECRET_PRIMARY;
     delete process.env.VDOCIPHER_API_SECRET_BACKUP_1;
+    delete process.env.VDOCIPHER_API_SECRET_BACKUP_4;
+    delete process.env.VDOCIPHER_API_SECRET_BACKUP_5;
     delete process.env.VDOCIPHER_API_SECRET_BACKUP;
   });
 
@@ -58,6 +61,22 @@ describe('vdocipher account registry', () => {
       apiSecret: 'secret-b',
       isDefault: false,
     });
+  });
+
+  it('orders configured accounts with preferred account first without exposing missing secrets', () => {
+    process.env.VDOCIPHER_ACCOUNT_IDS = 'primary,backup-4,backup-5';
+    process.env.VDOCIPHER_DEFAULT_ACCOUNT_ID = 'primary';
+    process.env.VDOCIPHER_API_SECRET_PRIMARY = 'secret-a';
+    process.env.VDOCIPHER_API_SECRET_BACKUP_4 = 'secret-d';
+
+    expect(listConfiguredVdoCipherAccounts('backup-5')).toEqual([
+      { id: 'primary', apiSecret: 'secret-a', isDefault: true },
+      { id: 'backup-4', apiSecret: 'secret-d', isDefault: false },
+    ]);
+    expect(listConfiguredVdoCipherAccounts('backup-4')).toEqual([
+      { id: 'backup-4', apiSecret: 'secret-d', isDefault: false },
+      { id: 'primary', apiSecret: 'secret-a', isDefault: true },
+    ]);
   });
 
   it('uses default account when request omits account', () => {
