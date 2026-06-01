@@ -1,6 +1,6 @@
 # Bunny Stream Staging Checklist
 
-Use this checklist when validating Bunny Stream in staging. Mark a row as `blocked: missing credentials/service access` if the Bunny library, MediaCage Enterprise DRM access, or other required account-level controls are not available yet.
+Use this checklist when validating Bunny Stream in staging. Mark a row as `blocked: missing credentials/service access` if the Bunny library, MediaCage Enterprise DRM access, or other required account-level controls are not available yet. The `verify:bunny-stream` script only validates env/config shape; it does not prove dashboard setup, library policy, or entitlement behavior.
 
 ## Provider Setup
 
@@ -15,6 +15,7 @@ Use this checklist when validating Bunny Stream in staging. Mark a row as `block
 
 - [ ] `npm run verify:bunny-stream -- --strict` passes in staging.
 - [ ] `npm run verify:services:strict` includes Bunny Stream.
+- [ ] Bunny dashboard/provider checks are completed manually and recorded separately from `verify:bunny-stream`.
 - [ ] The upload route accepts `uploadRequestId`, `fileSize`, and `fileLastModified`.
 - [ ] Retry cleanup or idempotency reservation prevents duplicate provider initialization.
 - [ ] No real Bunny key, signed URL, or webhook signature appears in logs, screenshots, docs, or commits.

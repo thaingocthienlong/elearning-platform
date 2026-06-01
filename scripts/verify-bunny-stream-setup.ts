@@ -13,7 +13,7 @@ console.log('Verifying Bunny Stream configuration');
 
 if (result.ok) {
   console.log('OK Bunny Stream env validation passed');
-  console.log('OK Provider: Bunny Stream + MediaCage DRM + signed embed playback');
+  console.log('OK Bunny Stream env/config validation passed; provider/dashboard checks are manual');
   process.exit(0);
 }
 

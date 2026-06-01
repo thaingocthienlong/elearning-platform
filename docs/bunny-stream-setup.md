@@ -7,6 +7,8 @@ This guide maps Bunny Stream to this repository. Real credentials belong only in
 - Stream quickstart: https://docs.bunny.net/docs/stream-quickstart-guide
 - Authentication / API key lookup: https://docs.bunny.net/stream/authentication
 - TUS resumable uploads: https://docs.bunny.net/stream/tus-resumable-uploads
+- Stream security: https://docs.bunny.net/stream/security
+- Stream security options: https://docs.bunny.net/docs/stream-understanding-bunny-stream-security-options
 - MediaCage DRM: https://docs.bunny.net/stream/drm
 - Embed view token authentication: https://docs.bunny.net/docs/stream-embed-token-authentication
 - Playback control API and player.js events: https://docs.bunny.net/stream/playback-api
@@ -33,6 +35,7 @@ This guide maps Bunny Stream to this repository. Real credentials belong only in
 7. Review the library player settings so the embedded player matches the current repo flow.
 
 MediaCage Enterprise DRM is account-gated. If the Bunny account does not have that feature enabled yet, document the limitation and keep the staging checklist row blocked instead of pretending the control is active.
+The security and options docs above explain the dashboard controls that govern allowed domains, token auth, and DRM-related protections; this setup guide does not prove those account settings are enabled.
 
 ## Repository Environment
 

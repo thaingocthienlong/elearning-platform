@@ -36,6 +36,10 @@ describe('Bunny Stream docs and scripts', () => {
     const health = fs.readFileSync('docs/operations/health-checklist.md', 'utf8');
 
     expect(setup).toContain('MediaCage Enterprise DRM');
+    expect(setup).toContain('https://docs.bunny.net/stream/security');
+    expect(setup).toContain(
+      'https://docs.bunny.net/docs/stream-understanding-bunny-stream-security-options'
+    );
     expect(setup).toContain('embed view token authentication');
     expect(setup).toContain('Early-Play');
     expect(setup).toContain('/api/video/bunny-stream/playback');
@@ -47,6 +51,9 @@ describe('Bunny Stream docs and scripts', () => {
     expect(staging).toContain('/api/webhook/bunny-stream');
     expect(staging).toContain('allowed domains');
     expect(staging).toContain('MediaCage Enterprise DRM');
+    expect(staging).toContain(
+      'verify:bunny-stream` script only validates env/config shape'
+    );
 
     expect(smoke).toContain('/api/video/bunny-stream/playback');
     expect(smoke).toContain('/api/webhook/bunny-stream');

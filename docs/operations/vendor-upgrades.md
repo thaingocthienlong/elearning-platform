@@ -67,6 +67,8 @@ Official docs:
 - https://docs.bunny.net/docs/stream-quickstart-guide
 - https://docs.bunny.net/stream/authentication
 - https://docs.bunny.net/stream/tus-resumable-uploads
+- https://docs.bunny.net/stream/security
+- https://docs.bunny.net/docs/stream-understanding-bunny-stream-security-options
 - https://docs.bunny.net/stream/drm
 - https://docs.bunny.net/docs/stream-embed-token-authentication
 - https://docs.bunny.net/stream/playback-api
