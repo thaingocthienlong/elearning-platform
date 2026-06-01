@@ -101,12 +101,29 @@ function getTusCredentials(
 async function updateInitializationStateBestEffort(
   initializationId: string,
   state: UploadInitializationState,
-  failureMarker: string
+  failureMarker: string,
+  extraData?: {
+    bunnyLibraryId?: string;
+    bunnyVideoId?: string;
+    localVideoId?: string;
+  }
 ) {
   try {
     await prisma.bunnyUploadInitialization.update({
       where: { id: initializationId },
-      data: { state, failureMarker },
+      data: {
+        state,
+        failureMarker,
+        ...(extraData?.bunnyLibraryId
+          ? { bunnyLibraryId: extraData.bunnyLibraryId }
+          : {}),
+        ...(extraData?.bunnyVideoId
+          ? { bunnyVideoId: extraData.bunnyVideoId }
+          : {}),
+        ...(extraData?.localVideoId
+          ? { localVideoId: extraData.localVideoId }
+          : {}),
+      },
     });
   } catch (error) {
     serverLog.warn('bunny_stream_initialization_state_update_failed', {
@@ -143,7 +160,12 @@ async function cleanupKnownProviderInitialization({
       await updateInitializationStateBestEffort(
         initializationId,
         'ORPHANED',
-        'LOCAL_VIDEO_CLEANUP_FAILED'
+        'LOCAL_VIDEO_CLEANUP_FAILED',
+        {
+          bunnyLibraryId: libraryId,
+          bunnyVideoId,
+          localVideoId,
+        }
       );
       return false;
     }
@@ -169,7 +191,12 @@ async function cleanupKnownProviderInitialization({
     await updateInitializationStateBestEffort(
       initializationId,
       'ORPHANED',
-      'PROVIDER_CLEANUP_FAILED'
+      'PROVIDER_CLEANUP_FAILED',
+      {
+        bunnyLibraryId: libraryId,
+        bunnyVideoId,
+        localVideoId,
+      }
     );
     return false;
   }
@@ -424,26 +451,13 @@ export async function POST(req: Request) {
         !existing.bunnyVideoId &&
         !existing.localVideoId
       ) {
-        const retryClaim = await prisma.bunnyUploadInitialization.updateMany({
-          where: {
-            id: existing.id,
-            uploadRequestId,
-            payloadFingerprint,
-            state: 'UNCERTAIN',
-            bunnyVideoId: null,
-            localVideoId: null,
+        return NextResponse.json(
+          {
+            error:
+              'Upload initialization requires manual reconciliation before retry',
           },
-          data: { state: 'INITIALIZING', failureMarker: null },
-        });
-
-        if (retryClaim.count !== 1) {
-          return NextResponse.json(
-            { error: 'Upload initialization is already being retried' },
-            { status: 409 }
-          );
-        }
-
-        initialization = { id: existing.id };
+          { status: 409 }
+        );
       } else if (existing.state === 'ORPHANED' && existing.bunnyVideoId) {
         const recoveredLocalVideoId = await recoverKnownProviderInitialization({
           initializationId: existing.id,

@@ -426,46 +426,28 @@ describe('Bunny Stream upload credentials route', () => {
     expect(mockedCreateBunnyVideo).not.toHaveBeenCalled();
   });
 
-  test('allows same-fingerprint UNCERTAIN retry without known provider video', async () => {
+  test('blocks same-fingerprint UNCERTAIN retry without known provider video', async () => {
     mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
     mockedPrisma.course.findUnique.mockResolvedValue({
       id: '507f1f77bcf86cd799439011',
       isDeleted: false,
     });
     mockExistingInitialization('UNCERTAIN');
-    mockedCreateBunnyVideo.mockResolvedValue({
-      guid: 'retry-bunny-video-guid',
-    });
-    mockedPrisma.video.create.mockResolvedValue({ id: 'retry-local-video-id' });
 
     const response = await uploadCredentialsPost(
       jsonRequest('/api/bunny-stream/upload-credentials', validUploadBody)
     );
 
     await expect(response.json()).resolves.toEqual({
-      uploadEndpoint: 'https://video.bunnycdn.com/tusupload',
-      libraryId: '123456',
-      videoId: 'retry-bunny-video-guid',
-      authorizationExpire: expect.any(Number),
-      authorizationSignature: expect.stringMatching(/^[0-9a-f]{64}$/),
-      localVideoId: 'retry-local-video-id',
+      error:
+        'Upload initialization requires manual reconciliation before retry',
     });
-    expect(response.status).toBe(200);
-    expect(mockedCreateBunnyVideo).toHaveBeenCalledTimes(1);
-    expect(mockedPrisma.bunnyUploadInitialization.updateMany).toHaveBeenCalledWith({
-      where: {
-        id: 'existing-initialization-id',
-        uploadRequestId: 'upload-request-1',
-        payloadFingerprint: expect.stringMatching(/^[0-9a-f]{64}$/),
-        state: 'UNCERTAIN',
-        bunnyVideoId: null,
-        localVideoId: null,
-      },
-      data: { state: 'INITIALIZING', failureMarker: null },
-    });
+    expect(response.status).toBe(409);
+    expect(mockedCreateBunnyVideo).not.toHaveBeenCalled();
+    expect(mockedPrisma.bunnyUploadInitialization.updateMany).not.toHaveBeenCalled();
   });
 
-  test('allows only one same-fingerprint UNCERTAIN retry to claim before provider create', async () => {
+  test('rejects UNCERTAIN retry after a unique uploadRequestId claim without provider handle', async () => {
     mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
     mockedPrisma.course.findUnique.mockResolvedValue({
       id: '507f1f77bcf86cd799439011',
@@ -486,43 +468,18 @@ describe('Bunny Stream upload credentials route', () => {
         throw Object.assign(new Error('unique constraint'), { code: 'P2002' });
       }
     );
-    mockedPrisma.bunnyUploadInitialization.updateMany
-      .mockResolvedValueOnce({ count: 1 })
-      .mockResolvedValueOnce({ count: 0 });
-    mockedCreateBunnyVideo.mockResolvedValue({
-      guid: 'retry-bunny-video-guid',
-    });
-    mockedPrisma.video.create.mockResolvedValue({ id: 'retry-local-video-id' });
 
-    const firstResponse = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', validUploadBody)
-    );
-    const secondResponse = await uploadCredentialsPost(
+    const response = await uploadCredentialsPost(
       jsonRequest('/api/bunny-stream/upload-credentials', validUploadBody)
     );
 
-    expect(firstResponse.status).toBe(200);
-    expect(secondResponse.status).toBe(409);
-    await expect(secondResponse.json()).resolves.toEqual({
-      error: 'Upload initialization is already being retried',
+    await expect(response.json()).resolves.toEqual({
+      error:
+        'Upload initialization requires manual reconciliation before retry',
     });
-    expect(mockedCreateBunnyVideo).toHaveBeenCalledTimes(1);
-    expect(mockedPrisma.bunnyUploadInitialization.updateMany).toHaveBeenCalledTimes(
-      2
-    );
-    expect(
-      mockedPrisma.bunnyUploadInitialization.updateMany
-    ).toHaveBeenNthCalledWith(1, {
-      where: {
-        id: 'existing-initialization-id',
-        uploadRequestId: 'upload-request-1',
-        payloadFingerprint: expect.stringMatching(/^[0-9a-f]{64}$/),
-        state: 'UNCERTAIN',
-        bunnyVideoId: null,
-        localVideoId: null,
-      },
-      data: { state: 'INITIALIZING', failureMarker: null },
-    });
+    expect(response.status).toBe(409);
+    expect(mockedCreateBunnyVideo).not.toHaveBeenCalled();
+    expect(mockedPrisma.bunnyUploadInitialization.updateMany).not.toHaveBeenCalled();
   });
 
   test('keeps fingerprint mismatch blocked before UNCERTAIN retry', async () => {
@@ -663,6 +620,8 @@ describe('Bunny Stream upload credentials route', () => {
       data: {
         state: 'ORPHANED',
         failureMarker: 'PROVIDER_CLEANUP_FAILED',
+        bunnyLibraryId: '123456',
+        bunnyVideoId: 'orphaned-bunny-video-guid',
       },
     });
     expect(
@@ -846,6 +805,8 @@ describe('Bunny Stream upload credentials route', () => {
       data: {
         state: 'ORPHANED',
         failureMarker: 'PROVIDER_CLEANUP_FAILED',
+        bunnyLibraryId: '123456',
+        bunnyVideoId: 'bunny-video-guid',
       },
     });
     expect(
@@ -1112,6 +1073,8 @@ describe('Bunny Stream upload credentials route', () => {
       data: {
         state: 'ORPHANED',
         failureMarker: 'PROVIDER_CLEANUP_FAILED',
+        bunnyLibraryId: '123456',
+        bunnyVideoId: 'stale-bunny-video-guid',
       },
     });
     expect(mockedCreateBunnyVideo).toHaveBeenCalledTimes(1);
