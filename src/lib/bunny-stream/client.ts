@@ -45,6 +45,25 @@ async function readJsonOrThrow<T>(response: Response): Promise<T> {
   }
 }
 
+function validateCreateVideoResponse(value: unknown): BunnyStreamVideo {
+  if (!value || typeof value !== 'object' || !('guid' in value)) {
+    throw new BunnyStreamApiError(
+      'Bunny Stream API returned invalid video data',
+      502
+    );
+  }
+
+  const guid = value.guid;
+  if (typeof guid !== 'string' || !guid.trim()) {
+    throw new BunnyStreamApiError(
+      'Bunny Stream API returned invalid video data',
+      502
+    );
+  }
+
+  return { ...value, guid: guid.trim() } as BunnyStreamVideo;
+}
+
 export async function createBunnyStreamVideo({
   libraryId,
   apiKey,
@@ -69,7 +88,7 @@ export async function createBunnyStreamVideo({
     body: JSON.stringify(body),
   });
 
-  return readJsonOrThrow<BunnyStreamVideo>(response);
+  return validateCreateVideoResponse(await readJsonOrThrow<unknown>(response));
 }
 
 export async function getBunnyStreamVideo({

@@ -187,4 +187,51 @@ describe('Bunny Stream API client', () => {
       new BunnyStreamApiError('Bunny Stream API returned invalid JSON', 502)
     );
   });
+
+  test('throws sanitized API error when Bunny Stream returns null video data', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => null,
+    }) as jest.Mock;
+
+    await expect(
+      createBunnyStreamVideo({
+        libraryId: '123',
+        apiKey: 'api-key',
+        title: 'Lesson 01',
+      })
+    ).rejects.toEqual(
+      new BunnyStreamApiError(
+        'Bunny Stream API returned invalid video data',
+        502
+      )
+    );
+  });
+
+  test.each([
+    ['missing', {}],
+    ['blank', { guid: '   ' }],
+    ['non-string', { guid: 123 }],
+  ])(
+    'throws sanitized API error when Bunny Stream returns %s video GUID',
+    async (_case, providerBody) => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => providerBody,
+      }) as jest.Mock;
+
+      await expect(
+        createBunnyStreamVideo({
+          libraryId: '123',
+          apiKey: 'api-key',
+          title: 'Lesson 01',
+        })
+      ).rejects.toEqual(
+        new BunnyStreamApiError(
+          'Bunny Stream API returned invalid video data',
+          502
+        )
+      );
+    }
+  );
 });
