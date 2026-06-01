@@ -1280,6 +1280,7 @@ describe('Bunny Stream webhook and manual sync routes', () => {
     mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
     mockedPrisma.video.findFirst.mockResolvedValue({
       id: '507f1f77bcf86cd799439011',
+      provider: 'BUNNY_STREAM',
       bunnyLibraryId: '123456',
       bunnyVideoId: 'bunny-video-guid',
       bunnyStatus: 'PROCESSING',
@@ -1314,10 +1315,60 @@ describe('Bunny Stream webhook and manual sync routes', () => {
     });
   });
 
+  test('manual sync returns safe 404 when lookup misses the video row', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.video.findFirst.mockResolvedValue(null);
+
+    const response = await bunnyManualSyncPost(
+      jsonRequest('/api/video/bunny-stream/sync', { videoId: '507f1f77bcf86cd799439011' })
+    );
+
+    await expect(response.json()).resolves.toEqual({ error: 'Video not found' });
+    expect(response.status).toBe(404);
+    expect(mockedGetBunnyVideo).not.toHaveBeenCalled();
+    expect(mockedPrisma.video.update).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    {
+      title: 'manual sync returns safe 404 when lookup row has non-Bunny provider',
+      row: {
+        id: '507f1f77bcf86cd799439011',
+        provider: 'AXINOM',
+        bunnyLibraryId: '123456',
+        bunnyVideoId: 'bunny-video-guid',
+        bunnyStatus: 'PROCESSING',
+      },
+    },
+    {
+      title: 'manual sync returns safe 404 when lookup row is missing Bunny IDs',
+      row: {
+        id: '507f1f77bcf86cd799439011',
+        provider: 'BUNNY_STREAM',
+        bunnyLibraryId: null,
+        bunnyVideoId: null,
+        bunnyStatus: 'PROCESSING',
+      },
+    },
+  ])('$title', async ({ row }) => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.video.findFirst.mockResolvedValue(row as never);
+
+    const response = await bunnyManualSyncPost(
+      jsonRequest('/api/video/bunny-stream/sync', { videoId: '507f1f77bcf86cd799439011' })
+    );
+
+    await expect(response.json()).resolves.toEqual({ error: 'Video not found' });
+    expect(response.status).toBe(404);
+    expect(mockedGetBunnyVideo).not.toHaveBeenCalled();
+    expect(mockedPrisma.video.update).not.toHaveBeenCalled();
+  });
+
   test('provider failure returns safe 502 without logging raw error text', async () => {
     mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
     mockedPrisma.video.findFirst.mockResolvedValue({
       id: '507f1f77bcf86cd799439011',
+      provider: 'BUNNY_STREAM',
       bunnyLibraryId: '123456',
       bunnyVideoId: 'bunny-video-guid',
       bunnyStatus: 'PROCESSING',

@@ -76,13 +76,19 @@ export async function POST(request: Request) {
       },
       select: {
         id: true,
+        provider: true,
         bunnyLibraryId: true,
         bunnyVideoId: true,
         bunnyStatus: true,
       },
     });
 
-    if (!video || !video.bunnyLibraryId || !video.bunnyVideoId) {
+    if (
+      !video ||
+      video.provider !== 'BUNNY_STREAM' ||
+      !video.bunnyLibraryId ||
+      !video.bunnyVideoId
+    ) {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     }
 
