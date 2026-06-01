@@ -83,6 +83,32 @@ Operational checks:
 - Webhook verification rejects malformed signatures without leaking details.
 - Local DRM license endpoint is not a production DRM substitute unless real key custody is added.
 
+## Bunny Stream
+
+Primary files/docs:
+
+- `src/lib/bunny-stream/config.ts`
+- `src/lib/bunny-stream/client.ts`
+- `src/lib/bunny-stream/signing.ts`
+- `src/lib/bunny-stream/playback.ts`
+- `src/hooks/player/useIframeHeartbeat.ts`
+- `src/components/video/BunnyStreamPlayer.tsx`
+- `src/app/api/bunny-stream/upload-credentials/route.ts`
+- `src/app/api/video/bunny-stream/playback/route.ts`
+- `src/app/api/webhook/bunny-stream/route.ts`
+- `docs/bunny-stream-setup.md`
+- `docs/bunny-stream-staging-checklist.md`
+
+Bunny Stream is the active upload/playback path for new rows. The server creates upload credentials, reserves upload intents with `uploadRequestId`, receives webhook updates, signs playback URLs just in time, and uses player.js events plus `/api/watch/heartbeat` for watch tracking.
+
+Operational checks:
+
+- Verify MediaCage Enterprise DRM account access before marking the environment ready.
+- Keep embed view token authentication and allowed domains aligned with the active staging or production origin.
+- Keep Early-Play disabled for protected course videos.
+- Do not treat Bunny library settings as a substitute for app-level entitlement checks.
+- Keep Axinom documented as the legacy / transition provider for existing rows while Bunny is the current path for new uploads.
+
 ## Video Processing And Storage
 
 Primary files/docs:

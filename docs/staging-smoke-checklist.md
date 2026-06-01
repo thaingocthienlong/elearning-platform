@@ -23,6 +23,10 @@ Do not paste secrets, raw tokens, service account values, DRM keys, database URL
 | HLS-01 | HLS access | HLS playlist route succeeds only for an entitled user and denies a user without access. | not run | |
 | AXINOM-01 | Axinom webhook | Staging Axinom webhook URL is configured as `<STAGING_ORIGIN>/api/webhook/axinom` and signature handling is verified with a safe staging event or portal check. | not run | |
 | AXINOM-02 | Axinom encoding/playback | A staging test video has Axinom operational IDs/statuses and can be encoded/published or is explicitly blocked by missing Axinom access. | not run | |
+| BUNNY-01 | Bunny upload | Admin can create Bunny upload credentials with `uploadRequestId`, `fileSize`, and `fileLastModified`, then complete a resumable TUS upload without duplicating the provider record. | not run | |
+| BUNNY-02 | Bunny webhook | Staging Bunny webhook URL is configured as `<STAGING_ORIGIN>/api/webhook/bunny-stream` and a safe callback updates local Bunny status. | not run | |
+| BUNNY-03 | Bunny playback | Authorized learner can open `/watch/<videoId>`, request `/api/video/bunny-stream/playback`, and load the signed Bunny iframe embed URL. | not run | |
+| BUNNY-04 | Bunny heartbeat | Bunny player.js `play`, `timeupdate`, `pause`, `ended`, and visibility events keep `/api/watch/heartbeat` in sync and stop on view-limit exhaustion. | not run | |
 | ZOOM-01 | Zoom | Authenticated learner can launch the meeting page and join through the preserved Zoom iframe flow with learner role. | not run | |
 | SUPPORT-01 | Support | Authenticated user can submit a support ticket with reCAPTCHA/SMTP behavior matching staging configuration. | not run | |
 | REDIS-01 | Redis | Redis-backed cache/rate-limit/session-revocation paths are available and do not fall back because staging credentials are missing. | not run | |

@@ -11,6 +11,7 @@ const requiredServiceGroups = [
   'Auth',
   'Redis',
   'Axinom',
+  'Bunny Stream',
   'Storage',
   'Zoom',
   'Support/Email/reCAPTCHA',

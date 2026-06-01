@@ -21,6 +21,7 @@ Allowed status values:
 | HEALTH-SCRIPT-05 | Staging smoke contract | `npm run verify:staging` | not run | |
 | HEALTH-SCRIPT-06 | Lint/type/test/build | `npm run lint && npm run typecheck && npm test && npm run build` | not run | |
 | HEALTH-SCRIPT-07 | Secret scan | `npm run secrets:scan` | not run | |
+| HEALTH-SCRIPT-08 | Bunny setup validation | `npm run verify:bunny-stream -- --strict` | not run | |
 
 ## Service Readiness
 
@@ -31,6 +32,9 @@ Allowed status values:
 | HEALTH-REDIS-01 | Redis | Are Upstash cache, rate limit, system mode, and session revocation paths available? | not run | |
 | HEALTH-AXINOM-01 | Axinom DRM | Can an entitled staging learner obtain a token and license for a test video? | not run | |
 | HEALTH-AXINOM-02 | Axinom webhooks | Is `<STAGING_ORIGIN>/api/webhook/axinom` configured and signature-verified? | not run | |
+| HEALTH-BUNNY-01 | Bunny Stream upload | Can an admin create Bunny upload credentials, complete a TUS upload, and see the local record reserved by `uploadRequestId`? | not run | |
+| HEALTH-BUNNY-02 | Bunny Stream playback | Can an entitled staging learner request `/api/video/bunny-stream/playback` and play through the Bunny iframe while `/api/watch/heartbeat` updates the watch record? | not run | |
+| HEALTH-BUNNY-03 | Bunny Stream security controls | Are MediaCage Enterprise DRM, embed view token authentication, allowed domains, Early-Play, and webhook URL settings aligned with the staging origin? | not run | |
 | HEALTH-ZOOM-01 | Zoom | Can a learner join `/meeting` with role `0` through the staging domain? | not run | |
 | HEALTH-STORAGE-01 | Azure/R2 storage | Are Azure containers, R2 bucket/prefix, CORS, and asset URLs aligned with staging? | not run | |
 | HEALTH-SUPPORT-01 | Support | Can a signed-in user submit a ticket with rate limit and diagnostic redaction active? | not run | |

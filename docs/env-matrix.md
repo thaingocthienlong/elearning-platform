@@ -25,6 +25,15 @@ This matrix is the source of truth for environment variables used by the platfor
 | Axinom | AXINOM_VIDEO_SERVICE_URL | operational secret | optional | required | src/lib/axinom-video-service.ts | Axinom video service API base URL. |
 | Axinom | AXINOM_WEBHOOK_SECRET | server secret | optional | required | src/app/api/axinom/webhook/route.ts | Shared secret for Axinom webhook verification. |
 | Axinom | AXINOM_FAIRPLAY_CERT_URL | operational secret | optional | required | src/server/axinom.ts | FairPlay certificate URL used by player integration. |
+| Bunny Stream | BUNNY_STREAM_LIBRARY_ID | operational secret | optional | required | src/lib/bunny-stream/config.ts | Bunny Stream library ID used for upload credentials, webhooks, and embed playback. |
+| Bunny Stream | BUNNY_STREAM_API_KEY | server secret | optional | required | src/lib/bunny-stream/client.ts | Per-library Stream API key used only server-side. |
+| Bunny Stream | BUNNY_STREAM_READ_ONLY_API_KEY | server secret | optional | required | src/app/api/webhook/bunny-stream/route.ts | Read-only API key used as the Bunny webhook signing secret. |
+| Bunny Stream | BUNNY_STREAM_TOKEN_SECURITY_KEY | server secret | optional | required | src/lib/bunny-stream/signing.ts | Key used to sign short-lived embed URLs. |
+| Bunny Stream | BUNNY_STREAM_API_TIMEOUT_MS | public | optional | optional | src/lib/bunny-stream/config.ts | Bunny Stream API client timeout in milliseconds; defaults to 10000. |
+| Bunny Stream | BUNNY_STREAM_TUS_EXPIRE_SECONDS | public | optional | optional | src/lib/bunny-stream/config.ts | TUS upload signature lifetime; defaults to 86400 seconds. |
+| Bunny Stream | BUNNY_STREAM_EMBED_TOKEN_TTL_SECONDS | public | optional | optional | src/lib/bunny-stream/config.ts | Signed embed URL lifetime; defaults to 300 seconds. |
+| Bunny Stream | BUNNY_STREAM_PULL_ZONE_HOSTNAME | operational secret | optional | optional | docs/bunny-stream-setup.md | Bunny storage or pull-zone hostname for operator reference. |
+| Bunny Stream | BUNNY_STREAM_DEFAULT_COLLECTION_ID | operational secret | optional | optional | src/app/api/bunny-stream/upload-credentials/route.ts | Optional default Bunny collection for uploaded videos. |
 | Storage | AZURE_STORAGE_ACCOUNT | operational secret | optional | required | src/lib/azure-storage.ts | Azure Blob account for upload/input/output containers. |
 | Storage | AZURE_STORAGE_KEY | server secret | optional | required | src/lib/azure-storage.ts | Azure Blob account key. |
 | Storage | AZURE_VIDEO_INPUT_CONTAINER | operational secret | optional | required | src/lib/azure-storage.ts | Azure input container for source media. |

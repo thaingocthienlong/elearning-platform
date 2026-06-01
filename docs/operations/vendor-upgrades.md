@@ -60,6 +60,32 @@ Rollback:
 - Revert source/doc changes and restore the previous staging env values.
 - Redeploy because Vercel env changes apply only to new deployments.
 
+## Bunny Stream
+
+Official docs:
+
+- https://docs.bunny.net/docs/stream-quickstart-guide
+- https://docs.bunny.net/stream/authentication
+- https://docs.bunny.net/stream/tus-resumable-uploads
+- https://docs.bunny.net/stream/drm
+- https://docs.bunny.net/docs/stream-embed-token-authentication
+- https://docs.bunny.net/stream/playback-api
+- https://docs.bunny.net/stream/webhooks
+
+Upgrade steps:
+
+1. Review Bunny library settings for the active environment before changing any code.
+2. Confirm MediaCage Enterprise DRM account access, embed view token authentication, allowed domains, and Early-Play settings.
+3. Verify `/api/bunny-stream/upload-credentials` still issues TUS credentials with the current request contract.
+4. Verify `/api/video/bunny-stream/playback` still mints signed playback URLs just in time and that `useIframeHeartbeat` still recognizes the player.js event set.
+5. Check webhook header/signature behavior against Bunny's current docs before changing the callback route.
+6. Smoke an admin upload and an entitled learner playback flow before accepting an upgrade.
+
+Rollback:
+
+- Revert the Bunny config/doc changes and restore the previous environment settings.
+- If the Bunny library configuration itself changed, restore the prior dashboard settings and redeploy.
+
 ## Zoom Meeting SDK
 
 Official docs:
