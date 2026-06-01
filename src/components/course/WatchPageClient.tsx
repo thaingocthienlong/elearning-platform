@@ -17,6 +17,7 @@ import IPRConsentOverlay from '@/components/course/IPRConsentOverlay';
 import { useSessionValidator } from '@/hooks/useSessionValidator';
 import ChatLogViewer from '@/components/course/ChatLogViewer';
 import { Badge } from '@/components/ui/badge';
+import type { BunnyStreamPlayback } from '@/lib/bunny-stream';
 import { selectWatchPlaybackSources } from '@/lib/playback-routing';
 
 interface WatchPageClientProps {
@@ -37,6 +38,8 @@ interface WatchPageClientProps {
     hlsUrl: string | null;
     hlsUrlClear: string | null;
     isFairPlayConfigured: boolean;
+    provider?: 'AXINOM' | 'BUNNY_STREAM' | null;
+    bunnyPlayback?: BunnyStreamPlayback | null;
     chatLog?: any;
 }
 

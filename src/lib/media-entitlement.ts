@@ -39,11 +39,15 @@ export type MediaEntitlementAllowed = {
   video: {
     id: string;
     courseId: string;
+    provider?: 'AXINOM' | 'BUNNY_STREAM' | null;
     drmKeyId?: string | null;
     hlsUrl?: string | null;
     dashUrl?: string | null;
     hlsUrlClear?: string | null;
     viewLimit?: number | null;
+    bunnyLibraryId?: string | null;
+    bunnyVideoId?: string | null;
+    bunnyStatus?: string | null;
     Course?: {
       id?: string;
       title?: string | null;

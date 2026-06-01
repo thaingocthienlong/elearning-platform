@@ -5,6 +5,11 @@ import { authOptions } from '@/lib/auth';
 import { SecurityWrapper } from '@/components/video/SecurityWrapper';
 import WatchPageClient from '@/components/course/WatchPageClient';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
+import {
+    createBunnyStreamPlayback,
+    type BunnyStreamPlayback,
+    readBunnyStreamConfig,
+} from '@/lib/bunny-stream';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +58,34 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         effectiveViewLimit: entitlement.effectiveViewLimit,
     };
 
+    const provider = video.provider ?? 'AXINOM';
+    let bunnyPlayback: BunnyStreamPlayback | null = null;
+    let drmToken = '';
+
+    if (provider === 'BUNNY_STREAM') {
+        if (
+            !video.bunnyLibraryId ||
+            !video.bunnyVideoId ||
+            (video.bunnyStatus !== 'READY' && video.bunnyStatus !== 'PLAYABLE')
+        ) {
+            notFound();
+        }
+
+        const bunnyConfig = readBunnyStreamConfig();
+        bunnyPlayback = createBunnyStreamPlayback({
+            libraryId: video.bunnyLibraryId,
+            videoId: video.bunnyVideoId,
+            tokenSecurityKey: bunnyConfig.tokenSecurityKey,
+            embedTokenTtlSeconds: bunnyConfig.embedTokenTtlSeconds,
+        });
+    } else {
+        // Generate DRM token
+        const { generateAxinomToken } = await import('@/lib/axinom');
+        if (video.drmKeyId) {
+            drmToken = generateAxinomToken(video.drmKeyId);
+        }
+    }
+
     const [whitelistEntry, courseVideos] = await Promise.all([
         // Whitelist data for watermark
         prisma.allowedEmail.findUnique({
@@ -96,13 +129,6 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         completed: !!watchRecords.find((r) => r.videoId === v.id)?.completedAt,
     }));
 
-    // Generate DRM token
-    const { generateAxinomToken } = await import('@/lib/axinom');
-    let token = '';
-    if (video.drmKeyId) {
-        token = generateAxinomToken(video.drmKeyId);
-    }
-
     return (
         <SecurityWrapper videoId={videoId}>
             <WatchPageClient
@@ -120,11 +146,13 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 watermarkText={whitelistEntry?.fullname && whitelistEntry?.phone
                     ? `${whitelistEntry.fullname} • ${whitelistEntry.phone}`
                     : user.name || user.email!}
-                drmToken={token}
+                drmToken={drmToken}
                 dashUrl={video.dashUrl ?? null}
                 hlsUrl={video.hlsUrl ?? null}
                 hlsUrlClear={video.hlsUrlClear ?? null}
                 isFairPlayConfigured={Boolean(process.env.AXINOM_FAIRPLAY_CERT_URL)}
+                provider={provider}
+                bunnyPlayback={bunnyPlayback}
                 chatLog={(video as any).chatLog}
             />
         </SecurityWrapper>
