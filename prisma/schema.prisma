@@ -167,6 +167,28 @@ model Video {
   @@index([bunnyStatus])
 }
 
+model BunnyUploadInitialization {
+  id                 String                         @id @default(auto()) @map("_id") @db.ObjectId
+  uploadRequestId    String                         @unique
+  payloadFingerprint String
+  filename           String
+  contentType        String
+  courseId           String                         @db.ObjectId
+  title              String
+  bunnyLibraryId     String
+  bunnyCollectionId  String?
+  state              BunnyUploadInitializationState @default(INITIALIZING)
+  bunnyVideoId       String?
+  localVideoId       String?                        @db.ObjectId
+  failureMarker      String?
+  createdAt          DateTime                       @default(now())
+  updatedAt          DateTime                       @updatedAt
+
+  @@index([state, updatedAt])
+  @@index([courseId])
+  @@index([bunnyVideoId])
+}
+
 model WatchRecord {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
   userId       String    @db.ObjectId
@@ -331,4 +353,11 @@ enum BunnyStreamStatus {
   PLAYABLE
   READY
   FAILED
+}
+
+enum BunnyUploadInitializationState {
+  INITIALIZING
+  READY
+  UNCERTAIN
+  ORPHANED
 }
