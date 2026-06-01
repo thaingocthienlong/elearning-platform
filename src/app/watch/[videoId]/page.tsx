@@ -9,7 +9,10 @@ import WatchPageClient from '@/components/course/WatchPageClient';
 import { UnsupportedPlaybackBrowser } from '@/components/video/UnsupportedPlaybackBrowser';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
 import { VdoCipherApiError } from '@/lib/vdocipher';
-import { getVdoCipherOtpWithAccountFallback } from '@/lib/vdocipher-playback';
+import {
+    getVdoCipherOtpWithAccountFallback,
+    getVdoCipherPlaybackWhitelistHref,
+} from '@/lib/vdocipher-playback';
 import { getPlaybackBrowserGate } from '@/lib/playback-browser-allowlist';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
@@ -56,6 +59,9 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
     const { videoId } = await params;
     const requestHeaders = await headers();
     const browserGate = getPlaybackBrowserGate(requestHeaders.get('user-agent') || '');
+    const vdoCipherWhitelistHref = getVdoCipherPlaybackWhitelistHref({
+        requestHost: requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host'),
+    });
 
     const entitlement = await evaluateMediaEntitlement({
         session,
@@ -161,6 +167,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 preferredAccountId: video.vdocipherAccountId,
                 vdoCipherVideoId: video.vdocipherVideoId,
                 ttl: 300,
+                whitelisthref: vdoCipherWhitelistHref,
             });
 
             if (playback.accountId !== video.vdocipherAccountId) {
@@ -194,6 +201,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 videoId,
                 vdoCipherVideoId: video.vdocipherVideoId,
                 vdocipherAccountId: video.vdocipherAccountId,
+                whitelisthref: vdoCipherWhitelistHref,
                 providerStatus: getVdoCipherErrorStatus(error),
                 message: getErrorMessage(error),
             });

@@ -313,7 +313,7 @@ Account and API setup:
 4. Set `VDOCIPHER_ACCOUNT_IDS` to the comma-separated logical IDs.
 5. Set `VDOCIPHER_DEFAULT_ACCOUNT_ID` to the account that should receive new uploads by default.
 6. For each account ID, create one secret variable using the normalized uppercase suffix. For example `backup_1` uses `VDOCIPHER_API_SECRET_BACKUP_1`.
-7. Set `VDOCIPHER_PLAYBACK_WHITELIST_HREF` to the exact playback hostname, for example `elearning.vienphuongnam.com.vn`. If this env var is unset, the app uses the hostname from `NEXTAUTH_URL`.
+7. Set `VDOCIPHER_PLAYBACK_WHITELIST_HREF` to the exact playback hostname, for example `elearning.vienphuongnam.com.vn`, when you need an explicit override. If this env var is unset, the app uses the active request hostname, then falls back to the hostname from `NEXTAUTH_URL`.
 8. In every active VdoCipher account dashboard, allow the same playback hostname under the domain/URL restriction settings.
 9. Add the same values to local `.env.local` for urgent local upload work and to Vercel encrypted environment settings for staging.
 10. Run `npm run verify:services`; missing VdoCipher values should be treated as blocked for upload/playback work, not ignored.
@@ -357,7 +357,7 @@ Common failure points:
 - Account ID suffix does not match the env var name, for example `backup-1` normalizes to `VDOCIPHER_API_SECRET_BACKUP_1`.
 - `VDOCIPHER_DEFAULT_ACCOUNT_ID` points to an account not listed in `VDOCIPHER_ACCOUNT_IDS`.
 - Upload succeeds but admin publishes before VdoCipher status is ready.
-- VdoCipher player shows `Error 2138 Website not allowed for playback`; verify the active video's VdoCipher account allows the playback hostname and that `VDOCIPHER_PLAYBACK_WHITELIST_HREF` or `NEXTAUTH_URL` resolves to that same hostname.
+- VdoCipher player shows `Error 2138 Website not allowed for playback`; verify the active video's VdoCipher account allows the playback hostname and that `VDOCIPHER_PLAYBACK_WHITELIST_HREF`, the active request host, or the `NEXTAUTH_URL` fallback resolves to that same hostname.
 - Evidence includes OTP or playbackInfo values, which should be redacted.
 - A free account runs out of storage/quota; move the affected videos to the paid account and update the stored account/video IDs.
 

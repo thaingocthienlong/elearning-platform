@@ -45,6 +45,9 @@ jest.mock('@/lib/vdocipher', () => ({
 
 jest.mock('@/lib/vdocipher-playback', () => ({
   getVdoCipherOtpWithAccountFallback: jest.fn(),
+  getVdoCipherPlaybackWhitelistHref: jest.fn(({ requestHost }: { requestHost?: string | null }) =>
+    requestHost?.split(',')[0]?.trim()
+  ),
   getVdoCipherVideoStatusWithAccountFallback: jest.fn(),
 }));
 
@@ -374,7 +377,7 @@ describe('vdocipher routes', () => {
     });
 
     const response = await getOtp(
-      jsonRequest('http://localhost.test/api/vdocipher/otp', {
+      jsonRequest('https://elearning.vienphuongnam.com.vn/api/vdocipher/otp', {
         videoId: 'local-video-id',
       })
     );
@@ -390,6 +393,7 @@ describe('vdocipher routes', () => {
       preferredAccountId: 'primary',
       vdoCipherVideoId: 'vdo-id',
       ttl: 300,
+      whitelisthref: 'elearning.vienphuongnam.com.vn',
     });
     expect(body).toEqual({ otp: 'otp', playbackInfo: 'playback', expiresIn: 300 });
   });
@@ -418,7 +422,7 @@ describe('vdocipher routes', () => {
     mockedPrisma.video.update.mockResolvedValue({});
 
     const response = await getOtp(
-      jsonRequest('http://localhost.test/api/vdocipher/otp', {
+      jsonRequest('https://elearning.vienphuongnam.com.vn/api/vdocipher/otp', {
         videoId: 'local-video-id',
       })
     );

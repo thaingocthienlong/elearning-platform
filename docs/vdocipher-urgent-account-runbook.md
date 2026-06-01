@@ -88,7 +88,7 @@ Rules:
 - `VDOCIPHER_ACCOUNT_IDS` controls which accounts admin can select.
 - `VDOCIPHER_DEFAULT_ACCOUNT_ID` is used when admin does not choose one.
 - Each account must have one matching `VDOCIPHER_API_SECRET_<SUFFIX>`.
-- `VDOCIPHER_PLAYBACK_WHITELIST_HREF` is the VdoCipher OTP URL whitelist value. Use only the hostname, not `https://` and not a trailing slash. If unset, the app derives this from `NEXTAUTH_URL`.
+- `VDOCIPHER_PLAYBACK_WHITELIST_HREF` is the VdoCipher OTP URL whitelist override. Use only the hostname, not `https://` and not a trailing slash. If unset, the app derives this from the active request host, then falls back to `NEXTAUTH_URL`.
 - Suffix is uppercase and non-alphanumeric characters become `_`.
 - Example: `backup-1`, `backup_1`, and `backup 1` all normalize to `BACKUP_1`; avoid duplicates.
 
@@ -249,7 +249,7 @@ Check:
 This is a VdoCipher license-domain rejection after the app has already generated an OTP. Fix both sides:
 
 1. In the VdoCipher dashboard for the account that owns the video, allow `elearning.vienphuongnam.com.vn`.
-2. In Vercel, set `VDOCIPHER_PLAYBACK_WHITELIST_HREF=elearning.vienphuongnam.com.vn` or ensure `NEXTAUTH_URL=https://elearning.vienphuongnam.com.vn`.
+2. In Vercel, set `VDOCIPHER_PLAYBACK_WHITELIST_HREF=elearning.vienphuongnam.com.vn` or ensure production requests arrive with host `elearning.vienphuongnam.com.vn`; `NEXTAUTH_URL=https://elearning.vienphuongnam.com.vn` remains the fallback.
 3. Redeploy after changing Vercel env.
 4. Reload the watch page to generate a fresh OTP.
 

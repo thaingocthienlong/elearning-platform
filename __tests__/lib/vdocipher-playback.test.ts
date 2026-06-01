@@ -119,18 +119,32 @@ describe('vdocipher account fallback', () => {
   it('derives VdoCipher whitelist href from NEXTAUTH_URL when no override is configured', () => {
     expect(
       getVdoCipherPlaybackWhitelistHref({
-        NEXTAUTH_URL: 'https://elearning.vienphuongnam.com.vn',
-      } as NodeJS.ProcessEnv)
+        env: {
+          NEXTAUTH_URL: 'https://elearning.vienphuongnam.com.vn',
+        } as NodeJS.ProcessEnv,
+      })
+    ).toBe('elearning.vienphuongnam.com.vn');
+  });
+
+  it('uses the active request host when no env whitelist is configured', () => {
+    expect(
+      getVdoCipherPlaybackWhitelistHref({
+        requestHost: 'elearning.vienphuongnam.com.vn',
+        env: {} as NodeJS.ProcessEnv,
+      })
     ).toBe('elearning.vienphuongnam.com.vn');
   });
 
   it('prefers VdoCipher whitelist env override for multi-domain rules', () => {
     expect(
       getVdoCipherPlaybackWhitelistHref({
-        NEXTAUTH_URL: 'https://elearning.vienphuongnam.com.vn',
-        VDOCIPHER_PLAYBACK_WHITELIST_HREF:
-          '(elearning.vienphuongnam.com.vn|vienphuongnam.com.vn)',
-      } as NodeJS.ProcessEnv)
+        requestHost: 'stale.example.test',
+        env: {
+          NEXTAUTH_URL: 'https://elearning.vienphuongnam.com.vn',
+          VDOCIPHER_PLAYBACK_WHITELIST_HREF:
+            '(elearning.vienphuongnam.com.vn|vienphuongnam.com.vn)',
+        } as NodeJS.ProcessEnv,
+      })
     ).toBe('(elearning.vienphuongnam.com.vn|vienphuongnam.com.vn)');
   });
 

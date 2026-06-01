@@ -7,7 +7,10 @@ import {
 } from '@/lib/media-entitlement';
 import { prisma } from '@/lib/prisma';
 import { VdoCipherApiError } from '@/lib/vdocipher';
-import { getVdoCipherOtpWithAccountFallback } from '@/lib/vdocipher-playback';
+import {
+  getVdoCipherOtpWithAccountFallback,
+  getVdoCipherPlaybackWhitelistHref,
+} from '@/lib/vdocipher-playback';
 
 const OTP_TTL_SECONDS = 300;
 
@@ -50,12 +53,16 @@ export async function POST(req: Request) {
   }
 
   let playback;
+  const playbackWhitelistHref = getVdoCipherPlaybackWhitelistHref({
+    requestHost: req.headers.get('x-forwarded-host') ?? req.headers.get('host') ?? new URL(req.url).host,
+  });
 
   try {
     playback = await getVdoCipherOtpWithAccountFallback({
       preferredAccountId: video.vdocipherAccountId,
       vdoCipherVideoId: video.vdocipherVideoId,
       ttl: OTP_TTL_SECONDS,
+      whitelisthref: playbackWhitelistHref,
     });
 
     if (playback.accountId !== video.vdocipherAccountId) {
@@ -89,6 +96,7 @@ export async function POST(req: Request) {
       videoId,
       vdoCipherVideoId: video.vdocipherVideoId,
       vdocipherAccountId: video.vdocipherAccountId,
+      whitelisthref: playbackWhitelistHref,
       providerStatus: getVdoCipherErrorStatus(error),
       message: getErrorMessage(error),
     });

@@ -511,7 +511,7 @@ Expected result:
 
 Steps:
 
-1. Configure `VDOCIPHER_ACCOUNT_IDS`, `VDOCIPHER_DEFAULT_ACCOUNT_ID`, each `VDOCIPHER_API_SECRET_<ACCOUNT>`, and the playback hostname through `VDOCIPHER_PLAYBACK_WHITELIST_HREF` or `NEXTAUTH_URL`.
+1. Configure `VDOCIPHER_ACCOUNT_IDS`, `VDOCIPHER_DEFAULT_ACCOUNT_ID`, each `VDOCIPHER_API_SECRET_<ACCOUNT>`, and the playback hostname through `VDOCIPHER_PLAYBACK_WHITELIST_HREF` or the active request host. `NEXTAUTH_URL` is the fallback hostname source.
 2. Run `npm run verify:services`.
 3. Check `/api/vdocipher/accounts` as admin.
 

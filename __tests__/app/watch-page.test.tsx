@@ -62,6 +62,9 @@ jest.mock('@/lib/vdocipher', () => ({
 
 jest.mock('@/lib/vdocipher-playback', () => ({
   getVdoCipherOtpWithAccountFallback: jest.fn(),
+  getVdoCipherPlaybackWhitelistHref: jest.fn(({ requestHost }: { requestHost?: string | null }) =>
+    requestHost?.split(',')[0]?.trim()
+  ),
 }));
 
 jest.mock('@/lib/playback-browser-allowlist', () => ({
@@ -102,7 +105,10 @@ describe('watch page', () => {
     mockedGetServerSession.mockResolvedValue({
       user: { id: 'session-user-id', email: 'learner@example.test' },
     });
-    mockedHeaders.mockResolvedValue(new Headers({ 'user-agent': 'Chrome' }));
+    mockedHeaders.mockResolvedValue(new Headers({
+      host: 'elearning.vienphuongnam.com.vn',
+      'user-agent': 'Chrome',
+    }));
     mockedGetPlaybackBrowserGate.mockReturnValue({ allowed: true, browserName: 'Chrome' });
     mockedEvaluateMediaEntitlement.mockResolvedValue({
       allowed: true,
@@ -182,6 +188,12 @@ describe('watch page', () => {
     render(ui);
 
     expect(screen.getByTestId('watch-page-client')).toBeInTheDocument();
+    expect(mockedGetVdoCipherOtpWithAccountFallback).toHaveBeenCalledWith({
+      preferredAccountId: 'backup-5',
+      vdoCipherVideoId: 'vdo-id',
+      ttl: 300,
+      whitelisthref: 'elearning.vienphuongnam.com.vn',
+    });
     expect(mockedPrisma.video.update).toHaveBeenCalledWith({
       where: { id: 'local-video-id' },
       data: {

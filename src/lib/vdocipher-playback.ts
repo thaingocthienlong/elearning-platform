@@ -20,6 +20,11 @@ type OtpFallbackOptions = AccountFallbackOptions & {
   whitelisthref?: string;
 };
 
+type PlaybackWhitelistOptions = {
+  requestHost?: string | null;
+  env?: NodeJS.ProcessEnv;
+};
+
 export type VdoCipherAccountFallbackResult<T> = {
   accountId: string;
   attemptedAccountIds: string[];
@@ -35,24 +40,39 @@ function noConfiguredAccountsError() {
   return new Error('No configured VdoCipher account is available');
 }
 
-export function getVdoCipherPlaybackWhitelistHref(env: NodeJS.ProcessEnv = process.env) {
+function normalizeHostname(value?: string | null) {
+  const firstValue = value?.split(',')[0]?.trim();
+
+  if (!firstValue) {
+    return undefined;
+  }
+
+  const urlLikeValue = /^[a-z][a-z0-9+.-]*:\/\//i.test(firstValue)
+    ? firstValue
+    : `https://${firstValue}`;
+
+  try {
+    return new URL(urlLikeValue).hostname || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function getVdoCipherPlaybackWhitelistHref(options: PlaybackWhitelistOptions = {}) {
+  const env = options.env ?? process.env;
   const explicitWhitelist = env.VDOCIPHER_PLAYBACK_WHITELIST_HREF?.trim();
 
   if (explicitWhitelist) {
     return explicitWhitelist;
   }
 
-  const nextAuthUrl = env.NEXTAUTH_URL?.trim();
+  const requestHostname = normalizeHostname(options.requestHost);
 
-  if (!nextAuthUrl) {
-    return undefined;
+  if (requestHostname) {
+    return requestHostname;
   }
 
-  try {
-    return new URL(nextAuthUrl).hostname || undefined;
-  } catch {
-    return undefined;
-  }
+  return normalizeHostname(env.NEXTAUTH_URL);
 }
 
 export async function getVdoCipherOtpWithAccountFallback({
