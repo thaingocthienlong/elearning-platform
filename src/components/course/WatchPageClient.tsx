@@ -122,7 +122,9 @@ export default function WatchPageClient({
                                     <h1 className="mt-1 truncate text-[21px] font-semibold leading-[1.19]">{courseTitle}</h1>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    <Badge variant="secondary" className="rounded-full">DRM</Badge>
+                                    <Badge variant="secondary" className="rounded-full">
+                                        {provider === 'BUNNY_STREAM' ? 'Bunny Stream' : 'DRM'}
+                                    </Badge>
                                     <Badge variant="outline" className="rounded-full border-primary/30 text-primary">{t('watermarked')}</Badge>
                                     {viewLimit !== null && (
                                         <Badge variant="outline" className="rounded-full">

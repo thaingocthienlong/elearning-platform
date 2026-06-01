@@ -133,6 +133,8 @@ describe('WatchPageClient', () => {
         bunnyVideoId: 'video-abc',
       })
     );
+    expect(screen.getByText('Bunny Stream')).toBeInTheDocument();
+    expect(screen.queryByText('DRM')).not.toBeInTheDocument();
     expect(screen.queryByTestId('drm-player')).not.toBeInTheDocument();
     expect(screen.getByTestId('video-sidebar')).toBeInTheDocument();
     expect(screen.getByTestId('chat-log')).toBeInTheDocument();

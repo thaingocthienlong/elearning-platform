@@ -17,6 +17,7 @@ interface BunnyStreamPlayerProps {
 }
 
 const PLAYBACK_START_ERROR_MESSAGE = 'Unable to start secure playback.';
+const PLAYBACK_SETUP_ERROR_MESSAGE = 'Unable to initialize secure playback.';
 
 export default function BunnyStreamPlayer({
   videoId,
@@ -28,10 +29,12 @@ export default function BunnyStreamPlayer({
   onFullscreenChange,
 }: BunnyStreamPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [signedEmbedUrl, setSignedEmbedUrl] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
-  const { isBlocked } = useIframeHeartbeat({
+  const { isBlocked, playerError } = useIframeHeartbeat({
     videoId,
+    iframeRef,
     isActive: Boolean(signedEmbedUrl),
   });
   const { isIOS, isFakeFullscreen, toggleFakeFullscreen } = usePlayerFullscreen({
@@ -116,14 +119,24 @@ export default function BunnyStreamPlayer({
       data-bunny-video-id={bunnyVideoId}
     >
       {signedEmbedUrl ? (
-        <iframe
-          title="Secure Bunny Stream player"
-          src={signedEmbedUrl}
-          className="h-full w-full border-0"
-          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-          allowFullScreen
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
+        playerError ? (
+          <div className="flex h-full w-full items-center justify-center bg-black px-6 text-center text-white">
+            <div className="max-w-sm">
+              <p className="text-xl font-semibold">Playback unavailable</p>
+              <p className="mt-2 text-sm text-white/70">{PLAYBACK_SETUP_ERROR_MESSAGE}</p>
+            </div>
+          </div>
+        ) : (
+          <iframe
+            ref={iframeRef}
+            title="Secure Bunny Stream player"
+            src={signedEmbedUrl}
+            className="h-full w-full border-0"
+            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+            allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        )
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-gradient-to-b from-black via-black to-slate-950">
           <div className="flex flex-col items-center gap-4 px-6 text-center text-white">
@@ -155,7 +168,7 @@ export default function BunnyStreamPlayer({
         </div>
       )}
 
-      {signedEmbedUrl && isIOS && (
+      {signedEmbedUrl && !playerError && isIOS && (
         <button
           type="button"
           onClick={toggleFakeFullscreen}
