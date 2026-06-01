@@ -57,6 +57,9 @@ type UploadInitializationState =
   | 'UNCERTAIN'
   | 'ORPHANED';
 
+const PROVIDER_CLEANED_RESERVATION_DELETE_FAILED =
+  'PROVIDER_CLEANED_RESERVATION_DELETE_FAILED';
+
 function isPrismaUniqueConstraintError(error: unknown) {
   return (
     typeof error === 'object' &&
@@ -155,6 +158,116 @@ async function updateInitializationStateBestEffort(
   }
 }
 
+async function continueKnownProviderInitialization({
+  initializationId,
+  config,
+  courseId,
+  title,
+  collectionId,
+}: {
+  initializationId: string;
+  config: BunnyStreamConfig;
+  courseId: string;
+  title: string;
+  collectionId: string | null;
+}) {
+  let bunnyVideo;
+  try {
+    bunnyVideo = await createBunnyStreamVideo({
+      libraryId: config.libraryId,
+      apiKey: config.apiKey,
+      title,
+      collectionId,
+      timeoutMs: config.apiTimeoutMs,
+    });
+  } catch (error) {
+    await updateInitializationStateBestEffort(
+      initializationId,
+      'UNCERTAIN',
+      'PROVIDER_CREATE_OUTCOME_UNKNOWN'
+    );
+    throw error;
+  }
+
+  if (!bunnyVideo.guid) {
+    await updateInitializationStateBestEffort(
+      initializationId,
+      'UNCERTAIN',
+      'PROVIDER_CREATE_MISSING_VIDEO_ID'
+    );
+    return NextResponse.json(
+      { error: 'Bunny Stream did not return a video ID' },
+      { status: 502 }
+    );
+  }
+
+  try {
+    await prisma.bunnyUploadInitialization.update({
+      where: { id: initializationId },
+      data: { bunnyVideoId: bunnyVideo.guid },
+    });
+  } catch (error) {
+    await cleanupKnownProviderInitialization({
+      initializationId,
+      libraryId: config.libraryId,
+      bunnyVideoId: bunnyVideo.guid,
+      config,
+    });
+    throw error;
+  }
+
+  let video;
+  try {
+    video = await prisma.video.create({
+      data: {
+        title,
+        courseId,
+        provider: 'BUNNY_STREAM',
+        bunnyLibraryId: config.libraryId,
+        bunnyVideoId: bunnyVideo.guid,
+        bunnyCollectionId: collectionId,
+        bunnyStatus: 'CREATED',
+        published: false,
+      },
+    });
+  } catch (error) {
+    await cleanupKnownProviderInitialization({
+      initializationId,
+      libraryId: config.libraryId,
+      bunnyVideoId: bunnyVideo.guid,
+      config,
+    });
+    throw error;
+  }
+
+  try {
+    await prisma.bunnyUploadInitialization.update({
+      where: { id: initializationId },
+      data: {
+        localVideoId: video.id,
+        state: 'READY',
+        failureMarker: null,
+      },
+    });
+  } catch (error) {
+    await cleanupKnownProviderInitialization({
+      initializationId,
+      libraryId: config.libraryId,
+      bunnyVideoId: bunnyVideo.guid,
+      config,
+    });
+    throw error;
+  }
+
+  return NextResponse.json(
+    getTusCredentials(config, {
+      libraryId: config.libraryId,
+      bunnyVideoId: bunnyVideo.guid,
+      localVideoId: video.id,
+    })
+  );
+}
+
 async function cleanupKnownProviderInitialization({
   initializationId,
   libraryId,
@@ -222,11 +335,25 @@ async function cleanupKnownProviderInitialization({
       initializationId,
       ...getErrorMetadata(error),
     });
-    await updateInitializationStateBestEffort(
-      initializationId,
-      'UNCERTAIN',
-      'CLEANUP_SUCCEEDED_RESERVATION_DELETE_FAILED'
-    );
+    try {
+      await prisma.bunnyUploadInitialization.update({
+        where: { id: initializationId },
+        data: {
+          state: 'UNCERTAIN',
+          failureMarker: PROVIDER_CLEANED_RESERVATION_DELETE_FAILED,
+          bunnyLibraryId: libraryId,
+          bunnyVideoId: null,
+          localVideoId: null,
+        },
+      });
+    } catch (stateUpdateError) {
+      serverLog.warn('bunny_stream_initialization_state_update_failed', {
+        initializationId,
+        state: 'UNCERTAIN',
+        failureMarker: PROVIDER_CLEANED_RESERVATION_DELETE_FAILED,
+        ...getErrorMetadata(stateUpdateError),
+      });
+    }
     return false;
   }
 
@@ -438,6 +565,7 @@ export async function POST(req: Request) {
           bunnyLibraryId: true,
           bunnyVideoId: true,
           localVideoId: true,
+          failureMarker: true,
         },
       });
 
@@ -461,6 +589,46 @@ export async function POST(req: Request) {
             localVideoId: existing.localVideoId,
           })
         );
+      }
+
+      if (
+        existing.state === 'UNCERTAIN' &&
+        existing.failureMarker ===
+          PROVIDER_CLEANED_RESERVATION_DELETE_FAILED &&
+        !existing.bunnyVideoId &&
+        !existing.localVideoId
+      ) {
+        const claimResult = await prisma.bunnyUploadInitialization.updateMany({
+          where: {
+            id: existing.id,
+            state: 'UNCERTAIN',
+            failureMarker: PROVIDER_CLEANED_RESERVATION_DELETE_FAILED,
+            bunnyVideoId: null,
+            localVideoId: null,
+          },
+          data: {
+            state: 'INITIALIZING',
+            failureMarker: null,
+          },
+        });
+
+        if (!claimResult.count) {
+          return NextResponse.json(
+            {
+              error:
+                'Upload initialization is already being recovered; retry upload initialization',
+            },
+            { status: 409 }
+          );
+        }
+
+        return await continueKnownProviderInitialization({
+          initializationId: existing.id,
+          config,
+          courseId,
+          title,
+          collectionId: resolvedCollectionId,
+        });
       }
 
       if (existing.state === 'INITIALIZING') {
@@ -596,101 +764,13 @@ export async function POST(req: Request) {
       );
     }
 
-    let bunnyVideo;
-    try {
-      bunnyVideo = await createBunnyStreamVideo({
-        libraryId: config.libraryId,
-        apiKey: config.apiKey,
-        title,
-        collectionId: resolvedCollectionId,
-        timeoutMs: config.apiTimeoutMs,
-      });
-    } catch (error) {
-      await updateInitializationStateBestEffort(
-        initialization.id,
-        'UNCERTAIN',
-        'PROVIDER_CREATE_OUTCOME_UNKNOWN'
-      );
-      throw error;
-    }
-
-    if (!bunnyVideo.guid) {
-      await updateInitializationStateBestEffort(
-        initialization.id,
-        'UNCERTAIN',
-        'PROVIDER_CREATE_MISSING_VIDEO_ID'
-      );
-      return NextResponse.json(
-        { error: 'Bunny Stream did not return a video ID' },
-        { status: 502 }
-      );
-    }
-
-    try {
-      await prisma.bunnyUploadInitialization.update({
-        where: { id: initialization.id },
-        data: { bunnyVideoId: bunnyVideo.guid },
-      });
-    } catch (error) {
-      await cleanupKnownProviderInitialization({
-        initializationId: initialization.id,
-        libraryId: config.libraryId,
-        bunnyVideoId: bunnyVideo.guid,
-        config,
-      });
-      throw error;
-    }
-
-    let video;
-    try {
-      video = await prisma.video.create({
-        data: {
-          title,
-          courseId,
-          provider: 'BUNNY_STREAM',
-          bunnyLibraryId: config.libraryId,
-          bunnyVideoId: bunnyVideo.guid,
-          bunnyCollectionId: resolvedCollectionId,
-          bunnyStatus: 'CREATED',
-          published: false,
-        },
-      });
-    } catch (error) {
-      await cleanupKnownProviderInitialization({
-        initializationId: initialization.id,
-        libraryId: config.libraryId,
-        bunnyVideoId: bunnyVideo.guid,
-        config,
-      });
-      throw error;
-    }
-
-    try {
-      await prisma.bunnyUploadInitialization.update({
-        where: { id: initialization.id },
-        data: {
-          localVideoId: video.id,
-          state: 'READY',
-          failureMarker: null,
-        },
-      });
-    } catch (error) {
-      await cleanupKnownProviderInitialization({
-        initializationId: initialization.id,
-        libraryId: config.libraryId,
-        bunnyVideoId: bunnyVideo.guid,
-        config,
-      });
-      throw error;
-    }
-
-    return NextResponse.json(
-      getTusCredentials(config, {
-        libraryId: config.libraryId,
-        bunnyVideoId: bunnyVideo.guid,
-        localVideoId: video.id,
-      })
-    );
+    return await continueKnownProviderInitialization({
+      initializationId: initialization.id,
+      config,
+      courseId,
+      title,
+      collectionId: resolvedCollectionId,
+    });
   } catch (error) {
     serverLog.error(
       'bunny_stream_upload_credentials_failed',

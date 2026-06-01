@@ -530,6 +530,88 @@ describe('Bunny Stream upload credentials route', () => {
     expect(mockedPrisma.video.create).not.toHaveBeenCalled();
   });
 
+  test('reclaims cleaned INITIALIZING reservation and resumes initialization on retry', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.course.findUnique.mockResolvedValue({
+      id: '507f1f77bcf86cd799439011',
+      isDeleted: false,
+    });
+    mockedPrisma.video.findFirst.mockResolvedValue(null);
+
+    mockExistingInitialization('INITIALIZING', {
+      bunnyVideoId: 'initializing-bunny-video-guid',
+    });
+    mockedDeleteBunnyVideo.mockResolvedValue(undefined);
+    mockedPrisma.bunnyUploadInitialization.delete.mockRejectedValueOnce(
+      Object.assign(new Error('reservation delete failed'), { code: 'P5000' })
+    );
+
+    const firstResponse = await uploadCredentialsPost(
+      jsonRequest('/api/bunny-stream/upload-credentials', validUploadBody)
+    );
+
+    await expect(firstResponse.json()).resolves.toEqual({
+      error: 'Upload initialization requires provider cleanup before retry',
+    });
+    expect(firstResponse.status).toBe(502);
+    expect(mockedPrisma.bunnyUploadInitialization.update).toHaveBeenCalledWith({
+      where: { id: 'existing-initialization-id' },
+      data: {
+        state: 'UNCERTAIN',
+        failureMarker: 'PROVIDER_CLEANED_RESERVATION_DELETE_FAILED',
+        bunnyLibraryId: '123456',
+        bunnyVideoId: null,
+        localVideoId: null,
+      },
+    });
+
+    mockExistingInitialization('UNCERTAIN', {
+      bunnyVideoId: null,
+      localVideoId: null,
+      failureMarker: 'PROVIDER_CLEANED_RESERVATION_DELETE_FAILED',
+    });
+    mockedPrisma.bunnyUploadInitialization.updateMany.mockResolvedValueOnce({
+      count: 1,
+    });
+    mockedCreateBunnyVideo.mockResolvedValueOnce({
+      guid: 'fresh-bunny-video-guid',
+    });
+    mockedPrisma.video.create.mockResolvedValueOnce({
+      id: 'fresh-local-video-id',
+    });
+
+    const secondResponse = await uploadCredentialsPost(
+      jsonRequest('/api/bunny-stream/upload-credentials', validUploadBody)
+    );
+
+    await expect(secondResponse.json()).resolves.toEqual({
+      uploadEndpoint: 'https://video.bunnycdn.com/tusupload',
+      libraryId: '123456',
+      videoId: 'fresh-bunny-video-guid',
+      authorizationExpire: expect.any(Number),
+      authorizationSignature: expect.any(String),
+      localVideoId: 'fresh-local-video-id',
+    });
+    expect(secondResponse.status).toBe(200);
+    expect(mockedDeleteBunnyVideo).toHaveBeenCalledTimes(1);
+    expect(mockedPrisma.bunnyUploadInitialization.updateMany).toHaveBeenCalledWith(
+      {
+        where: {
+          id: 'existing-initialization-id',
+          state: 'UNCERTAIN',
+          failureMarker: 'PROVIDER_CLEANED_RESERVATION_DELETE_FAILED',
+          bunnyVideoId: null,
+          localVideoId: null,
+        },
+        data: {
+          state: 'INITIALIZING',
+          failureMarker: null,
+        },
+      }
+    );
+    expect(mockedCreateBunnyVideo).toHaveBeenCalledTimes(1);
+  });
+
   test('blocks recent INITIALIZING retry without provider handle', async () => {
     mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
     mockedPrisma.course.findUnique.mockResolvedValue({
