@@ -27,6 +27,8 @@ const uploadSchema = z.object({
   contentType: z.string().regex(/^video\//),
   courseId: z.string().regex(/^[a-f0-9]{24}$/i, 'Invalid course ID format'),
   title: z.string().min(1).max(255),
+  fileSize: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  fileLastModified: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   collectionId: z.string().min(1).max(128).optional(),
 });
 
@@ -78,6 +80,8 @@ function getPayloadFingerprint(payload: {
   contentType: string;
   courseId: string;
   title: string;
+  fileSize: number;
+  fileLastModified: number;
   bunnyLibraryId: string;
   bunnyCollectionId: string | null;
 }) {
@@ -370,6 +374,8 @@ export async function POST(req: Request) {
       contentType,
       courseId,
       title,
+      fileSize,
+      fileLastModified,
       collectionId,
     } = parsed.data;
     const resolvedCollectionId = collectionId ?? config.defaultCollectionId;
@@ -397,6 +403,8 @@ export async function POST(req: Request) {
       contentType,
       courseId,
       title,
+      fileSize,
+      fileLastModified,
       bunnyLibraryId: config.libraryId,
       bunnyCollectionId: resolvedCollectionId,
     });

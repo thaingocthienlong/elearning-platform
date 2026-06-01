@@ -97,7 +97,30 @@ const validUploadBody = {
   contentType: 'video/mp4',
   courseId: '507f1f77bcf86cd799439011',
   title: 'Lesson',
+  fileSize: 123456,
+  fileLastModified: 1717000000000,
 };
+
+function getUploadPayloadFingerprint(
+  body: typeof validUploadBody,
+  bunnyCollectionId: string | null = null
+) {
+  return crypto
+    .createHash('sha256')
+    .update(
+      JSON.stringify({
+        filename: body.filename,
+        contentType: body.contentType,
+        courseId: body.courseId,
+        title: body.title,
+        fileSize: body.fileSize,
+        fileLastModified: body.fileLastModified,
+        bunnyLibraryId: '123456',
+        bunnyCollectionId,
+      })
+    )
+    .digest('hex');
+}
 
 function mockExistingInitialization(
   state: 'INITIALIZING' | 'READY' | 'UNCERTAIN' | 'ORPHANED',
@@ -387,20 +410,23 @@ describe('Bunny Stream upload credentials route', () => {
     expect(mockedPrisma.video.create).not.toHaveBeenCalled();
   });
 
-  test('rejects uploadRequestId reuse with different effective payload', async () => {
+  test('rejects uploadRequestId reuse when file payload changes', async () => {
     mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
     mockedPrisma.course.findUnique.mockResolvedValue({
       id: '507f1f77bcf86cd799439011',
       isDeleted: false,
     });
     mockExistingInitialization('READY', {
-      payloadFingerprint: 'different-fingerprint',
+      payloadFingerprint: getUploadPayloadFingerprint(validUploadBody),
       bunnyVideoId: 'existing-bunny-video-guid',
       localVideoId: 'existing-local-video-id',
     });
 
     const response = await uploadCredentialsPost(
-      jsonRequest('/api/bunny-stream/upload-credentials', validUploadBody)
+      jsonRequest('/api/bunny-stream/upload-credentials', {
+        ...validUploadBody,
+        fileSize: validUploadBody.fileSize + 1,
+      })
     );
 
     await expect(response.json()).resolves.toEqual({

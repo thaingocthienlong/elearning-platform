@@ -72,6 +72,8 @@ type BunnyUploadIntent = {
   contentType: string;
   courseId: string;
   title: string;
+  fileSize: number;
+  fileLastModified: number;
   collectionId?: string;
 };
 
@@ -93,6 +95,8 @@ function getCanonicalUploadIntent(
     contentType,
     courseId,
     title: effectiveTitle,
+    fileSize: file.size,
+    fileLastModified: file.lastModified,
     ...(collectionId ? { collectionId } : {}),
   };
 }
@@ -341,6 +345,8 @@ export default function AdminVideosPage() {
           contentType,
           title: effectiveTitle,
           courseId: selectedCourseId,
+          fileSize: file.size,
+          fileLastModified: file.lastModified,
           uploadRequestId,
         }),
       });
