@@ -68,8 +68,7 @@ type BunnyUploadCredentials = {
 };
 
 type UploadSession = {
-  fingerprint: string;
-  requestId: string;
+  requestIdByFingerprint: Map<string, string>;
 };
 
 function createUploadRequestId() {
@@ -84,6 +83,14 @@ function createUploadRequestId() {
 
 function getFileFingerprint(file: File) {
   return `${file.name}:${file.size}:${file.lastModified}:${file.type}`;
+}
+
+function getUploadIntentFingerprint(
+  file: File,
+  courseId: string,
+  title: string
+) {
+  return `${getFileFingerprint(file)}:${courseId}:${title.trim()}`;
 }
 
 function getBunnyStatusBadge(status: string | null) {
@@ -196,19 +203,29 @@ export default function AdminVideosPage() {
     setUploading(false);
   }, [stopActiveUpload]);
 
-  const ensureUploadSession = useCallback((selectedFile: File) => {
-    const fingerprint = getFileFingerprint(selectedFile);
-    const existing = uploadSessionRef.current;
+  const ensureUploadSession = useCallback(
+    (selectedFile: File, courseId: string, titleValue: string) => {
+      const fingerprint = getUploadIntentFingerprint(
+        selectedFile,
+        courseId,
+        titleValue
+      );
+      const existing = uploadSessionRef.current;
 
-    if (!existing || existing.fingerprint !== fingerprint) {
-      uploadSessionRef.current = {
-        fingerprint,
-        requestId: createUploadRequestId(),
-      };
-    }
+      if (!existing) {
+        uploadSessionRef.current = {
+          requestIdByFingerprint: new Map([
+            [fingerprint, createUploadRequestId()],
+          ]),
+        };
+      } else if (!existing.requestIdByFingerprint.has(fingerprint)) {
+        existing.requestIdByFingerprint.set(fingerprint, createUploadRequestId());
+      }
 
-    return uploadSessionRef.current!.requestId;
-  }, []);
+      return uploadSessionRef.current!.requestIdByFingerprint.get(fingerprint)!;
+    },
+    []
+  );
 
   const handleUploadDialogOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -233,9 +250,9 @@ export default function AdminVideosPage() {
         return;
       }
 
-      ensureUploadSession(nextFile);
+      ensureUploadSession(nextFile, selectedCourseId, title);
     },
-    [ensureUploadSession]
+    [ensureUploadSession, selectedCourseId, title]
   );
 
   const handleAxinomSync = async (videoId: string) => {
@@ -312,7 +329,11 @@ export default function AdminVideosPage() {
 
     if (!file || !selectedCourseId || uploading) return;
 
-    const uploadRequestId = ensureUploadSession(file);
+    const uploadRequestId = ensureUploadSession(
+      file,
+      selectedCourseId,
+      title
+    );
     const contentType = file.type.startsWith('video/') ? file.type : 'video/mp4';
 
     setUploading(true);

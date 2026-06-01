@@ -84,6 +84,13 @@ function getPayloadFingerprint(payload: {
   return createHash('sha256').update(JSON.stringify(payload)).digest('hex');
 }
 
+function isRecentInitialization(updatedAt: string | Date | null | undefined) {
+  if (!updatedAt) return false;
+
+  const ageMs = Date.now() - new Date(updatedAt).getTime();
+  return Number.isFinite(ageMs) && ageMs <= STALE_INITIALIZATION_TTL_MS;
+}
+
 function getTusCredentials(
   config: BunnyStreamConfig,
   upload: { libraryId: string; bunnyVideoId: string; localVideoId: string }
@@ -419,6 +426,7 @@ export async function POST(req: Request) {
           id: true,
           payloadFingerprint: true,
           state: true,
+          updatedAt: true,
           bunnyLibraryId: true,
           bunnyVideoId: true,
           localVideoId: true,
@@ -444,6 +452,69 @@ export async function POST(req: Request) {
             bunnyVideoId: existing.bunnyVideoId,
             localVideoId: existing.localVideoId,
           })
+        );
+      }
+
+      if (existing.state === 'INITIALIZING') {
+        if (existing.bunnyVideoId) {
+          const recoveredLocalVideoId = await recoverKnownProviderInitialization({
+            initializationId: existing.id,
+            libraryId: existing.bunnyLibraryId,
+            bunnyVideoId: existing.bunnyVideoId,
+          });
+
+          if (recoveredLocalVideoId) {
+            return NextResponse.json(
+              getTusCredentials(config, {
+                libraryId: existing.bunnyLibraryId,
+                bunnyVideoId: existing.bunnyVideoId,
+                localVideoId: recoveredLocalVideoId,
+              })
+            );
+          }
+
+          const cleanupSucceeded = await cleanupKnownProviderInitialization({
+            initializationId: existing.id,
+            libraryId: existing.bunnyLibraryId,
+            bunnyVideoId: existing.bunnyVideoId,
+            config,
+          });
+
+          if (!cleanupSucceeded) {
+            return NextResponse.json(
+              {
+                error:
+                  'Upload initialization requires provider cleanup before retry',
+              },
+              { status: 502 }
+            );
+          }
+
+          return NextResponse.json(
+            {
+              error:
+                'Previous upload initialization was cleaned up; retry upload initialization',
+            },
+            { status: 409 }
+          );
+        }
+
+        if (existing.localVideoId) {
+          return NextResponse.json(
+            {
+              error: 'Upload initialization requires reconciliation before retry',
+            },
+            { status: 409 }
+          );
+        }
+
+        return NextResponse.json(
+          {
+            error: isRecentInitialization(existing.updatedAt)
+              ? 'Upload initialization is already in progress'
+              : 'Upload initialization requires reconciliation before retry',
+          },
+          { status: 409 }
         );
       }
 
