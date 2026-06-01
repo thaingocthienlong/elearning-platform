@@ -1,15 +1,19 @@
 /**
  * @jest-environment node
  */
+import crypto from 'node:crypto';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import {
   BunnyStreamApiError,
   createBunnyStreamVideo,
   deleteBunnyStreamVideo,
+  getBunnyStreamVideo,
 } from '@/lib/bunny-stream/client';
 import { serverLog } from '@/lib/server-log';
 import { POST as uploadCredentialsPost } from '@/app/api/bunny-stream/upload-credentials/route';
+import { POST as bunnyWebhookPost } from '@/app/api/webhook/bunny-stream/route';
+import { POST as bunnyManualSyncPost } from '@/app/api/video/bunny-stream/sync/route';
 
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('next/server', () => {
@@ -62,6 +66,7 @@ jest.mock('@/lib/server-log', () => ({
 const mockedSession = getServerSession as jest.Mock;
 const mockedCreateBunnyVideo = createBunnyStreamVideo as jest.Mock;
 const mockedDeleteBunnyVideo = deleteBunnyStreamVideo as jest.Mock;
+const mockedGetBunnyVideo = getBunnyStreamVideo as jest.Mock;
 const mockedServerLog = serverLog as unknown as {
   error: jest.Mock;
   info: jest.Mock;
@@ -124,6 +129,28 @@ function jsonRequest(path: string, body: unknown) {
   });
 }
 
+function signedWebhookRequest(
+  body: Record<string, unknown>,
+  signature?: string
+) {
+  const rawBody = JSON.stringify(body);
+  const digest = crypto
+    .createHmac('sha256', process.env.BUNNY_STREAM_READ_ONLY_API_KEY || 'read-only')
+    .update(rawBody, 'utf8')
+    .digest('hex');
+
+  return new Request('http://localhost.test/api/webhook/bunny-stream', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-BunnyStream-Signature-Version': 'v1',
+      'X-BunnyStream-Signature-Algorithm': 'hmac-sha256',
+      'X-BunnyStream-Signature': signature ?? digest,
+    },
+    body: rawBody,
+  });
+}
+
 function invalidJsonRequest(path: string) {
   return new Request(`http://localhost.test${path}`, {
     method: 'POST',
@@ -162,6 +189,7 @@ describe('Bunny Stream upload credentials route', () => {
     });
     mockedPrisma.video.delete.mockResolvedValue({ id: 'local-video-id' });
     mockedPrisma.video.findFirst.mockResolvedValue(null);
+    mockedGetBunnyVideo.mockReset();
   });
 
   test('requires an authenticated session', async () => {
@@ -1090,5 +1118,225 @@ describe('Bunny Stream upload credentials route', () => {
       },
     });
     expect(mockedCreateBunnyVideo).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Bunny Stream webhook and manual sync routes', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.BUNNY_STREAM_LIBRARY_ID = '123456';
+    process.env.BUNNY_STREAM_API_KEY = 'api-key';
+    process.env.BUNNY_STREAM_READ_ONLY_API_KEY = 'read-only';
+    process.env.BUNNY_STREAM_TOKEN_SECURITY_KEY = 'token-key';
+    process.env.BUNNY_STREAM_TUS_EXPIRE_SECONDS = '86400';
+    process.env.BUNNY_STREAM_API_TIMEOUT_MS = '15000';
+    mockedPrisma.video.findFirst.mockResolvedValue(null);
+    mockedPrisma.video.update.mockResolvedValue({ id: 'video-id' });
+    mockedGetBunnyVideo.mockReset();
+  });
+
+  test('rejects invalid webhook signature with 401 and no update', async () => {
+    mockedPrisma.video.findFirst.mockResolvedValue({
+      id: 'video-id',
+      bunnyStatus: 'PROCESSING',
+    });
+
+    const response = await bunnyWebhookPost(
+      signedWebhookRequest(
+        {
+          VideoLibraryId: 123456,
+          VideoGuid: 'bunny-video-guid',
+          Status: 3,
+        },
+        'bad-signature'
+      )
+    );
+
+    expect(response.status).toBe(401);
+    expect(mockedPrisma.video.update).not.toHaveBeenCalled();
+    expect(mockedGetBunnyVideo).not.toHaveBeenCalled();
+  });
+
+  test('valid signed webhook updates metadata and status', async () => {
+    mockedPrisma.video.findFirst.mockResolvedValue({
+      id: 'video-id',
+      bunnyStatus: 'PROCESSING',
+    });
+    mockedGetBunnyVideo.mockResolvedValue({
+      guid: 'bunny-video-guid',
+      status: 3,
+      encodeProgress: 99,
+      availableResolutions: '1080p,720p',
+      thumbnailFileName: 'thumb.jpg',
+    });
+
+    const response = await bunnyWebhookPost(
+      signedWebhookRequest({
+        VideoLibraryId: 123456,
+        VideoGuid: 'bunny-video-guid',
+        Status: 3,
+      })
+    );
+
+    await expect(response.json()).resolves.toEqual({
+      success: true,
+      matched: true,
+      status: 'READY',
+    });
+    expect(response.status).toBe(200);
+    expect(mockedGetBunnyVideo).toHaveBeenCalledWith({
+      libraryId: '123456',
+      apiKey: 'api-key',
+      videoId: 'bunny-video-guid',
+      timeoutMs: 15000,
+    });
+    expect(mockedPrisma.video.update).toHaveBeenCalledWith({
+      where: { id: 'video-id' },
+      data: expect.objectContaining({
+        bunnyStatus: 'READY',
+        bunnyEncodeProgress: 99,
+        bunnyAvailableRes: '1080p,720p',
+        bunnyThumbnailUrl: 'thumb.jpg',
+        bunnyError: null,
+        bunnySyncedAt: expect.any(Date),
+      }),
+    });
+  });
+
+  test('malformed webhook payload is rejected safely', async () => {
+    const rawBody = '{"VideoLibraryId":123456,"VideoGuid":';
+    const signature = crypto
+      .createHmac('sha256', process.env.BUNNY_STREAM_READ_ONLY_API_KEY || 'read-only')
+      .update(rawBody, 'utf8')
+      .digest('hex');
+
+    const response = await bunnyWebhookPost(
+      new Request('http://localhost.test/api/webhook/bunny-stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-BunnyStream-Signature-Version': 'v1',
+          'X-BunnyStream-Signature-Algorithm': 'hmac-sha256',
+          'X-BunnyStream-Signature': signature,
+        },
+        body: rawBody,
+      })
+    );
+
+    await expect(response.json()).resolves.toEqual({ error: 'Invalid payload' });
+    expect(response.status).toBe(400);
+    expect(mockedPrisma.video.update).not.toHaveBeenCalled();
+  });
+
+  test('unmatched webhook returns matched false without updating', async () => {
+    const response = await bunnyWebhookPost(
+      signedWebhookRequest({
+        VideoLibraryId: 123456,
+        VideoGuid: 'missing-video-guid',
+        Status: 3,
+      })
+    );
+
+    await expect(response.json()).resolves.toEqual({
+      success: true,
+      matched: false,
+    });
+    expect(response.status).toBe(200);
+    expect(mockedPrisma.video.update).not.toHaveBeenCalled();
+    expect(mockedGetBunnyVideo).not.toHaveBeenCalled();
+  });
+
+  test('manual sync requires session and admin role', async () => {
+    mockedSession.mockResolvedValue(null);
+
+    const unauthenticated = await bunnyManualSyncPost(
+      jsonRequest('/api/video/bunny-stream/sync', { videoId: '507f1f77bcf86cd799439011' })
+    );
+
+    mockedSession.mockResolvedValue({ user: { id: 'user-1', role: 'USER' } });
+
+    const forbidden = await bunnyManualSyncPost(
+      jsonRequest('/api/video/bunny-stream/sync', { videoId: '507f1f77bcf86cd799439011' })
+    );
+
+    expect(unauthenticated.status).toBe(401);
+    expect(forbidden.status).toBe(403);
+    expect(mockedGetBunnyVideo).not.toHaveBeenCalled();
+  });
+
+  test('manual sync rejects malformed body with 400', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+
+    const response = await bunnyManualSyncPost(
+      jsonRequest('/api/video/bunny-stream/sync', { videoId: 'not-an-object-id' })
+    );
+
+    await expect(response.json()).resolves.toEqual({ error: 'Invalid payload' });
+    expect(response.status).toBe(400);
+    expect(mockedGetBunnyVideo).not.toHaveBeenCalled();
+  });
+
+  test('manual sync updates stored Bunny metadata', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.video.findFirst.mockResolvedValue({
+      id: '507f1f77bcf86cd799439011',
+      bunnyLibraryId: '123456',
+      bunnyVideoId: 'bunny-video-guid',
+      bunnyStatus: 'PROCESSING',
+    });
+    mockedGetBunnyVideo.mockResolvedValue({
+      guid: 'bunny-video-guid',
+      status: 3,
+      encodeProgress: 87,
+      availableResolutions: '1080p',
+      thumbnailFileName: 'thumb.jpg',
+    });
+
+    const response = await bunnyManualSyncPost(
+      jsonRequest('/api/video/bunny-stream/sync', { videoId: '507f1f77bcf86cd799439011' })
+    );
+
+    await expect(response.json()).resolves.toEqual({
+      success: true,
+      status: 'READY',
+    });
+    expect(response.status).toBe(200);
+    expect(mockedPrisma.video.update).toHaveBeenCalledWith({
+      where: { id: '507f1f77bcf86cd799439011' },
+      data: expect.objectContaining({
+        bunnyStatus: 'READY',
+        bunnyEncodeProgress: 87,
+        bunnyAvailableRes: '1080p',
+        bunnyThumbnailUrl: 'thumb.jpg',
+        bunnyError: null,
+        bunnySyncedAt: expect.any(Date),
+      }),
+    });
+  });
+
+  test('provider failure returns safe 502 without logging raw error text', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.video.findFirst.mockResolvedValue({
+      id: '507f1f77bcf86cd799439011',
+      bunnyLibraryId: '123456',
+      bunnyVideoId: 'bunny-video-guid',
+      bunnyStatus: 'PROCESSING',
+    });
+    mockedGetBunnyVideo.mockRejectedValue(
+      new BunnyStreamApiError('raw provider secret: token', 503)
+    );
+
+    const response = await bunnyManualSyncPost(
+      jsonRequest('/api/video/bunny-stream/sync', { videoId: '507f1f77bcf86cd799439011' })
+    );
+
+    await expect(response.json()).resolves.toEqual({
+      error: 'Failed to sync Bunny Stream video',
+    });
+    expect(response.status).toBe(502);
+    expect(mockedPrisma.video.update).not.toHaveBeenCalled();
+    expect(JSON.stringify(mockedServerLog.error.mock.calls.at(0)?.[1] ?? {})).not.toContain(
+      'raw provider secret: token'
+    );
   });
 });
