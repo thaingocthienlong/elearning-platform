@@ -1386,7 +1386,7 @@ describe('Bunny Stream webhook and manual sync routes', () => {
     );
 
     await expect(response.json()).resolves.toEqual({
-      error: 'Webhook processing failed',
+      error: 'Failed to sync Bunny Stream video',
     });
     expect(response.status).toBe(502);
     expect(mockedPrisma.video.update).not.toHaveBeenCalled();
