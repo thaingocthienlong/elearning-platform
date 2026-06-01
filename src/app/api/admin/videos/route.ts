@@ -19,6 +19,7 @@ export async function GET() {
                 createdAt: true,
                 published: true,
                 description: true,
+                provider: true,
                 dashUrl: true,
                 hlsUrl: true,
                 hlsUrlClear: true,
@@ -27,6 +28,15 @@ export async function GET() {
                 axinomEncodingStatus: true,
                 axinomOutputLocation: true,
                 axinomSyncedAt: true,
+                bunnyLibraryId: true,
+                bunnyVideoId: true,
+                bunnyCollectionId: true,
+                bunnyStatus: true,
+                bunnyEncodeProgress: true,
+                bunnyAvailableRes: true,
+                bunnyThumbnailUrl: true,
+                bunnySyncedAt: true,
+                bunnyError: true,
             }
         });
 
