@@ -377,6 +377,34 @@ describe('Bunny Stream upload credentials route', () => {
     expect(JSON.stringify(body)).not.toContain('api-key');
   });
 
+  test('accepts real-world unicode and punctuation filenames before creating provider video', async () => {
+    mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mockedPrisma.course.findUnique.mockResolvedValue({
+      id: '507f1f77bcf86cd799439011',
+      isDeleted: false,
+    });
+    mockedCreateBunnyVideo.mockResolvedValue({ guid: 'bunny-video-guid' });
+    mockedPrisma.video.create.mockResolvedValue({ id: 'local-video-id' });
+
+    const response = await uploadCredentialsPost(
+      jsonRequest(
+        '/api/bunny-stream/upload-credentials',
+        createUploadBody({
+          filename: 'Bài học 01 (HD) [final].mp4',
+        })
+      )
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedPrisma.bunnyUploadInitialization.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          filename: 'Bài học 01 (HD) [final].mp4',
+        }),
+      })
+    );
+  });
+
   test('reuses ready initialization and does not create second provider video', async () => {
     mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
     mockedPrisma.course.findUnique.mockResolvedValue({

@@ -23,7 +23,10 @@ const uploadSchema = z.object({
     .string()
     .min(1)
     .max(255)
-    .regex(/^[\w\-. ]+$/),
+    .refine(
+      (value) => !/[\\/\u0000-\u001F\u007F]/.test(value),
+      'Filename cannot contain path separators or control characters'
+    ),
   contentType: z.string().regex(/^video\//),
   courseId: z.string().regex(/^[a-f0-9]{24}$/i, 'Invalid course ID format'),
   title: z.string().min(1).max(255),

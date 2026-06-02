@@ -60,7 +60,7 @@ interface WatchPageClientProps {
     hlsUrl: string | null;
     hlsUrlClear: string | null;
     isFairPlayConfigured: boolean;
-    provider?: 'AXINOM' | 'BUNNY_STREAM' | null;
+    provider?: 'AXINOM' | 'VDOCIPHER' | 'BUNNY_STREAM' | null;
     bunnyPlayback?: BunnyStreamPlayback | null;
     chatLog?: ChatLogEntry[] | null;
 }

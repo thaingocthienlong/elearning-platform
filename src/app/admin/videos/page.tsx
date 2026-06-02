@@ -30,7 +30,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-type VideoProvider = 'AXINOM' | 'BUNNY_STREAM';
+type VideoProvider = 'AXINOM' | 'VDOCIPHER' | 'BUNNY_STREAM';
 
 type Video = {
   id: string;

@@ -39,7 +39,7 @@ export type MediaEntitlementAllowed = {
   video: {
     id: string;
     courseId: string;
-    provider?: 'AXINOM' | 'BUNNY_STREAM' | null;
+    provider?: 'AXINOM' | 'VDOCIPHER' | 'BUNNY_STREAM' | null;
     drmKeyId?: string | null;
     hlsUrl?: string | null;
     dashUrl?: string | null;

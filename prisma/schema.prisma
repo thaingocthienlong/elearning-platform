@@ -341,6 +341,7 @@ enum CourseAccessType {
 
 enum VideoProvider {
   AXINOM
+  VDOCIPHER
   BUNNY_STREAM
 }
 
