@@ -5,6 +5,7 @@ import { Loader2, Maximize, Minimize, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIframeHeartbeat } from '@/hooks/player/useIframeHeartbeat';
 import { usePlayerFullscreen } from '@/hooks/player/usePlayerFullscreen';
+import Watermark from './Watermark';
 
 interface BunnyStreamPlayerProps {
   videoId: string;
@@ -132,8 +133,7 @@ export default function BunnyStreamPlayer({
             title="Secure Bunny Stream player"
             src={signedEmbedUrl}
             className="h-full w-full border-0"
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-            allowFullScreen
+            allow="autoplay; encrypted-media"
             referrerPolicy="strict-origin-when-cross-origin"
           />
         )
@@ -157,9 +157,12 @@ export default function BunnyStreamPlayer({
       )}
 
       {watermarkText && (
-        <div className="pointer-events-none absolute bottom-4 left-4 z-10 rounded-full bg-black/60 px-3 py-1 text-xs text-white/90 backdrop-blur-sm">
-          {watermarkText}
-        </div>
+        <Watermark
+          text={watermarkText}
+          containerId={containerId}
+          forceFullscreenMode={isFakeFullscreen}
+          isIOS={isIOS}
+        />
       )}
 
       {viewLimit !== null && (
@@ -168,7 +171,7 @@ export default function BunnyStreamPlayer({
         </div>
       )}
 
-      {signedEmbedUrl && !playerError && isIOS && (
+      {signedEmbedUrl && !playerError && (
         <button
           type="button"
           onClick={toggleFakeFullscreen}

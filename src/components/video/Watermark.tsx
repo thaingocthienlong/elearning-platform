@@ -10,6 +10,10 @@ interface WatermarkProps {
     isIOS?: boolean; // Optional: detect iOS device
 }
 
+type FullscreenDocument = Document & {
+    webkitFullscreenElement?: Element | null;
+};
+
 // Safe area aware positions
 const positions = [
     { top: 'max(5%, env(safe-area-inset-top) + 20px)', left: 'max(5%, env(safe-area-inset-left) + 20px)' },
@@ -86,7 +90,8 @@ export default function Watermark({ text, containerId, aggressiveMode = false, f
 
         // Detect fullscreen mode
         const checkFullscreen = () => {
-            const isInFullscreen = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+            const fullscreenDocument = document as FullscreenDocument;
+            const isInFullscreen = !!(fullscreenDocument.fullscreenElement || fullscreenDocument.webkitFullscreenElement);
             setIsFullscreen(isInFullscreen);
         };
 
@@ -120,17 +125,17 @@ export default function Watermark({ text, containerId, aggressiveMode = false, f
             const container = document.getElementById(containerId);
             if (!container) return;
 
-            const video = container.querySelector('video');
-            if (!video) return;
+            const media = container.querySelector('video, iframe');
+            if (!media) return;
 
             const containerWidth = container.clientWidth;
             const containerHeight = container.clientHeight;
 
             // Calculate video display area
-            let vRect = { width: containerWidth, height: containerHeight, left: 0, top: 0 };
+            const vRect = { width: containerWidth, height: containerHeight, left: 0, top: 0 };
 
-            if (video.videoWidth && video.videoHeight) {
-                const videoRatio = video.videoWidth / video.videoHeight;
+            if (media instanceof HTMLVideoElement && media.videoWidth && media.videoHeight) {
+                const videoRatio = media.videoWidth / media.videoHeight;
                 const containerRatio = containerWidth / containerHeight;
 
                 let renderWidth = containerWidth;
@@ -194,9 +199,13 @@ export default function Watermark({ text, containerId, aggressiveMode = false, f
 
             // Listen for video events if possible (need to find video element again or assume it's stable)
             const video = container.querySelector('video');
+            const iframe = container.querySelector('iframe');
             if (video) {
                 video.addEventListener('loadedmetadata', updateLayout);
                 video.addEventListener('resize', updateLayout);
+            }
+            if (iframe) {
+                iframe.addEventListener('load', updateLayout);
             }
 
             return () => {
@@ -207,6 +216,9 @@ export default function Watermark({ text, containerId, aggressiveMode = false, f
                 if (video) {
                     video.removeEventListener('loadedmetadata', updateLayout);
                     video.removeEventListener('resize', updateLayout);
+                }
+                if (iframe) {
+                    iframe.removeEventListener('load', updateLayout);
                 }
             };
         }

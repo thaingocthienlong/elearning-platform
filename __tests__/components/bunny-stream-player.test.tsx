@@ -7,6 +7,14 @@ jest.mock('sonner', () => ({
     error: jest.fn(),
   },
 }));
+jest.mock('@/components/video/Watermark', () => ({
+  __esModule: true,
+  default: ({ text, containerId }: { text: string; containerId: string }) => (
+    <div data-testid="secure-watermark" data-container-id={containerId}>
+      {text}
+    </div>
+  ),
+}));
 
 const mockToastError = toast.error as jest.MockedFunction<typeof toast.error>;
 
@@ -189,6 +197,37 @@ describe('BunnyStreamPlayer', () => {
       isNewView: false,
       isFinished: false,
     });
+  });
+
+  test('renders managed watermark overlay and keeps iframe from entering its own fullscreen modes', async () => {
+    const fetchMock = createPlaybackFetchMock();
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(
+      <BunnyStreamPlayer
+        videoId="video-abc"
+        libraryId="123456"
+        bunnyVideoId="video-abc"
+        viewCount={1}
+        viewLimit={5}
+        watermarkText="Test User"
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /start secure player/i }));
+
+    const iframe = await screen.findByTitle('Secure Bunny Stream player');
+
+    expect(screen.getByTestId('secure-watermark')).toHaveTextContent('Test User');
+    expect(screen.getByTestId('secure-watermark')).toHaveAttribute(
+      'data-container-id',
+      'bunny-stream-player-video-abc'
+    );
+    expect(iframe).toHaveAttribute('allow', 'autoplay; encrypted-media');
+    expect(iframe).not.toHaveAttribute('allowfullscreen');
+    expect(
+      screen.getByRole('button', { name: /enter fullscreen/i })
+    ).toBeInTheDocument();
   });
 
   test('ended sends a final heartbeat with the latest position', async () => {
