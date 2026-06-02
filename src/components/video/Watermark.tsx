@@ -1,6 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import {
+    defaultVideoWatermarkSettings,
+    normalizeVideoWatermarkSettings,
+    type VideoWatermarkSettings,
+} from '@/lib/watermark-settings';
 
 interface WatermarkProps {
     text: string;
@@ -8,6 +13,7 @@ interface WatermarkProps {
     aggressiveMode?: boolean; // Optional: enable for high-security scenarios
     forceFullscreenMode?: boolean; // Optional: force fullscreen styling (e.g. for iOS fake fullscreen)
     isIOS?: boolean; // Optional: detect iOS device
+    settings?: Partial<VideoWatermarkSettings> | null;
 }
 
 type FullscreenDocument = Document & {
@@ -23,15 +29,11 @@ const positions = [
     { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
 ];
 
-export default function Watermark({ text, containerId, aggressiveMode = false, forceFullscreenMode = false, isIOS = false }: WatermarkProps) {
+export default function Watermark({ text, containerId, aggressiveMode = false, forceFullscreenMode = false, isIOS = false, settings }: WatermarkProps) {
     const [positionIndex, setPositionIndex] = useState(0);
     const [renderKey, setRenderKey] = useState(0);
     const [fontSize, setFontSize] = useState(14);
-    const [opacity, setOpacity] = useState(0.5);
-    const [sizeMultiplier, setSizeMultiplier] = useState(1.0);
-    const [mobileSizeMultiplier, setMobileSizeMultiplier] = useState(0.7);
-    const [fullscreenSizeMultiplier, setFullscreenSizeMultiplier] = useState(1.3);
-    const [iosFullscreenSizeMultiplier, setIosFullscreenSizeMultiplier] = useState(0.8); // Smaller for iOS fake fullscreen
+    const [fetchedSettings, setFetchedSettings] = useState<VideoWatermarkSettings>(defaultVideoWatermarkSettings);
     const [isMobile, setIsMobile] = useState(false);
     const [isIPad, setIsIPad] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -54,18 +56,30 @@ export default function Watermark({ text, containerId, aggressiveMode = false, f
         }, 100); // Wait 100ms before re-rendering
     }, []);
 
-    // Fetch watermark settings on mount
+    const activeSettings = useMemo(
+        () => normalizeVideoWatermarkSettings(settings ?? fetchedSettings),
+        [settings, fetchedSettings]
+    );
+    const {
+        opacity,
+        sizeMultiplier,
+        mobileSizeMultiplier,
+        fullscreenSizeMultiplier,
+        iosFullscreenSizeMultiplier,
+    } = activeSettings;
+
+    // Prefer server-fed settings. Fallback fetch supports older call sites.
     useEffect(() => {
+        if (settings) {
+            return;
+        }
+
         const fetchSettings = async () => {
             try {
                 const response = await fetch('/api/watermark/settings');
                 if (response.ok) {
                     const data = await response.json();
-                    setOpacity(data.opacity ?? 0.5);
-                    setSizeMultiplier(data.sizeMultiplier ?? 1.0);
-                    setMobileSizeMultiplier(data.mobileSizeMultiplier ?? 0.7);
-                    setFullscreenSizeMultiplier(data.fullscreenSizeMultiplier ?? 1.3);
-                    setIosFullscreenSizeMultiplier(data.iosFullscreenSizeMultiplier ?? 0.8);
+                    setFetchedSettings(normalizeVideoWatermarkSettings(data));
                 }
             } catch (error) {
                 console.error('Error fetching watermark settings:', error);
@@ -73,6 +87,11 @@ export default function Watermark({ text, containerId, aggressiveMode = false, f
             }
         };
 
+        fetchSettings();
+    }, [settings]);
+
+    // Track device and fullscreen state for responsive sizing.
+    useEffect(() => {
         // Detect if device is mobile
         const checkMobile = () => {
             const userAgent = navigator.userAgent || navigator.vendor;
@@ -95,7 +114,6 @@ export default function Watermark({ text, containerId, aggressiveMode = false, f
             setIsFullscreen(isInFullscreen);
         };
 
-        fetchSettings();
         checkMobile();
         checkFullscreen();
 

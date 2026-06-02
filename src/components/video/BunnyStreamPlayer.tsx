@@ -5,6 +5,7 @@ import { Loader2, Maximize, Minimize, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIframeHeartbeat } from '@/hooks/player/useIframeHeartbeat';
 import { usePlayerFullscreen } from '@/hooks/player/usePlayerFullscreen';
+import type { VideoWatermarkSettings } from '@/lib/watermark-settings';
 import Watermark from './Watermark';
 
 interface BunnyStreamPlayerProps {
@@ -14,6 +15,7 @@ interface BunnyStreamPlayerProps {
   viewCount: number;
   viewLimit: number | null;
   watermarkText: string;
+  watermarkSettings?: VideoWatermarkSettings | null;
   onFullscreenChange?: (isFullscreen: boolean) => void;
 }
 
@@ -27,6 +29,7 @@ export default function BunnyStreamPlayer({
   viewCount,
   viewLimit,
   watermarkText,
+  watermarkSettings,
   onFullscreenChange,
 }: BunnyStreamPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -162,6 +165,7 @@ export default function BunnyStreamPlayer({
           containerId={containerId}
           forceFullscreenMode={isFakeFullscreen}
           isIOS={isIOS}
+          settings={watermarkSettings}
         />
       )}
 

@@ -8,6 +8,7 @@ import { useShakaPlayer } from '@/hooks/player/useShakaPlayer';
 import { usePlayerHeartbeat } from '@/hooks/player/usePlayerHeartbeat';
 import { useBlackScreenDetector } from '@/hooks/player/useBlackScreenDetector';
 import { usePlayerFullscreen } from '@/hooks/player/usePlayerFullscreen';
+import type { VideoWatermarkSettings } from '@/lib/watermark-settings';
 
 interface PlayerProps {
     manifestUrl: string;
@@ -17,6 +18,7 @@ interface PlayerProps {
     viewCount?: number;
     viewLimit?: number | null;
     watermarkText?: string;
+    watermarkSettings?: VideoWatermarkSettings | null;
     drmType?: 'widevine' | 'playready' | 'fairplay';
     robustness?: string;
     fairplayCertUrl?: string;
@@ -29,9 +31,10 @@ export default function Player({
     licenseServerUrl,
     drmToken,
     videoId,
-    viewCount = 0,
-    viewLimit = null,
+    viewCount: _viewCount = 0,
+    viewLimit: _viewLimit = null,
     watermarkText,
+    watermarkSettings,
     drmType,
     robustness,
     fairplayCertUrl,
@@ -125,6 +128,7 @@ export default function Player({
                     containerId={containerId}
                     forceFullscreenMode={isFakeFullscreen}
                     isIOS={isIOS}
+                    settings={watermarkSettings}
                 />
             )}
 

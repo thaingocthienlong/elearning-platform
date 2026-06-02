@@ -8,6 +8,7 @@ import {
   GET as watermarkGet,
   POST as watermarkPost,
 } from '@/app/api/admin/watermark-settings/route';
+import { GET as publicWatermarkGet } from '@/app/api/watermark/settings/route';
 
 jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
@@ -32,6 +33,7 @@ jest.mock('@/lib/prisma', () => ({
     },
     watermarkSettings: {
       upsert: jest.fn(),
+      findUnique: jest.fn(),
     },
   },
 }));
@@ -47,6 +49,7 @@ const mockedPrisma = prisma as unknown as {
   };
   watermarkSettings: {
     upsert: jest.Mock;
+    findUnique: jest.Mock;
   };
 };
 
@@ -132,6 +135,40 @@ describe('admin data bounds', () => {
           updatedBy: 'admin@example.test',
         }),
       })
+    );
+  });
+
+  test('public watermark GET reads current singleton settings without stale cache', async () => {
+    mockedPrisma.watermarkSettings.findUnique
+      .mockResolvedValueOnce({
+        opacity: 0.4,
+        sizeMultiplier: 1,
+        mobileSizeMultiplier: 0.7,
+        fullscreenSizeMultiplier: 1.3,
+        iosFullscreenSizeMultiplier: 0.8,
+      })
+      .mockResolvedValueOnce({
+        opacity: 0.9,
+        sizeMultiplier: 1.4,
+        mobileSizeMultiplier: 0.9,
+        fullscreenSizeMultiplier: 1.8,
+        iosFullscreenSizeMultiplier: 1.1,
+      });
+
+    const firstResponse = await publicWatermarkGet();
+    const secondResponse = await publicWatermarkGet();
+
+    expect(mockedPrisma.watermarkSettings.findUnique).toHaveBeenCalledTimes(2);
+    expect(mockedPrisma.watermarkSettings.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { scope: 'global' },
+      })
+    );
+    await expect(firstResponse.json()).resolves.toEqual(
+      expect.objectContaining({ opacity: 0.4 })
+    );
+    await expect(secondResponse.json()).resolves.toEqual(
+      expect.objectContaining({ opacity: 0.9, sizeMultiplier: 1.4 })
     );
   });
 });

@@ -67,9 +67,11 @@ jest.mock('@/components/course/IPRConsentOverlay', () => ({
   ),
 }));
 
+const mockDRMPlayer = jest.fn((_: Record<string, unknown>) => <div data-testid="drm-player" />);
+
 jest.mock('@/components/video/DRMPlayerWrapper', () => ({
   __esModule: true,
-  default: () => <div data-testid="drm-player" />,
+  default: (props: Record<string, unknown>) => mockDRMPlayer(props),
 }));
 
 const mockBunnyPlayer = jest.fn((_: Record<string, unknown>) => <div data-testid="bunny-player" />);
@@ -93,7 +95,15 @@ describe('WatchPageClient', () => {
     jest.clearAllMocks();
   });
 
-  test('renders Bunny playback start flow instead of DRM playback when the provider is Bunny Stream', async () => {
+  const videoWatermarkSettings = {
+    opacity: 0.8,
+    sizeMultiplier: 1.4,
+    mobileSizeMultiplier: 0.9,
+    fullscreenSizeMultiplier: 1.8,
+    iosFullscreenSizeMultiplier: 1.1,
+  };
+
+  test('passes server watermark settings into Bunny playback', async () => {
     render(
       <WatchPageClient
         videoId="video-abc"
@@ -118,6 +128,7 @@ describe('WatchPageClient', () => {
           libraryId: '123456',
           bunnyVideoId: 'video-abc',
         }}
+        watermarkSettings={videoWatermarkSettings}
       />
     );
 
@@ -131,6 +142,7 @@ describe('WatchPageClient', () => {
       expect.objectContaining({
         libraryId: '123456',
         bunnyVideoId: 'video-abc',
+        watermarkSettings: videoWatermarkSettings,
       })
     );
     expect(screen.getByText('Bunny Stream')).toBeInTheDocument();
@@ -138,5 +150,44 @@ describe('WatchPageClient', () => {
     expect(screen.queryByTestId('drm-player')).not.toBeInTheDocument();
     expect(screen.getByTestId('video-sidebar')).toBeInTheDocument();
     expect(screen.getByTestId('chat-log')).toBeInTheDocument();
+  });
+
+  test('passes server watermark settings into DRM playback', async () => {
+    render(
+      <WatchPageClient
+        videoId="video-abc"
+        otp="otp"
+        playbackInfo={{
+          url: 'https://media.example/video.mpd',
+          drmLicenseUrl: 'https://license.example',
+        }}
+        courseTitle="Course Title"
+        sidebarVideos={[]}
+        currentVideoId="video-abc"
+        viewCount={1}
+        viewLimit={5}
+        watermarkText="Test User"
+        drmToken="drm-token"
+        dashUrl="https://media.example/video.mpd"
+        hlsUrl="https://media.example/video.m3u8"
+        hlsUrlClear={null}
+        isFairPlayConfigured={false}
+        provider="AXINOM"
+        watermarkSettings={videoWatermarkSettings}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Accept IPR' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('drm-player')).toBeInTheDocument();
+    });
+
+    expect(mockDRMPlayer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        watermarkSettings: videoWatermarkSettings,
+      })
+    );
+    expect(screen.queryByTestId('bunny-player')).not.toBeInTheDocument();
   });
 });

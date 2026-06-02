@@ -6,6 +6,12 @@ import { SecurityWrapper } from '@/components/video/SecurityWrapper';
 import WatchPageClient from '@/components/course/WatchPageClient';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
 import type { BunnyStreamPlayback } from '@/lib/bunny-stream';
+import {
+    defaultVideoWatermarkSettings,
+    normalizeVideoWatermarkSettings,
+    videoWatermarkSettingsSelect,
+    WATERMARK_SCOPE,
+} from '@/lib/watermark-settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -90,7 +96,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         }
     }
 
-    const [whitelistEntry, courseVideos] = await Promise.all([
+    const [whitelistEntry, courseVideos, watermarkSettingsRecord] = await Promise.all([
         // Whitelist data for watermark
         prisma.allowedEmail.findUnique({
             where: { email: user.email! },
@@ -109,7 +115,15 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 position: true,
             },
         }),
+        prisma.watermarkSettings.findUnique({
+            where: { scope: WATERMARK_SCOPE },
+            select: videoWatermarkSettingsSelect,
+        }),
     ]);
+
+    const watermarkSettings = watermarkSettingsRecord
+        ? normalizeVideoWatermarkSettings(watermarkSettingsRecord)
+        : defaultVideoWatermarkSettings;
 
     const courseVideoIds = courseVideos.map((courseVideo) => courseVideo.id);
     const watchRecords = courseVideoIds.length > 0
@@ -150,6 +164,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 watermarkText={whitelistEntry?.fullname && whitelistEntry?.phone
                     ? `${whitelistEntry.fullname} • ${whitelistEntry.phone}`
                     : user.name || user.email!}
+                watermarkSettings={watermarkSettings}
                 drmToken={drmToken}
                 dashUrl={video.dashUrl ?? null}
                 hlsUrl={video.hlsUrl ?? null}

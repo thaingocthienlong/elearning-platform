@@ -3,16 +3,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { invalidateCache } from '@/lib/redis';
-
-const WATERMARK_SCOPE = 'global';
+import { defaultVideoWatermarkSettings, WATERMARK_SCOPE } from '@/lib/watermark-settings';
 
 const defaultWatermarkSettings = {
     scope: WATERMARK_SCOPE,
-    opacity: 0.5,
-    sizeMultiplier: 1.0,
-    mobileSizeMultiplier: 0.7,
-    fullscreenSizeMultiplier: 1.3,
-    iosFullscreenSizeMultiplier: 0.8,
+    ...defaultVideoWatermarkSettings,
     zoomWatermarkColor: '#FFFFFF',
     zoomWatermarkOpacity: 0.2,
     zoomWatermarkSizePercent: 2.5,
@@ -130,11 +125,11 @@ export async function POST(req: NextRequest) {
             where: { scope: WATERMARK_SCOPE },
             create: {
                 ...defaultWatermarkSettings,
-                opacity: opacity ?? 0.5,
-                sizeMultiplier: sizeMultiplier ?? 1.0,
-                mobileSizeMultiplier: mobileSizeMultiplier ?? 0.7,
-                fullscreenSizeMultiplier: fullscreenSizeMultiplier ?? 1.3,
-                iosFullscreenSizeMultiplier: iosFullscreenSizeMultiplier ?? 0.8,
+                opacity: opacity ?? defaultVideoWatermarkSettings.opacity,
+                sizeMultiplier: sizeMultiplier ?? defaultVideoWatermarkSettings.sizeMultiplier,
+                mobileSizeMultiplier: mobileSizeMultiplier ?? defaultVideoWatermarkSettings.mobileSizeMultiplier,
+                fullscreenSizeMultiplier: fullscreenSizeMultiplier ?? defaultVideoWatermarkSettings.fullscreenSizeMultiplier,
+                iosFullscreenSizeMultiplier: iosFullscreenSizeMultiplier ?? defaultVideoWatermarkSettings.iosFullscreenSizeMultiplier,
                 zoomWatermarkColor: zoomWatermarkColor ?? '#FFFFFF',
                 zoomWatermarkOpacity: zoomWatermarkOpacity ?? 0.2,
                 zoomWatermarkSizePercent: zoomWatermarkSizePercent ?? 2.5,

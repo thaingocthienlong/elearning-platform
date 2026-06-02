@@ -23,6 +23,7 @@ import ChatLogViewer from '@/components/course/ChatLogViewer';
 import { Badge } from '@/components/ui/badge';
 import type { BunnyStreamPlayback } from '@/lib/bunny-stream';
 import { selectWatchPlaybackSources } from '@/lib/playback-routing';
+import type { VideoWatermarkSettings } from '@/lib/watermark-settings';
 
 type SidebarVideo = {
     id: string;
@@ -55,6 +56,7 @@ interface WatchPageClientProps {
     viewCount: number;
     viewLimit: number | null;
     watermarkText: string;
+    watermarkSettings?: VideoWatermarkSettings | null;
     drmToken: string;
     dashUrl: string | null;
     hlsUrl: string | null;
@@ -75,6 +77,7 @@ export default function WatchPageClient({
     viewCount,
     viewLimit,
     watermarkText,
+    watermarkSettings = null,
     drmToken,
     dashUrl,
     hlsUrl,
@@ -161,6 +164,7 @@ export default function WatchPageClient({
                                         viewCount={viewCount}
                                         viewLimit={viewLimit}
                                         watermarkText={watermarkText}
+                                        watermarkSettings={watermarkSettings}
                                         onFullscreenChange={setIsVideoFullscreen}
                                     />
                                 ) : (
@@ -172,6 +176,7 @@ export default function WatchPageClient({
                                         viewCount={viewCount}
                                         viewLimit={viewLimit}
                                         watermarkText={watermarkText}
+                                        watermarkSettings={watermarkSettings}
                                         requireHD={false}
                                         isClearHlsFallback={playbackSources.isClearHlsFallback}
                                         isFairPlayConfigured={isFairPlayConfigured}

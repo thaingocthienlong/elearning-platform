@@ -5,6 +5,7 @@ import Player from './Player';
 import { detectDRMCapabilities, getOptimalDRMConfig, getBrowserInfo, DRMConfig } from '@/lib/drm-detection';
 import { toast } from 'sonner';
 import { resolveAxinomLicenseServerUrl } from '@/lib/shaka-axinom';
+import type { VideoWatermarkSettings } from '@/lib/watermark-settings';
 
 interface DRMPlayerWrapperProps {
     dashUrl: string | null;
@@ -14,6 +15,7 @@ interface DRMPlayerWrapperProps {
     viewCount: number;
     viewLimit: number | null;
     watermarkText: string;
+    watermarkSettings?: VideoWatermarkSettings | null;
     requireHD?: boolean;
     isClearHlsFallback?: boolean;
     isFairPlayConfigured?: boolean;
@@ -28,6 +30,7 @@ export default function DRMPlayerWrapper({
     viewCount,
     viewLimit,
     watermarkText,
+    watermarkSettings,
     requireHD = false,
     isClearHlsFallback = false,
     isFairPlayConfigured = false,
@@ -195,6 +198,7 @@ export default function DRMPlayerWrapper({
             viewCount={viewCount}
             viewLimit={viewLimit}
             watermarkText={watermarkText}
+            watermarkSettings={watermarkSettings}
             drmType={drmConfig.drmType}
             robustness={drmConfig.robustness}
             fairplayCertUrl={drmConfig.drmType === 'fairplay' && !drmConfig.isClearPlayback ? '/api/drm/fairplay-cert' : undefined}
