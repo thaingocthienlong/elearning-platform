@@ -1381,6 +1381,7 @@ describe('Bunny Stream webhook and manual sync routes', () => {
       where: { id: 'video-id' },
       data: expect.objectContaining({
         bunnyStatus: 'READY',
+        published: true,
         bunnyEncodeProgress: 99,
         bunnyAvailableRes: '1080p,720p',
         bunnyThumbnailUrl: 'thumb.jpg',
@@ -1493,6 +1494,7 @@ describe('Bunny Stream webhook and manual sync routes', () => {
       where: { id: '507f1f77bcf86cd799439011' },
       data: expect.objectContaining({
         bunnyStatus: 'READY',
+        published: true,
         bunnyEncodeProgress: 87,
         bunnyAvailableRes: '1080p',
         bunnyThumbnailUrl: 'thumb.jpg',

@@ -41,3 +41,7 @@ export function mapBunnyStreamStatus(
       return 'FAILED';
   }
 }
+
+export function isBunnyStreamPlayableStatus(status: BunnyStreamStatus) {
+  return status === 'READY' || status === 'PLAYABLE';
+}

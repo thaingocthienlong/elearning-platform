@@ -5,7 +5,10 @@ import {
   getBunnyStreamVideo,
 } from '@/lib/bunny-stream/client';
 import { readBunnyStreamConfig } from '@/lib/bunny-stream/config';
-import { mapBunnyStreamStatus } from '@/lib/bunny-stream/status';
+import {
+  isBunnyStreamPlayableStatus,
+  mapBunnyStreamStatus,
+} from '@/lib/bunny-stream/status';
 import { verifyBunnyWebhookSignature } from '@/lib/bunny-stream/signing';
 import { serverLog } from '@/lib/server-log';
 
@@ -126,6 +129,9 @@ export async function POST(request: Request) {
       where: { id: localVideo.id },
       data: {
         bunnyStatus: mappedStatus,
+        ...(isBunnyStreamPlayableStatus(mappedStatus)
+          ? { published: true }
+          : {}),
         bunnyEncodeProgress:
           typeof bunnyVideo.encodeProgress === 'number'
             ? bunnyVideo.encodeProgress

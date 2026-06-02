@@ -7,7 +7,10 @@ import {
   getBunnyStreamVideo,
 } from '@/lib/bunny-stream/client';
 import { readBunnyStreamConfig } from '@/lib/bunny-stream/config';
-import { mapBunnyStreamStatus } from '@/lib/bunny-stream/status';
+import {
+  isBunnyStreamPlayableStatus,
+  mapBunnyStreamStatus,
+} from '@/lib/bunny-stream/status';
 import { serverLog } from '@/lib/server-log';
 
 type SyncRequestBody = {
@@ -112,6 +115,7 @@ export async function POST(request: Request) {
       where: { id: video.id },
       data: {
         bunnyStatus: status,
+        ...(isBunnyStreamPlayableStatus(status) ? { published: true } : {}),
         bunnyEncodeProgress:
           typeof bunnyVideo.encodeProgress === 'number'
             ? bunnyVideo.encodeProgress

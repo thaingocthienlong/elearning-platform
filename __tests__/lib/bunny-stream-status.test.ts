@@ -1,5 +1,6 @@
 import {
   BUNNY_STREAM_STATUS_LABELS,
+  isBunnyStreamPlayableStatus,
   mapBunnyStreamStatus,
 } from '@/lib/bunny-stream/status';
 
@@ -32,5 +33,12 @@ describe('Bunny Stream status mapping', () => {
     expect(BUNNY_STREAM_STATUS_LABELS.PLAYABLE).toBe(
       'First playable rendition ready'
     );
+  });
+
+  test('marks only ready/playable statuses as watchable', () => {
+    expect(isBunnyStreamPlayableStatus('READY')).toBe(true);
+    expect(isBunnyStreamPlayableStatus('PLAYABLE')).toBe(true);
+    expect(isBunnyStreamPlayableStatus('ENCODING')).toBe(false);
+    expect(isBunnyStreamPlayableStatus('FAILED')).toBe(false);
   });
 });
