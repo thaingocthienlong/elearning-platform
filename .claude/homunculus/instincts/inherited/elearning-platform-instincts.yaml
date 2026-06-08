@@ -1,0 +1,491 @@
+# Instincts generated from https://github.com/thaingocthienlong/elearning-platform
+# Generated: 2026-05-14T03:05:12.518Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: elearning-platform-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: fix, docs, test, feat
+
+## Evidence
+
+- 7 commits analyzed
+- Detected conventional commit pattern
+- Examples: test: add safari fairplay readiness logic, fix: prefer safari clear hls fallback
+
+---
+id: elearning-platform-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Commit Length
+
+## Action
+
+Keep commit messages concise (~38 characters)
+
+## Evidence
+
+- Average commit message length: 38 chars
+- Based on 7 commits
+
+---
+id: elearning-platform-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Naming Files
+
+## Action
+
+Use kebab-case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: kebab-case
+
+---
+id: elearning-platform-import-alias
+trigger: "when importing modules"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Import Alias
+
+## Action
+
+Use path aliases (@/, ~/) instead of relative imports
+
+## Evidence
+
+- Import analysis shows alias pattern
+- Example: import { x } from '@/lib/x'
+
+---
+id: elearning-platform-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: elearning-platform-arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: hooks, lib
+
+---
+id: elearning-platform-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: elearning-platform-test-framework
+trigger: "when writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Test Framework
+
+## Action
+
+Use jest as the test framework
+
+## Evidence
+
+- Test framework detected: jest
+- File pattern: *.test.ts
+
+---
+id: elearning-platform-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: elearning-platform-workflow-feature-or-bugfix-with-tests
+trigger: "when doing feature or bugfix with tests"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Workflow Feature Or Bugfix With Tests
+
+## Action
+
+Follow the feature-or-bugfix-with-tests workflow:
+1. Edit or create implementation file(s) in src/ or scripts/
+2. Edit or create corresponding test file(s) in __tests__/
+3. Commit both implementation and test changes together
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: src/lib/safari-fairplay-readiness.ts, src/hooks/player/useShakaPlayer.ts, src/lib/drm-detection.ts
+
+---
+id: elearning-platform-workflow-documentation-update-with-checklists
+trigger: "when doing documentation update with checklists"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Workflow Documentation Update With Checklists
+
+## Action
+
+Follow the documentation-update-with-checklists workflow:
+1. Edit or create markdown documentation files in docs/
+2. Optionally, update or add related test files in __tests__/docs/
+3. Commit documentation and test changes together
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: docs/axinom-staging-checklist.md, docs/staging-smoke-checklist.md, docs/superpowers/plans/2026-05-14-safari-fairplay-drm-validation.md
+
+---
+id: elearning-platform-instinct-file-naming
+trigger: "When creating or renaming a file"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct File Naming
+
+## Action
+
+Use kebab-case for file names
+
+## Evidence
+
+- Pattern in src/hooks/player/useShakaPlayer.ts
+- Pattern in src/lib/safari-fairplay-readiness.ts
+
+---
+id: elearning-platform-instinct-function-naming
+trigger: "When defining a function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Function Naming
+
+## Action
+
+Use camelCase for function names
+
+## Evidence
+
+- Pattern in src/lib/drm-detection.ts
+- Pattern in src/hooks/player/useShakaPlayer.ts
+
+---
+id: elearning-platform-instinct-class-naming
+trigger: "When defining a class"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Class Naming
+
+## Action
+
+Use PascalCase for class names
+
+## Evidence
+
+- Pattern in src/lib/safari-fairplay-readiness.ts
+
+---
+id: elearning-platform-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names
+
+## Evidence
+
+- Pattern in src/lib/drm-detection.ts
+
+---
+id: elearning-platform-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Import Style
+
+## Action
+
+Use alias import style
+
+## Evidence
+
+- Pattern in src/hooks/player/useShakaPlayer.ts
+
+---
+id: elearning-platform-instinct-export-style
+trigger: "When exporting modules or functions"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in src/lib/safari-fairplay-readiness.ts
+
+---
+id: elearning-platform-instinct-test-file-pattern
+trigger: "When creating a test file"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Test File Pattern
+
+## Action
+
+Name the file with the pattern *.test.ts and place it in __tests__/
+
+## Evidence
+
+- Pattern in __tests__/lib/safari-fairplay-readiness.test.ts
+- Pattern in __tests__/lib/drm-detection.test.ts
+
+---
+id: elearning-platform-instinct-unit-test-framework
+trigger: "When writing tests"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Unit Test Framework
+
+## Action
+
+Use Jest for unit testing
+
+## Evidence
+
+- Pattern in __tests__/lib/safari-fairplay-readiness.test.ts
+- Pattern in __tests__/lib/drm-detection.test.ts
+
+---
+id: elearning-platform-instinct-test-location
+trigger: "When adding or updating tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Test Location
+
+## Action
+
+Place test files in the __tests__ directory, separate from src/
+
+## Evidence
+
+- Pattern in __tests__/lib/safari-fairplay-readiness.test.ts
+- Pattern in __tests__/scripts/verify-safari-fairplay.test.ts
+
+---
+id: elearning-platform-instinct-git-commit-format
+trigger: "When making a git commit"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Git Commit Format
+
+## Action
+
+Use conventional commit format: <type>(<optional scope>): <description>
+
+## Evidence
+
+- Seen in commit 'fix: use modern fairplay key system'
+- Seen in commit 'feat(scripts): add FairPlay verifier'
+
+---
+id: elearning-platform-instinct-git-commit-type
+trigger: "When describing a commit"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Git Commit Type
+
+## Action
+
+Use one of the allowed prefixes: fix, feat, docs, test
+
+## Evidence
+
+- Seen in commit 'fix: prefer safari clear hls fallback'
+- Seen in commit 'docs: add Safari FairPlay smoke rows'
+
+---
+id: elearning-platform-instinct-feature-or-bugfix-with-tests
+trigger: "When adding a new feature or fixing a bug and ensuring it is tested"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Feature Or Bugfix With Tests
+
+## Action
+
+Edit or create implementation file(s) in src/ or scripts/, edit or create corresponding test file(s) in __tests__/, and commit both implementation and test changes together
+
+## Evidence
+
+- Workflow 'feature-or-bugfix-with-tests'
+- Pattern in commits and files: src/lib/safari-fairplay-readiness.ts, __tests__/lib/safari-fairplay-readiness.test.ts
+
+---
+id: elearning-platform-instinct-documentation-update-with-checklists
+trigger: "When updating or adding documentation, validation plans, or checklists"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: thaingocthienlong/elearning-platform
+---
+
+# Elearning Platform Instinct Documentation Update With Checklists
+
+## Action
+
+Edit or create markdown documentation files in docs/, optionally update or add related test files in __tests__/docs/, and commit documentation and test changes together
+
+## Evidence
+
+- Workflow 'documentation-update-with-checklists'
+- Pattern in files: docs/axinom-staging-checklist.md, __tests__/docs/staging-docs.test.ts
+
