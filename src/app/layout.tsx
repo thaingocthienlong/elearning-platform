@@ -6,7 +6,7 @@ import { Providers } from "@/components/Providers";
 import { Toaster } from "sonner";
 import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { Analytics } from '@vercel/analytics/react';
+import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ConsoleLoggerInit } from "@/components/ConsoleLoggerInit";
 import { Suspense } from "react";
