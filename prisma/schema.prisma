@@ -132,6 +132,20 @@ model Video {
   axinomEncodingStatus String?
   axinomOutputLocation String?
   axinomSyncedAt DateTime?
+  tencentFileId             String?
+  tencentTaskId             String?
+  tencentStatus             String?
+  tencentSubAppId           Int?
+  tencentProcedureName      String?
+  tencentStorageBucket      String?
+  tencentStorageRegion      String?
+  tencentMediaStoragePath   String?
+  tencentDrmTemplateId      String?
+  tencentAdaptiveTemplateId String?
+  tencentWidevineLicenseUrl String?
+  tencentFairplayLicenseUrl String?
+  tencentSyncedAt           DateTime?
+  tencentDeletedAt          DateTime?
   viewLimit     Int?
   courseId      String          @db.ObjectId
   createdAt     DateTime        @default(now())
@@ -151,6 +165,10 @@ model Video {
   @@index([axinomVideoId])
   @@index([axinomIdClear])
   @@index([axinomEncodingStatus])
+  @@index([tencentFileId])
+  @@index([tencentTaskId])
+  @@index([tencentStatus])
+  @@index([tencentDeletedAt])
 }
 
 model WatchRecord {

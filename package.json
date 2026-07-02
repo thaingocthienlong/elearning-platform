@@ -20,6 +20,8 @@
     "verify:staging": "tsx scripts/verify-staging-smoke.ts",
     "secrets:inventory": "tsx scripts/inventory-sensitive-files.ts",
     "secrets:scan": "tsx scripts/scan-secrets.ts",
+    "tencent:export-old-media": "tsx scripts/export-old-media-before-tencent-cutover.ts",
+    "tencent:cleanup-old-media": "tsx scripts/cleanup-old-media-for-tencent-cutover.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

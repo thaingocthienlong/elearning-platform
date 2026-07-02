@@ -66,3 +66,26 @@
 - Deferred checks: none for Task 2
 - Rollback: `git revert <task-2-commit>` and restore `.next` by rerunning `npm run build` or `next dev`
 - Next: Task 3 Tencent-only video schema and old media export
+
+## 2026-07-02 - Task 3: Tencent-Only Video Schema And Old Media Export
+
+- Status: complete
+- Branch: `codex/tencent-platform-migration`
+- Commit: pending
+- Backup: none created; cleanup script is guarded and not executed
+- Files changed:
+  - `prisma/schema.prisma`
+  - `scripts/export-old-media-before-tencent-cutover.ts`
+  - `scripts/cleanup-old-media-for-tencent-cutover.ts`
+  - `package.json`
+  - `__tests__/scripts/tencent-cutover-scripts.test.ts`
+  - `docs/operations/tencent-migration-phase-log.md`
+  - `docs/verification/tencent-migration-verification-record.md`
+- Tools/plugins/MCPs affected: Prisma client regenerated locally
+- Verification evidence:
+  - `npm run prisma:generate` -> passed.
+  - `npm test -- __tests__/scripts/tencent-cutover-scripts.test.ts --runInBand` -> 1 suite passed, 2 tests passed.
+  - `npm run typecheck` -> passed.
+- Deferred checks: old media export is not run until a real cutover checkpoint
+- Rollback: `git revert <task-3-commit>`
+- Next: Task 4 Tencent VOD client and service layer
