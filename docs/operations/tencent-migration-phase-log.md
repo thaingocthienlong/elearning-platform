@@ -43,3 +43,26 @@
 - Deferred checks: none for docs-only Task 1
 - Rollback: `git revert <task-1-commit>`
 - Next: Task 2 Tencent types, env, and signing
+
+## 2026-07-02 - Task 2: Tencent Types, Env, And Signing
+
+- Status: complete
+- Branch: `codex/tencent-platform-migration`
+- Commit: pending
+- Backup: removed ignored `.next` generated cache after verifying the resolved path stayed inside the repo
+- Files changed:
+  - `src/lib/tencent/types.ts`
+  - `src/lib/tencent/env.ts`
+  - `src/lib/tencent/signing.ts`
+  - `__tests__/lib/tencent-env.test.ts`
+  - `__tests__/lib/tencent-signing.test.ts`
+  - `tsconfig.json`
+  - `docs/operations/tencent-migration-phase-log.md`
+  - `docs/verification/tencent-migration-verification-record.md`
+- Tools/plugins/MCPs affected: `tsconfig.json` now excludes `.agents` and `codex-plugins` local tool directories from app typecheck
+- Verification evidence:
+  - `npm test -- __tests__/lib/tencent-env.test.ts __tests__/lib/tencent-signing.test.ts --runInBand` -> 2 suites passed, 5 tests passed.
+  - `npm run typecheck` -> passed.
+- Deferred checks: none for Task 2
+- Rollback: `git revert <task-2-commit>` and restore `.next` by rerunning `npm run build` or `next dev`
+- Next: Task 3 Tencent-only video schema and old media export
