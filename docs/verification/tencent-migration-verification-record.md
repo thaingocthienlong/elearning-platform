@@ -28,6 +28,7 @@ Tencent-only media migration from Axinom/Azure/R2 media pipeline to Tencent VOD 
 ## Test Or Review Evidence
 
 - Task 0 workflow artifacts exist. Keyword scan for `secret|password|token|key` found only policy language and path/command names, not secret values.
+- Task 1 planning docs added Phase 9 and Tencent requirements. Placeholder/secret scan returned no matches for `TBD|TODO|implement later|fill in details|secret-key|real secret`.
 
 ## Gaps Or Deferred Checks
 

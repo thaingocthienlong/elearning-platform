@@ -48,7 +48,7 @@ Maintainers can reliably run, secure, deploy, and evolve the platform without gu
 
 - Immediate database migration - optimize the current Prisma/MongoDB implementation first and migrate only with evidence.
 - Production launch certification in the first milestone - staging readiness is the target, with production hardening tracked separately.
-- Replacing Axinom DRM in v1 - the project currently relies on Axinom DRM trial services and must first be made reproducible with official Axinom setup.
+- Replacing Axinom DRM in v1 - historical v1 rescue scope required Axinom reproducibility first. This no longer blocks the new Tencent-only media migration milestone for future incoming courses.
 - Replacing Zoom with another meeting provider - preserve and modernize the current Zoom-based flow.
 - Treating client-side screen recording prevention as a hard security boundary - server-side entitlement, DRM, watermarking, and audit controls remain the enforceable layers.
 - Unbounded visual redesign before stabilization - the frontend redesign must follow after install, test, setup, security, and critical flow clarity are in place.
@@ -56,6 +56,8 @@ Maintainers can reliably run, secure, deploy, and evolve the platform without gu
 ## Context
 
 The codebase has already been mapped under `.planning/codebase/`. The map identifies a Next.js 16, React 18, TypeScript, Tailwind/shadcn/Radix, Prisma, NextAuth, Shaka Player, Axinom, Zoom Meeting SDK, Upstash Redis, Azure Blob, Cloudflare R2, Sentry, and Vercel-oriented application.
+
+The completed v1 rescue milestone preserved Axinom, but the new Tencent migration milestone supersedes that constraint for future incoming courses.
 
 The current repo has a documentation drift problem. `README.md` describes PostgreSQL as the primary database, but `prisma/schema.prisma` uses `provider = "mongodb"` with ObjectId fields. Setup documentation must correct this and should distinguish verified requirements from stale README claims.
 
@@ -73,7 +75,7 @@ The platform has several high-risk known concerns from the codebase map:
 - Zoom SDK assets are duplicated across public/vendor folders and need a single maintained upgrade path.
 - Axinom integration spans several modules with overlapping env var names and partial legacy paths.
 
-Axinom is central to the project. The current backend depends on an Axinom DRM free trial/service configuration, so the maintainer workflow must include official Axinom setup rather than relying on inherited env files. Official documentation to incorporate includes:
+Historically, Axinom was central to the v1 rescue milestone. The current Tencent migration milestone removes Axinom as an active media provider and keeps the following Axinom notes only as historical context:
 
 - Axinom DRM License Service and entitlement flow: https://docs.axinom.com/services/drm/license-service
 - Axinom Entitlement Message tool: https://docs.axinom.com/general/tools/entitlement-message
@@ -88,7 +90,7 @@ Axinom is central to the project. The current backend depends on an Axinom DRM f
 - **Priority**: Stabilize first - install, launch, document, test, and fix blockers before broad redesign or invasive rewrites.
 - **Launch target**: Staging deployment - setup and verification should target a working staging environment, likely Vercel plus external services.
 - **Database**: Optimize existing Prisma/MongoDB first - migration is a later evidence-based decision, not the default v1 path.
-- **DRM provider**: Axinom DRM free trial is currently required - setup must be documented from official Axinom sources and mapped to repo env vars and modules.
+- **DRM provider**: Tencent VOD Commercial DRM is the target provider for future incoming courses. The previous Axinom preservation constraint is historical v1 context.
 - **Meeting provider**: Zoom must remain - update to latest supported SDK integration while preserving current app behavior.
 - **Frontend direction**: Institute/academic style - formal, credible, learning-oriented, and operational rather than marketing-heavy.
 - **Security**: Sensitive env/key/media artifacts must not be read unnecessarily, copied into docs, or committed; docs should use placeholder examples only.
@@ -112,6 +114,7 @@ Axinom is central to the project. The current backend depends on an Axinom DRM f
 | Represent unavailable live staging checks explicitly | Phase 6 cannot certify real Google, Axinom, Zoom, Redis, storage, SMTP, or Sentry behavior without tenant credentials; smoke rows use `blocked: missing credentials/service access` instead of false pass/fail claims. | Accepted in Phase 6 |
 | Redesign primary user surfaces before deep admin UI | Phase 7 user choice prioritized home, courses, course detail, watch, meeting, support/auth, while preserving dense admin behavior through shared tokens/nav. | Accepted in Phase 7 |
 | Capture production hardening separately from staging readiness | Phase 8 records production launch blockers as P0/P1/P2 backlog items rather than claiming v1 production certification. | Accepted in Phase 8 |
+| Replace Axinom with Tencent for future courses | User confirmed old courses/videos no longer need support and incoming courses are the target. Keeping Axinom fallback would add risk and maintenance cost. | Accepted for Tencent migration milestone |
 
 ## Evolution
 
@@ -131,4 +134,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state.
 
 ---
-*Last updated: 2026-05-06 after Phase 8 verification*
+*Last updated: 2026-07-02 for Tencent-only media migration*

@@ -20,3 +20,26 @@
 - Deferred checks: implementation verification starts in Task 1
 - Rollback: `git rm docs/superpowers/task-briefs/tencent-only-media-migration.md docs/verification/tencent-migration-verification-record.md docs/operations/tencent-migration-phase-log.md`
 - Next: Task 1 planning supersession and cutover contract
+
+## 2026-07-02 - Task 1: Planning Supersession And Cutover Contract
+
+- Status: complete
+- Branch: `codex/tencent-platform-migration`
+- Commit: pending
+- Backup: none required; docs-only planning change
+- Files changed:
+  - `.planning/PROJECT.md`
+  - `.planning/ROADMAP.md`
+  - `.planning/REQUIREMENTS.md`
+  - `.planning/STATE.md`
+  - `.planning/research/tencent-only-media-migration.md`
+  - `docs/operations/tencent-migration-phase-log.md`
+  - `docs/verification/tencent-migration-verification-record.md`
+- Tools/plugins/MCPs affected: Codex Operating Workflow planning artifacts updated
+- Verification evidence:
+  - `rg -n 'TBD|TODO|implement later|fill in details|secret-key|real secret' .planning/...` returned no matches.
+  - `rg -n "Tencent Migration Requirements|Phase 9|Replace Axinom with Tencent|Tencent-Only Media Migration" .planning/...` found the expected new Phase 9 entries.
+  - `git status --short -- .planning/...` showed only intended planning files.
+- Deferred checks: none for docs-only Task 1
+- Rollback: `git revert <task-1-commit>`
+- Next: Task 2 Tencent types, env, and signing
