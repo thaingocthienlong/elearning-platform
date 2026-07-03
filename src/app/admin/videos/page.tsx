@@ -22,6 +22,25 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+type TencentUploadResult = {
+    fileId: string;
+    video?: {
+        url?: string;
+    };
+};
+
+type TencentUploader = {
+    on(event: 'media_progress', callback: (info: { percent?: number }) => void): void;
+    done(): Promise<TencentUploadResult>;
+};
+
+type TencentVodConstructor = new (options: {
+    getSignature: () => Promise<string>;
+    appId?: number;
+}) => {
+    upload(options: { mediaFile: File; mediaName?: string }): TencentUploader;
+};
+
 type Video = {
     id: string;
     title: string;
@@ -151,7 +170,56 @@ export default function AdminVideosPage() {
                 const err = await res.text();
                 throw new Error(`Failed to get upload URL: ${err}`);
             }
-            const { videoId } = await res.json();
+            const {
+                videoId,
+                uploadSignature,
+                tencentSubAppId,
+            } = await res.json() as {
+                videoId: string;
+                uploadSignature: string;
+                tencentSubAppId: number | null;
+            };
+
+            setStatus('Uploading video to Tencent VOD...');
+            const tcVodModule = await import('vod-js-sdk-v6') as {
+                default?: TencentVodConstructor;
+            } & TencentVodConstructor;
+            const TencentVod = tcVodModule.default ?? tcVodModule;
+            const tcVod = new TencentVod({
+                getSignature: async () => uploadSignature,
+                appId: tencentSubAppId ?? undefined,
+            });
+            const uploader = tcVod.upload({
+                mediaFile: file,
+                mediaName: title || file.name,
+            });
+
+            uploader.on('media_progress', (info) => {
+                if (typeof info.percent === 'number') {
+                    setStatus(`Uploading video to Tencent VOD... ${Math.round(info.percent * 100)}%`);
+                }
+            });
+
+            const uploadResult = await uploader.done();
+            if (!uploadResult.fileId) {
+                throw new Error('Tencent upload completed without a file ID');
+            }
+
+            setStatus('Saving Tencent upload result...');
+            const completeRes = await fetch('/api/upload/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    videoId,
+                    fileId: uploadResult.fileId,
+                    mediaUrl: uploadResult.video?.url,
+                }),
+            });
+
+            if (!completeRes.ok) {
+                const errData = await completeRes.json().catch(() => ({ error: 'Unknown completion error' }));
+                throw new Error(errData.error || `Upload completion failed: ${completeRes.status}`);
+            }
 
             setStatus('Submitting Tencent processing task...');
             const processRes = await fetch('/api/video/process', {

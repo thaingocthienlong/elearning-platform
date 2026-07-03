@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { applyTencentUpload } from '@/lib/tencent/vod';
+import { createTencentUploadSignature } from '@/lib/tencent/vod';
+import { loadTencentEnv } from '@/lib/tencent/env';
 import { z } from 'zod';
 
 // Input validation schema
@@ -72,30 +73,18 @@ export async function POST(req: Request) {
             },
         });
 
-        const mediaType = filename.split('.').pop()?.toLowerCase() || 'mp4';
-        const upload = await applyTencentUpload({
-            filename,
-            mediaType,
+        const env = loadTencentEnv();
+        const upload = createTencentUploadSignature({
             videoId: video.id,
-        });
-
-        await prisma.video.update({
-            where: { id: video.id },
-            data: {
-                tencentStorageBucket: upload.storageBucket,
-                tencentStorageRegion: upload.storageRegion,
-                tencentMediaStoragePath: upload.mediaStoragePath,
-            },
         });
 
         return NextResponse.json({
             provider: 'tencent',
             videoId: video.id,
-            storageBucket: upload.storageBucket,
-            storageRegion: upload.storageRegion,
-            mediaStoragePath: upload.mediaStoragePath,
-            vodSessionKey: upload.vodSessionKey,
-            tempCertificate: upload.tempCertificate,
+            uploadMode: 'web-sdk',
+            uploadSignature: upload.signature,
+            signatureExpiresAt: new Date(upload.expireTime * 1000).toISOString(),
+            tencentSubAppId: env.subAppId ?? null,
         });
     } catch (error) {
         console.error('Error generating signed URL:', error);

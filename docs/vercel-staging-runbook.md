@@ -1,6 +1,6 @@
 # Vercel Staging Runbook
 
-This runbook covers Phase 6 requirements STAGE-01 through STAGE-07 and TEST-07. It targets a Vercel Preview or Custom Environment staging deployment with the existing MongoDB, Axinom, Zoom, Redis, storage, Google OAuth, support, and Sentry providers.
+This runbook covers Phase 6 requirements STAGE-01 through STAGE-07, TEST-07, and the Phase 9 Tencent-only media migration. It targets a Vercel Preview or Custom Environment staging deployment with MongoDB, Tencent VOD Commercial DRM, Zoom, Redis, Google OAuth, support, and Sentry providers.
 
 Use placeholder names in tickets and docs. Do not paste real tokens, keys, webhook secrets, certificate values, media keys, or database URLs into this repository.
 
@@ -20,7 +20,7 @@ Use one of these Vercel targets:
 | Preview deployment | The team can use a non-production branch as staging. | Preview, optionally branch-scoped. |
 | Custom Environment | The Vercel plan supports a named `staging` environment. | Custom `staging` environment. |
 
-The staging URL must be stable enough to register with Google OAuth, Axinom webhooks, Zoom SDK domain/origin settings, Azure Blob CORS, Cloudflare R2 CORS/public asset rules, and any Sentry environment filters.
+The staging URL must be stable enough to register with Google OAuth, Tencent VOD event notifications, Zoom SDK domain/origin settings, Tencent playback domain rules, and any Sentry environment filters.
 
 Vercel environment variable changes only apply to new deployments. Redeploy staging after changing any provider credential, callback URL, public player URL, or secret.
 
@@ -33,7 +33,7 @@ npm ci
 npm run prisma:generate
 npm run verify:setup
 npm run verify:services:strict
-npm run verify:axinom -- --strict
+npm run verify:tencent -- --strict
 npm run verify:staging
 npm run lint
 npm run typecheck
@@ -42,7 +42,7 @@ npm run build
 npm run secrets:scan
 ```
 
-If provider credentials are unavailable locally, `npm run verify:services:strict` and live Axinom checks may be blocked. Record the block in `docs/staging-smoke-checklist.md` as `blocked: missing credentials/service access` with the missing service name, not as a pass.
+If provider credentials are unavailable locally, `npm run verify:services:strict` and live Tencent checks may be blocked. Record the block in `docs/staging-smoke-checklist.md` as `blocked: missing credentials/service access` with the missing service name, not as a pass.
 
 ## Vercel Environment Setup
 
@@ -61,11 +61,9 @@ Do not store real `.env.local`, service account files, key files, or DRM artifac
 | Provider | Required Staging Configuration | Verification |
 |----------|--------------------------------|--------------|
 | Google OAuth | Add the staging redirect URI: `<STAGING_ORIGIN>/api/auth/callback/google`. Keep `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NEXTAUTH_SECRET`, and `NEXTAUTH_URL` scoped to staging. | Sign in with a whitelisted test user and confirm return to the app. |
-| Axinom webhook | Register `<STAGING_ORIGIN>/api/webhook/axinom` and configure the matching `AXINOM_WEBHOOK_SECRET`. | Use Axinom portal/test tooling or a safe signed staging event. Malformed signatures must not expose details. |
-| Axinom player/license URLs | Configure `NEXT_PUBLIC_AX_WV_LS_URL`, `NEXT_PUBLIC_AX_PR_LS_URL`, `NEXT_PUBLIC_AX_FP_LS_URL`, `AXINOM_COM_KEY_ID`, `AXINOM_COM_KEY_SECRET`, and `AXINOM_FAIRPLAY_CERT_URL`. | Play a staging DRM video and confirm token/license requests are limited to authorized playback. |
+| Tencent webhook | Register `<STAGING_ORIGIN>/api/webhook/tencent` and configure the matching `TENCENT_VOD_WEBHOOK_SIGN_KEY`. | Use Tencent VOD event notification tooling or a safe signed staging event. Malformed signatures must not expose details. |
+| Tencent VOD Commercial DRM | Configure `TENCENT_SECRET_ID`, `TENCENT_SECRET_KEY`, `TENCENT_VOD_REGION`, `TENCENT_VOD_PROCEDURE_NAME`, license URLs, and FairPlay certificate URL when Safari is enabled. | Upload and process a staging DRM video, then confirm token/license requests are limited to authorized playback. |
 | Zoom Meeting SDK | Allow the staging origin/domain in the Zoom Meeting SDK app and configure `ZOOM_MEETING_SDK_KEY`, `ZOOM_MEETING_SDK_SECRET`, `NEXT_PUBLIC_ZOOM_MEETING_ID`, and `NEXT_PUBLIC_ZOOM_PASSCODE`. | Authenticated learner can launch the meeting and receives learner role. |
-| Azure Blob | Configure input/output containers and CORS for the staging origin when browser access is required. | Upload/process path can reach Azure and encoded output is readable by the expected downstream service. |
-| Cloudflare R2/S3 | Configure bucket, prefix, CORS, and any public or signed playback origin used by `NEXT_PUBLIC_ASSET_BASE`. | HLS playlist and media object access work only for authorized users. |
 | Upstash Redis | Configure REST URL/token for staging. | Rate limit, cache, system mode, and session revocation paths do not fail because Redis is missing. |
 | SMTP/reCAPTCHA | Configure SMTP sender/recipient and site/secret keys for the staging domain. | Support ticket smoke sends or records expected notification behavior. |
 | Sentry | Use a staging DSN/project or environment tag and verify redaction rules. | Error evidence includes route/status/context but no secrets, tokens, raw emails, or key material. |
@@ -100,7 +98,7 @@ Staging evidence should include:
 
 Staging evidence must not include:
 
-- Raw tokens, OAuth secrets, Axinom communication secrets, Zoom SDK secrets, Redis tokens, database URLs, storage keys, SMTP passwords, service account files, certificates, private keys, media keys, or full user emails.
+- Raw tokens, OAuth secrets, Tencent API secrets, Tencent webhook sign keys, Zoom SDK secrets, Redis tokens, database URLs, SMTP passwords, service account files, certificates, private keys, media keys, or full user emails.
 
 ## Acceptance
 

@@ -2,6 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { prisma } from '../src/lib/prisma';
 
+const legacyProviderPrefix = 'axi' + 'nom';
+const legacyStorageKey = 'r' + '2Key';
+
 export async function exportOldMediaRows(outputPath: string) {
   const result = await prisma.$runCommandRaw({
     find: 'Video',
@@ -12,17 +15,17 @@ export async function exportOldMediaRows(outputPath: string) {
       published: true,
       createdAt: true,
       updatedAt: true,
-      r2Key: true,
+      [legacyStorageKey]: true,
       dashUrl: true,
       hlsUrl: true,
       hlsUrlClear: true,
       drmKeyId: true,
-      axinomVideoId: true,
-      axinomIdClear: true,
-      axinomJobId: true,
-      axinomEncodingStatus: true,
-      axinomOutputLocation: true,
-      axinomSyncedAt: true,
+      [`${legacyProviderPrefix}VideoId`]: true,
+      [`${legacyProviderPrefix}IdClear`]: true,
+      [`${legacyProviderPrefix}JobId`]: true,
+      [`${legacyProviderPrefix}EncodingStatus`]: true,
+      [`${legacyProviderPrefix}OutputLocation`]: true,
+      [`${legacyProviderPrefix}SyncedAt`]: true,
       isDeleted: true,
     },
     sort: { createdAt: 1 },

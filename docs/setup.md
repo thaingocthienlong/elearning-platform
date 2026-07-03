@@ -21,7 +21,7 @@ Replace placeholder values in `.env.local` before running commands that need rea
 - Node >=20.9.0. The repo pins `20.11.1` in `.nvmrc`.
 - npm, using the committed `package-lock.json`.
 - A MongoDB-compatible database connection for `DATABASE_URL` when preparing the Prisma schema.
-- External service credentials only when verifying or using those integrations: Google OAuth, Upstash Redis, Axinom, Azure/R2 storage, Zoom, SMTP, reCAPTCHA, and Sentry.
+- External service credentials only when verifying or using those integrations: Google OAuth, Upstash Redis, Tencent VOD Commercial DRM, Zoom, SMTP, reCAPTCHA, and Sentry.
 
 ## Install From Clean Checkout
 
@@ -57,9 +57,7 @@ Do not copy inherited real env values into docs or examples. `.env.example` is p
 
 For ordinary local setup, missing external credentials are allowed. The app can still install, generate Prisma client code, and start once required local placeholders are replaced enough for the workflow being exercised.
 
-Axinom DRM and Encoding have a dedicated setup guide at `docs/axinom-setup.md`. Use it when configuring an Axinom trial tenant, communication keys, license service URLs, encoding profiles, and webhook callbacks.
-
-After configuring real tenant values, use `docs/axinom-staging-checklist.md` for the opt-in staging playback validation path.
+Tencent VOD Commercial DRM setup is covered by `docs/env-matrix.md`, `docs/provider-zero-setup.md`, and `docs/staging-smoke-checklist.md`.
 
 ## Prisma MongoDB Setup
 
@@ -120,15 +118,15 @@ npm run verify:services:strict
 
 Strict mode, and `CI=true`, fails if any required service group is missing variables. The verifier does not call external service APIs in Phase 1 and does not print env values.
 
-Axinom has a narrower verifier:
+Tencent has a narrower verifier:
 
 ```bash
-npm run verify:axinom
-npm run verify:axinom -- --strict
-npm run verify:axinom -- --strict --live
+npm run verify:tencent
+npm run verify:tencent -- --strict
+npm run verify:tencent -- --strict --live
 ```
 
-The default and strict Axinom modes validate configuration only. `--live` is opt-in and should be used only after real Axinom trial tenant values are configured.
+The default and strict Tencent modes validate configuration only. `--live` is opt-in and should be used only after real Tencent values and a safe test FileId plan are configured.
 
 ## Troubleshooting
 

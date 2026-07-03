@@ -23,7 +23,7 @@ Use strict service checks only when real staging credentials are available:
 
 ```bash
 npm run verify:services:strict
-npm run verify:axinom -- --strict
+npm run verify:tencent -- --strict
 ```
 
 ## Auth And Whitelist
@@ -51,7 +51,6 @@ Primary files:
 - `src/lib/media-entitlement.ts`
 - `src/app/watch/[videoId]/page.tsx`
 - `src/app/api/drm/token/route.ts`
-- `src/app/api/hls/playlist/[videoId]/route.ts`
 - `src/app/api/drm/license/route.ts`
 - `src/app/api/watch/heartbeat/route.ts`
 
@@ -60,49 +59,53 @@ Media access is enforced by one server-only entitlement helper. It checks user i
 Operational checks:
 
 - Denied users must receive generic denial responses or redirects.
-- HLS, DRM token, local license, heartbeat, and watch page behavior must stay aligned.
+- Tencent playback session, local license quarantine, heartbeat, and watch page behavior must stay aligned.
 - Add tests when adding new media-serving routes.
 
-## DRM And Axinom
+## DRM And Tencent VOD
 
 Primary files/docs:
 
-- `src/lib/axinom.ts`
-- `src/lib/axinom-env.ts`
+- `src/lib/tencent/env.ts`
+- `src/lib/tencent/client.ts`
+- `src/lib/tencent/vod.ts`
+- `src/lib/tencent/webhook.ts`
+- `src/lib/shaka-tencent.ts`
 - `src/hooks/player/useShakaPlayer.ts`
-- `src/app/api/webhook/axinom/route.ts`
-- `docs/axinom-setup.md`
-- `docs/axinom-staging-checklist.md`
+- `src/app/api/webhook/tencent/route.ts`
+- `docs/env-matrix.md`
+- `docs/staging-smoke-checklist.md`
 
-Axinom is the v1 DRM provider. The app signs short-lived Axinom License Service Messages server-side and Shaka sends entitlement tokens only with license requests.
+Tencent VOD Commercial DRM is the active media provider. The app requests Tencent upload instructions, submits VOD processing tasks, verifies Tencent event callbacks, stores Tencent file/status metadata, and issues short-lived Tencent playback session data only after server-side media entitlement passes.
 
 Operational checks:
 
-- Communication key ID/secret and webhook secret stay server-only.
-- FairPlay certificate URL and public license URLs match the Axinom tenant.
+- Tencent API secret key and webhook sign key stay server-only.
+- Widevine/FairPlay license URLs and optional FairPlay certificate URL match the Tencent VOD application.
 - Webhook verification rejects malformed signatures without leaking details.
-- Local DRM license endpoint is not a production DRM substitute unless real key custody is added.
+- Local DRM license endpoint is not a production DRM substitute; Tencent license URLs handle browser license requests.
 
-## Video Processing And Storage
+## Video Processing And Delivery
 
 Primary files/docs:
 
-- `src/lib/axinom-video-service.ts`
-- `src/lib/axinom-encoding.ts`
-- `src/lib/azure-storage.ts`
-- `src/lib/r2.ts`
+- `src/lib/tencent/vod.ts`
+- `src/app/api/upload/presigned/route.ts`
+- `src/app/api/upload/complete/route.ts`
 - `src/app/api/video/process/route.ts`
+- `src/app/api/video/status/route.ts`
+- `src/app/api/video/sync/route.ts`
 - `docs/database-performance.md`
 - `docs/vercel-staging-runbook.md`
 
-Source media and encoded output use Azure Blob and R2/S3-compatible storage. Axinom operational IDs and statuses live in explicit video fields.
+Source media upload, DRM packaging, adaptive output, playback URLs, and CDN delivery are handled by Tencent VOD. Admin upload uses Tencent's Web Upload SDK with a server-issued client upload signature, then stores the returned Tencent file ID through `/api/upload/complete`. Tencent operational IDs and statuses live in explicit video fields.
 
 Operational checks:
 
-- Azure input/output containers and R2 bucket/prefix must match staging env.
-- CORS/origin settings must include the staging origin where browser access is expected.
-- `src/app/api/video/process/route.ts` is a long-running trigger path, not a production-grade worker queue.
-- Production hardening should move long-running orchestration to a queue, worker, or provider-native job mechanism.
+- Tencent VOD application, region, procedure, playback domain, and webhook URL must match staging env.
+- `src/app/api/video/process/route.ts` submits provider tasks and should remain a short orchestration trigger after upload completion has stored `tencentFileId`.
+- Missed webhook events should be repaired through manual or scheduled sync.
+- Production hardening should move repeated reconciliation to a queue, worker, or provider-native job mechanism.
 
 ## Zoom Meetings
 
@@ -211,7 +214,7 @@ Enforceable layers are:
 - Watermarking.
 - Session revocation.
 - Audit/security events.
-- Storage and HLS route authorization.
+- Tencent playback session authorization before the browser receives DRM playback data.
 
 Operational checks:
 

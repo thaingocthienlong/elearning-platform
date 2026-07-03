@@ -16,17 +16,16 @@ Do not paste secrets, raw tokens, service account values, DRM keys, database URL
 | AUTH-01 | Auth | A whitelisted staging user can sign in with Google OAuth and returns to the app through `/api/auth/callback/google`. | not run | |
 | AUTH-02 | Auth | A non-whitelisted user is denied without exposing provider secrets or internal allowlist details. | not run | |
 | COURSE-01 | Course access | Signed-in learner can open an enrolled or open course and sees expected course/video navigation. | not run | |
-| PLAYBACK-01 | Playback | Authorized learner can open `/watch/<videoId>` and the player loads the staging asset manifest. | not run | |
-| DRM-01 | DRM token | Authorized learner receives a DRM entitlement token for the staging test video; unauthorized user is denied. | not run | |
-| SAFARI-DRM-01 | Safari DRM | On real macOS Safari with FairPlay env configured, an authorized learner can open `/watch/<videoId>`, load protected HLS, request the Axinom FairPlay license, and play for at least 10 seconds. | not run | |
-| SAFARI-FALLBACK-01 | Safari fallback | When FairPlay env is not configured, Safari acceptance uses `hlsUrlClear` clear HLS fallback or is marked blocked; it is not recorded as FairPlay DRM success. | not run | |
-| HLS-01 | HLS access | HLS playlist route succeeds only for an entitled user and denies a user without access. | not run | |
-| AXINOM-01 | Axinom webhook | Staging Axinom webhook URL is configured as `<STAGING_ORIGIN>/api/webhook/axinom` and signature handling is verified with a safe staging event or portal check. | not run | |
-| AXINOM-02 | Axinom encoding/playback | A staging test video has Axinom operational IDs/statuses and can be encoded/published or is explicitly blocked by missing Axinom access. | not run | |
+| TENCENT-UPLOAD-01 | Tencent upload | Admin creates a new video upload using Tencent VOD upload instructions and the local row stores Tencent metadata. | not run | |
+| TENCENT-WEBHOOK-01 | Tencent webhook | Staging Tencent VOD webhook URL is configured as `<STAGING_ORIGIN>/api/webhook/tencent` and signature handling is verified with a safe staging event. | not run | |
+| PLAYBACK-01 | Playback | Authorized learner can open `/watch/<videoId>` and the player loads a Tencent DRM staging manifest. | not run | |
+| DRM-01 | DRM token | Authorized learner receives Tencent DRM playback session data for the staging test video; unauthorized user is denied. | not run | |
+| SAFARI-DRM-01 | Safari DRM | On real macOS Safari with Tencent FairPlay env configured, an authorized learner can open `/watch/<videoId>`, load protected HLS, request the Tencent FairPlay license, and play for at least 10 seconds. | not run | |
+| SAFARI-FALLBACK-01 | Safari fallback | When Tencent FairPlay env is not configured, Safari DRM acceptance is marked blocked; it is not recorded as FairPlay DRM success. | not run | |
+| TENCENT-HLS-01 | Tencent HLS playback | Authorized Safari/FairPlay staging playback uses the Tencent VOD HLS manifest URL after entitlement; there is no app-hosted HLS proxy route after cutover. | not run | |
 | ZOOM-01 | Zoom | Authenticated learner can launch the meeting page and join through the preserved Zoom iframe flow with learner role. | not run | |
 | SUPPORT-01 | Support | Authenticated user can submit a support ticket with reCAPTCHA/SMTP behavior matching staging configuration. | not run | |
 | REDIS-01 | Redis | Redis-backed cache/rate-limit/session-revocation paths are available and do not fall back because staging credentials are missing. | not run | |
-| STORAGE-01 | Storage | Azure input/output containers and R2/S3 playback bucket are reachable from staging with the expected CORS/origin rules. | not run | |
 | ADMIN-01 | Admin | Admin can open core admin pages and review analytics/security/tickets without unbounded loading or secret leakage. | not run | |
 | LOGS-01 | Logs | Vercel logs show useful route/status/provider context and no raw secrets, tokens, keys, database URLs, or full user emails. | not run | |
 | SENTRY-01 | Sentry | A controlled staging error reaches Sentry with staging environment context and redacted sensitive fields. | not run | |

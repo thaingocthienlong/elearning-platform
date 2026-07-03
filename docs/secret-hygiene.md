@@ -26,7 +26,7 @@ Documentation and examples must use placeholders only:
 ```text
 DATABASE_URL=mongodb://localhost:27017/secure_video_platform
 NEXTAUTH_SECRET=replace-with-local-secret
-AXINOM_COM_KEY_SECRET=replace-with-axinom-secret
+TENCENT_SECRET_KEY=replace-with-tencent-secret-key
 ZOOM_MEETING_SDK_SECRET=replace-with-zoom-secret
 ```
 

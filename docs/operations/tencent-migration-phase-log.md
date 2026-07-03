@@ -193,3 +193,45 @@
 - Deferred checks: Tencent setup verifier and docs move to Task 8
 - Rollback: `git revert <task-7-commit>`; restore old provider code only from git history, not from external service state
 - Next: Task 8 Tencent verification, docs, and staging smoke
+
+## 2026-07-03 - Task 8: Tencent Verification, Docs, And Staging Smoke
+
+- Status: complete
+- Branch: `codex/tencent-platform-migration`
+- Commit: pending
+- Backup: none required; no external provider cleanup or secret handling performed
+- Files changed:
+  - `.env.example`
+  - `package.json`
+  - `package-lock.json`
+  - `scripts/verify-tencent-setup.ts`
+  - `scripts/verify-services.ts`
+  - `scripts/verify-setup.ts`
+  - `scripts/verify-staging-smoke.ts`
+  - `scripts/export-old-media-before-tencent-cutover.ts`
+  - `src/lib/tencent/types.ts`
+  - `src/lib/tencent/vod.ts`
+  - `src/app/api/upload/presigned/route.ts`
+  - `src/app/api/upload/complete/route.ts`
+  - `src/app/admin/videos/page.tsx`
+  - `src/proxy.ts`
+  - old Azure/R2/KMS helper, HLS proxy route, and Azure CORS script removed
+  - Tencent docs and related tests updated
+- Tools/plugins/MCPs affected:
+  - Added `vod-js-sdk-v6` for browser upload through Tencent Web Upload SDK.
+  - Removed unused Azure Blob, S3/R2, and KMS SDK dependencies from active media pipeline.
+- Verification evidence:
+  - Official Tencent docs reviewed: Web Upload SDK uses `vod-js-sdk-v6` and a server-issued client upload signature; `CommitUpload` returns `FileId` only after storage upload confirmation.
+  - `npm test -- __tests__/api/tencent-upload-process.test.ts __tests__/api/media-routes.test.ts __tests__/api/fairplay-cert.test.ts __tests__/lib/tencent-vod.test.ts __tests__/scripts/tencent-cutover-scripts.test.ts __tests__/repo/no-axinom-active-imports.test.ts __tests__/docs/staging-docs.test.ts __tests__/docs/operations-docs.test.ts __tests__/docs/manual-testing-guide.test.ts --runInBand` -> 9 suites passed, 25 tests passed.
+  - `npm test -- __tests__/env/env-matrix.test.ts __tests__/scripts/package-scripts.test.ts __tests__/docs/provider-zero-setup.test.ts --runInBand` -> 3 suites passed, 9 tests passed.
+  - `npm run verify:setup` -> passed.
+  - `npm run verify:tencent` -> passed with expected local warning for missing live Tencent credentials.
+  - `npm run verify:services` -> passed; Tencent VOD and public player config skipped locally because credentials/URLs are absent.
+  - `npm run verify:staging` -> passed.
+  - `npm run typecheck` -> passed.
+  - `npm run lint` -> passed with inherited warnings and 0 errors.
+  - `rg -n "Axinom|AXINOM|axinom|NEXT_PUBLIC_AX" .env.example docs src scripts __tests__ prisma -g '!docs/superpowers/**' -g '!docs/operations/tencent-migration-phase-log.md' -g '!docs/verification/tencent-migration-verification-record.md'` -> no matches.
+  - `rg -n "Azure|AZURE|R2_|Cloudflare R2|r2Key|@azure/storage-blob|@aws-sdk/client-s3|@aws-sdk/client-kms|lib/r2|R2_BUCKET|fix-azure|HLS playlist|/api/hls" .env.example docs src scripts __tests__ prisma package.json -g '!docs/superpowers/**' -g '!docs/operations/tencent-migration-phase-log.md' -g '!docs/verification/tencent-migration-verification-record.md'` -> no matches.
+- Deferred checks: real Tencent browser upload, DRM processing, webhook callback, and playback smoke remain deferred until staging credentials and Tencent console setup exist.
+- Rollback: `git revert <task-8-commit>`; reinstall old dependencies only by reverting lockfile, not by manual package drift.
+- Next: Task 9 final verification, export, and handoff

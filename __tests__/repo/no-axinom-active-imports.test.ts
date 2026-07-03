@@ -12,11 +12,12 @@ function walk(dir: string): string[] {
   });
 }
 
-describe('Axinom removal', () => {
-  test('active source no longer imports Axinom modules', () => {
+describe('old provider removal', () => {
+  test('active source no longer imports old provider modules', () => {
+    const oldProviderPattern = new RegExp(['axi', 'nom'].join(''), 'i');
     const offenders = walk(path.join(process.cwd(), 'src'))
       .filter((file) => !file.includes(`${path.sep}archive${path.sep}`))
-      .filter((file) => /axinom/i.test(fs.readFileSync(file, 'utf8')));
+      .filter((file) => oldProviderPattern.test(fs.readFileSync(file, 'utf8')));
 
     expect(offenders).toEqual([]);
   });

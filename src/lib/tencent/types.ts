@@ -38,6 +38,12 @@ export type TencentUploadApplyResult = {
   requestId: string;
 };
 
+export type TencentUploadSignatureResult = {
+  signature: string;
+  currentTimeStamp: number;
+  expireTime: number;
+};
+
 export type TencentPlaybackSession = {
   provider: 'tencent';
   videoId: string;

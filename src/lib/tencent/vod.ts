@@ -1,7 +1,12 @@
 import crypto from 'node:crypto';
 import { callTencentVod } from './client';
 import { loadTencentEnv } from './env';
-import type { TencentDrmType, TencentUploadApplyResult, TencentVodStatus } from './types';
+import type {
+  TencentDrmType,
+  TencentUploadApplyResult,
+  TencentUploadSignatureResult,
+  TencentVodStatus,
+} from './types';
 
 export function normalizeTencentStatus(status: string | null | undefined): TencentVodStatus {
   const value = status?.trim().toUpperCase();
@@ -58,6 +63,47 @@ export async function applyTencentUpload(input: {
       expiredTime: response.TempCertificate.ExpiredTime,
     },
     requestId: response.RequestId,
+  };
+}
+
+function encodeQueryValue(value: string | number) {
+  return encodeURIComponent(String(value));
+}
+
+export function createTencentUploadSignature(input: {
+  videoId: string;
+  expiresInSeconds?: number;
+  nowSeconds?: number;
+  random?: number;
+}): TencentUploadSignatureResult {
+  const env = loadTencentEnv();
+  const currentTimeStamp = input.nowSeconds ?? Math.floor(Date.now() / 1000);
+  const expireTime = currentTimeStamp + (input.expiresInSeconds ?? 60 * 60);
+  const random = input.random ?? crypto.randomInt(0, 0xffffffff);
+
+  const queryParts: Array<[string, string | number | undefined]> = [
+    ['secretId', env.secretId],
+    ['currentTimeStamp', currentTimeStamp],
+    ['expireTime', expireTime],
+    ['random', random],
+    ['procedure', env.procedureName],
+    ['taskNotifyMode', 'Change'],
+    ['sourceContext', input.videoId],
+    ['sessionContext', input.videoId],
+    ['oneTimeValid', 1],
+    ['vodSubAppId', env.subAppId],
+  ];
+
+  const original = queryParts
+    .filter(([, value]) => value !== undefined)
+    .map(([name, value]) => `${name}=${encodeQueryValue(value!)}`)
+    .join('&');
+
+  const signature = crypto.createHmac('sha1', env.secretKey).update(original, 'utf8').digest();
+  return {
+    signature: Buffer.concat([signature, Buffer.from(original, 'utf8')]).toString('base64'),
+    currentTimeStamp,
+    expireTime,
   };
 }
 

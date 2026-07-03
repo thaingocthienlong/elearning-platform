@@ -28,8 +28,8 @@ describe('manual testing guide contract', () => {
       'SUPPORT-01',
       'ADMIN-01',
       'REDIS-01',
-      'STORAGE-01',
-      'AXINOM-01',
+      'TENCENT-UPLOAD-01',
+      'TENCENT-WEBHOOK-01',
       'SENTRY-01',
       'Manual Test Report',
     ]) {

@@ -31,27 +31,35 @@ jest.mock('next/server', () => ({
 }));
 
 describe('/api/drm/fairplay-cert', () => {
-  const originalCertUrl = process.env.AXINOM_FAIRPLAY_CERT_URL;
+  const originalCertUrl = process.env.TENCENT_FAIRPLAY_CERT_URL;
+  const originalPublicCertUrl = process.env.NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL;
   const originalFetch = global.fetch;
 
   beforeEach(() => {
     jest.resetModules();
     jest.restoreAllMocks();
-    process.env.AXINOM_FAIRPLAY_CERT_URL =
+    process.env.TENCENT_FAIRPLAY_CERT_URL =
       'https://tenant.example/private-fairplay.cer';
+    delete process.env.NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL;
   });
 
   afterEach(() => {
     if (originalCertUrl === undefined) {
-      delete process.env.AXINOM_FAIRPLAY_CERT_URL;
+      delete process.env.TENCENT_FAIRPLAY_CERT_URL;
     } else {
-      process.env.AXINOM_FAIRPLAY_CERT_URL = originalCertUrl;
+      process.env.TENCENT_FAIRPLAY_CERT_URL = originalCertUrl;
+    }
+    if (originalPublicCertUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL;
+    } else {
+      process.env.NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL = originalPublicCertUrl;
     }
     global.fetch = originalFetch;
   });
 
   test('returns 500 when FairPlay certificate URL is not configured', async () => {
-    delete process.env.AXINOM_FAIRPLAY_CERT_URL;
+    delete process.env.TENCENT_FAIRPLAY_CERT_URL;
+    delete process.env.NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL;
     const { GET } = await import('@/app/api/drm/fairplay-cert/route');
 
     const response = await (GET as () => Promise<Response>)();

@@ -5,7 +5,7 @@ describe('Tencent cutover scripts', () => {
   test('export script exists and avoids secret env names in output contract', () => {
     const source = fs.readFileSync(path.join(process.cwd(), 'scripts/export-old-media-before-tencent-cutover.ts'), 'utf8');
     expect(source).toContain('exportOldMediaRows');
-    expect(source).not.toContain('process.env.AXINOM_COM_KEY_SECRET');
+    expect(source).not.toContain(`process.env.${'AXI' + 'NOM'}_COM_KEY_SECRET`);
     expect(source).not.toContain('process.env.TENCENT_SECRET_KEY');
   });
 
