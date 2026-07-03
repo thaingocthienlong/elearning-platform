@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Player from './Player';
 import { detectDRMCapabilities, getOptimalDRMConfig, getBrowserInfo, DRMConfig } from '@/lib/drm-detection';
 import { toast } from 'sonner';
-import { resolveAxinomLicenseServerUrl } from '@/lib/shaka-axinom';
+import { resolveTencentShakaLicenseServerUrl } from '@/lib/shaka-tencent';
 
 interface DRMPlayerWrapperProps {
     dashUrl: string | null;
@@ -189,7 +189,7 @@ export default function DRMPlayerWrapper({
     return (
         <Player
             manifestUrl={drmConfig.manifestUrl}
-            licenseServerUrl={resolveAxinomLicenseServerUrl(drmConfig.drmType)}
+            licenseServerUrl={resolveTencentShakaLicenseServerUrl(drmConfig.drmType === 'fairplay' ? 'fairplay' : 'widevine')}
             drmToken={drmToken}
             videoId={videoId}
             viewCount={viewCount}
@@ -197,7 +197,7 @@ export default function DRMPlayerWrapper({
             watermarkText={watermarkText}
             drmType={drmConfig.drmType}
             robustness={drmConfig.robustness}
-            fairplayCertUrl={drmConfig.drmType === 'fairplay' && !drmConfig.isClearPlayback ? '/api/drm/fairplay-cert' : undefined}
+            fairplayCertUrl={drmConfig.drmType === 'fairplay' && !drmConfig.isClearPlayback ? process.env.NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL : undefined}
             onBlackScreenDetected={drmConfig.robustness === 'HW_SECURE_ALL' ? handleBlackScreenDetected : undefined}
             onFullscreenChange={onFullscreenChange}
         />

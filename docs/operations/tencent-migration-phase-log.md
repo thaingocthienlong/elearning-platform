@@ -135,3 +135,28 @@
 - Deferred checks: live upload/process/webhook with real Tencent credentials deferred to staging
 - Rollback: `git revert <task-5-commit>`
 - Next: Task 6 Tencent playback session and Shaka integration
+
+## 2026-07-03 - Task 6: Tencent Playback Session And Shaka Integration
+
+- Status: complete
+- Branch: `codex/tencent-platform-migration`
+- Commit: pending
+- Backup: none required; playback route and client integration only
+- Files changed:
+  - `src/app/api/drm/token/route.ts`
+  - `src/app/watch/[videoId]/page.tsx`
+  - `src/components/video/DRMPlayerWrapper.tsx`
+  - `src/hooks/player/useShakaPlayer.ts`
+  - `src/lib/media-entitlement.ts`
+  - `src/lib/shaka-tencent.ts`
+  - `__tests__/lib/shaka-tencent.test.ts`
+  - `__tests__/hooks/use-shaka-player.test.tsx`
+  - `docs/operations/tencent-migration-phase-log.md`
+  - `docs/verification/tencent-migration-verification-record.md`
+- Tools/plugins/MCPs affected: none
+- Verification evidence:
+  - `npm test -- __tests__/lib/shaka-tencent.test.ts __tests__/hooks/use-shaka-player.test.tsx --runInBand` -> 2 suites passed, 4 tests passed.
+  - `npm run typecheck` -> passed.
+- Deferred checks: browser playback with real Tencent DRM media deferred to staging credentials and test video
+- Rollback: `git revert <task-6-commit>`
+- Next: Task 7 Remove Axinom surfaces and rewrite admin UI
