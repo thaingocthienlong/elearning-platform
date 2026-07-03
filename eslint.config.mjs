@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import reactHooks from "eslint-plugin-react-hooks";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -19,11 +20,16 @@ const eslintConfig = defineConfig([
     "public/zoom-client-view/**",
     "zoom-webapp/**",
     ".agent/**",
+    ".agents/**",
+    "codex-plugins/**",
     "scripts/packager/node_modules/**",
     "Shaka Packager Script/**",
     "archive/**",
   ]),
   {
+    plugins: {
+      "react-hooks": reactHooks,
+    },
     rules: {
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/no-explicit-any": "warn",
@@ -36,6 +42,7 @@ const eslintConfig = defineConfig([
       "prefer-const": "warn",
       "react-hooks/immutability": "warn",
       "react-hooks/rules-of-hooks": "warn",
+      "react-hooks/refs": "warn",
       "react-hooks/set-state-in-effect": "warn",
       "react/no-unescaped-entities": "off",
     },

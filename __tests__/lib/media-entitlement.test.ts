@@ -42,7 +42,7 @@ const verifyCourseVideo = {
   published: true,
   isDeleted: false,
   viewLimit: null,
-  drmKeyId: 'key-1',
+  tencentFileId: 'tencent-file-1',
   hlsUrl: 'https://cdn.example.test/master.m3u8',
   Course: {
     id: 'course-1',

@@ -160,3 +160,36 @@
 - Deferred checks: browser playback with real Tencent DRM media deferred to staging credentials and test video
 - Rollback: `git revert <task-6-commit>`
 - Next: Task 7 Remove Axinom surfaces and rewrite admin UI
+
+## 2026-07-03 - Task 7: Remove Axinom Surfaces And Rewrite Admin UI
+
+- Status: complete
+- Branch: `codex/tencent-platform-migration`
+- Commit: pending
+- Backup: old media export script retained; no external provider deletion performed
+- Files changed:
+  - `prisma/schema.prisma`
+  - `src/app/admin/videos/page.tsx`
+  - `src/app/api/admin/videos/route.ts`
+  - `src/app/api/cron/check-videos/route.ts`
+  - `src/app/api/drm/fairplay-cert/route.ts`
+  - `src/app/api/drm/license/route.ts`
+  - `src/lib/media-entitlement.ts`
+  - `src/lib/translations.ts`
+  - `scripts/export-old-media-before-tencent-cutover.ts`
+  - `scripts/verify-setup.ts`
+  - `package.json`
+  - `package-lock.json`
+  - `eslint.config.mjs`
+  - old Axinom source, route, script, and test files removed
+  - `__tests__/repo/no-axinom-active-imports.test.ts`
+- Tools/plugins/MCPs affected: ESLint now explicitly registers `eslint-plugin-react-hooks` and ignores local `.agents/` and `codex-plugins/` tool folders
+- Verification evidence:
+  - `npm run prisma:generate` -> passed.
+  - `npm test -- __tests__/repo/no-axinom-active-imports.test.ts --runInBand` -> 1 suite passed, 1 test passed.
+  - `npm test -- __tests__/repo/no-axinom-active-imports.test.ts __tests__/scripts/package-scripts.test.ts __tests__/api/media-routes.test.ts __tests__/lib/media-entitlement.test.ts __tests__/scripts/tencent-cutover-scripts.test.ts --runInBand` -> 5 suites passed, 19 tests passed.
+  - `npm run typecheck` -> passed.
+  - `npm run lint` -> passed with inherited warnings and 0 errors.
+- Deferred checks: Tencent setup verifier and docs move to Task 8
+- Rollback: `git revert <task-7-commit>`; restore old provider code only from git history, not from external service state
+- Next: Task 8 Tencent verification, docs, and staging smoke

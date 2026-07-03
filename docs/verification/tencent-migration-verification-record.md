@@ -10,8 +10,8 @@ Tencent-only media migration from Axinom/Azure/R2 media pipeline to Tencent VOD 
 | --- | --- | --- |
 | `git status --short` | Only intended files shown. | Task 0 showed intended untracked plan/workflow docs plus pre-existing unrelated `.agents/` and `codex-plugins/`. |
 | `npm run prisma:generate` | Prisma client generation succeeds. | Task 3 passed. |
-| `npm run lint` | ESLint passes. | Not run yet. |
-| `npm run typecheck` | TypeScript passes. | Task 6 passed after Tencent playback integration. |
+| `npm run lint` | ESLint passes. | Task 7 passed with inherited warnings and 0 errors. |
+| `npm run typecheck` | TypeScript passes. | Task 7 passed after Axinom source removal. |
 | `npm run test -- --runInBand` | Jest passes. | Not run yet. |
 | `npm run build` | Next build succeeds. | Not run yet. |
 | `npm run verify:tencent` | Tencent local verification passes or warns without live credentials. | Not run yet. |
@@ -40,6 +40,11 @@ Tencent-only media migration from Axinom/Azure/R2 media pipeline to Tencent VOD 
 - Task 5 typecheck passed.
 - Task 6 Shaka Tencent helper and hook tests passed: `npm test -- __tests__/lib/shaka-tencent.test.ts __tests__/hooks/use-shaka-player.test.tsx --runInBand` reported 2 suites passed and 4 tests passed.
 - Task 6 typecheck passed.
+- Task 7 Prisma generation passed after removing old provider fields.
+- Task 7 active-source provider removal test passed: `npm test -- __tests__/repo/no-axinom-active-imports.test.ts --runInBand` reported 1 suite passed and 1 test passed.
+- Task 7 targeted regression tests passed: `npm test -- __tests__/repo/no-axinom-active-imports.test.ts __tests__/scripts/package-scripts.test.ts __tests__/api/media-routes.test.ts __tests__/lib/media-entitlement.test.ts __tests__/scripts/tencent-cutover-scripts.test.ts --runInBand` reported 5 suites passed and 19 tests passed.
+- Task 7 typecheck passed.
+- Task 7 lint passed with 0 errors and inherited warnings.
 
 ## Gaps Or Deferred Checks
 

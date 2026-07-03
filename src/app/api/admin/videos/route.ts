@@ -22,11 +22,13 @@ export async function GET() {
                 dashUrl: true,
                 hlsUrl: true,
                 hlsUrlClear: true,
-                axinomVideoId: true,
-                axinomIdClear: true,
-                axinomEncodingStatus: true,
-                axinomOutputLocation: true,
-                axinomSyncedAt: true,
+                tencentFileId: true,
+                tencentTaskId: true,
+                tencentStatus: true,
+                tencentStorageRegion: true,
+                tencentMediaStoragePath: true,
+                tencentSyncedAt: true,
+                tencentDeletedAt: true,
             }
         });
 

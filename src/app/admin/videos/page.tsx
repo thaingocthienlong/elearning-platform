@@ -31,11 +31,11 @@ type Video = {
     dashUrl: string | null;
     hlsUrl: string | null;
     hlsUrlClear: string | null;
-    axinomVideoId: string | null;
-    axinomIdClear: string | null;
-    axinomEncodingStatus: string | null;
-    axinomOutputLocation: string | null;
-    axinomSyncedAt: string | null;
+    tencentFileId: string | null;
+    tencentTaskId: string | null;
+    tencentStatus: string | null;
+    tencentSyncedAt: string | null;
+    tencentDeletedAt: string | null;
 };
 
 export default function AdminVideosPage() {
@@ -65,7 +65,7 @@ export default function AdminVideosPage() {
         searchQuery,
         setSearchQuery,
         filteredData: filteredVideos
-    } = useAdminFilters(videos, ['title', 'id', 'axinomIdClear', 'description']);
+    } = useAdminFilters(videos, ['title', 'id', 'tencentFileId', 'description']);
 
     const {
         paginatedData,
@@ -124,13 +124,6 @@ export default function AdminVideosPage() {
         }
     };
 
-    const getLegacyAxinomId = (desc: string | null) => {
-        const match = desc?.match(/axinom-id:([a-f0-9-]+)/i);
-        return match ? match[1] : null;
-    };
-
-    const getPrimaryAxinomId = (video: Video) => video.axinomVideoId || getLegacyAxinomId(video.description);
-
     const isReadyStatus = (statusValue: string | null) =>
         statusValue === 'READY' || statusValue === 'COMPLETED' || statusValue === 'Finished';
 
@@ -139,7 +132,7 @@ export default function AdminVideosPage() {
         if (!file || !selectedCourseId) return;
 
         setUploading(true);
-        setStatus('Getting presigned URL...');
+        setStatus('Requesting Tencent upload instructions...');
 
         try {
             // 1. Get presigned URL
@@ -158,28 +151,9 @@ export default function AdminVideosPage() {
                 const err = await res.text();
                 throw new Error(`Failed to get upload URL: ${err}`);
             }
-            const { signedUrl, videoId } = await res.json();
+            const { videoId } = await res.json();
 
-            // 2. Upload to R2
-            setStatus('Uploading to R2...');
-            const uploadRes = await fetch(signedUrl, {
-                method: 'PUT',
-                body: file,
-                headers: {
-                    'Content-Type': file.type,
-                    'x-ms-blob-type': 'BlockBlob'
-                },
-            });
-
-            if (!uploadRes.ok) {
-                const errorText = await uploadRes.text();
-                console.error('Upload failed with status:', uploadRes.status);
-                console.error('Error details:', errorText);
-                throw new Error(`Upload failed: ${uploadRes.status} - ${errorText}`);
-            }
-
-            // 3. Trigger processing
-            setStatus('Triggering processing...');
+            setStatus('Submitting Tencent processing task...');
             const processRes = await fetch('/api/video/process', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -285,16 +259,15 @@ export default function AdminVideosPage() {
                                     <tr>
                                         <th className="p-4 font-medium">Title</th>
                                         <th className="p-4 font-medium">Date</th>
-                                        <th className="p-4 font-medium">Axinom ID</th>
+                                        <th className="p-4 font-medium">Tencent File ID</th>
                                         <th className="p-4 font-medium">Status</th>
                                         <th className="p-4 font-medium text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {paginatedData.map((video) => {
-                                        const axinomId = getPrimaryAxinomId(video);
-                                        const drmReady = Boolean(video.dashUrl && video.hlsUrl) || isReadyStatus(video.axinomEncodingStatus);
-                                        const canUpdateStatus = Boolean(axinomId);
+                                        const drmReady = Boolean(video.dashUrl && video.hlsUrl) || isReadyStatus(video.tencentStatus);
+                                        const canUpdateStatus = Boolean(video.tencentFileId);
                                         return (
                                             <tr key={video.id} className="border-t hover:bg-muted/50">
                                                 <td className="p-4 font-medium">{video.title}</td>
@@ -303,9 +276,9 @@ export default function AdminVideosPage() {
                                                 </td>
                                                 <td className="p-4 font-mono text-xs text-muted-foreground">
                                                     <div className="space-y-1">
-                                                        <div>{axinomId || 'N/A'}</div>
-                                                        {video.axinomIdClear && (
-                                                            <div>clear: {video.axinomIdClear}</div>
+                                                        <div>{video.tencentFileId || 'N/A'}</div>
+                                                        {video.tencentTaskId && (
+                                                            <div>task: {video.tencentTaskId}</div>
                                                         )}
                                                     </div>
                                                 </td>
@@ -324,19 +297,19 @@ export default function AdminVideosPage() {
                                                                 </Badge>
                                                             )}
                                                         </div>
-                                                        {video.axinomEncodingStatus && (
+                                                        {video.tencentStatus && (
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-xs text-muted-foreground w-12">State:</span>
                                                                 <Badge variant="outline" className="text-xs">
-                                                                    {video.axinomEncodingStatus}
+                                                                    {video.tencentStatus}
                                                                 </Badge>
                                                             </div>
                                                         )}
                                                         {/* Clear Status */}
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-xs text-muted-foreground w-12">Clear:</span>
-                                                            {video.axinomIdClear ? (
-                                                                video.hlsUrlClear ? (
+                                                            {video.tencentFileId ? (
+                                                                video.hlsUrl ? (
                                                                     <Badge className="bg-blue-500 hover:bg-blue-600 text-xs">
                                                                         <CheckCircle className="w-3 h-3 mr-1" /> Ready
                                                                     </Badge>
@@ -378,7 +351,7 @@ export default function AdminVideosPage() {
                                                             size="sm"
                                                             onClick={() => handleSync(video.id)}
                                                             disabled={syncingId === video.id}
-                                                            title="Update Axinom status and sync manifest URLs"
+                                                            title="Update Tencent status and sync manifest URLs"
                                                         >
                                                             {syncingId === video.id ? (
                                                                 <Loader2 className="w-4 h-4 animate-spin" />

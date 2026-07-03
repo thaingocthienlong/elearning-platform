@@ -3,8 +3,9 @@ import path from 'node:path';
 import { prisma } from '../src/lib/prisma';
 
 export async function exportOldMediaRows(outputPath: string) {
-  const videos = await prisma.video.findMany({
-    select: {
+  const result = await prisma.$runCommandRaw({
+    find: 'Video',
+    projection: {
       id: true,
       title: true,
       courseId: true,
@@ -24,8 +25,11 @@ export async function exportOldMediaRows(outputPath: string) {
       axinomSyncedAt: true,
       isDeleted: true,
     },
-    orderBy: { createdAt: 'asc' },
+    sort: { createdAt: 1 },
   });
+  const videos = Array.isArray((result as { cursor?: { firstBatch?: unknown[] } }).cursor?.firstBatch)
+    ? (result as { cursor: { firstBatch: unknown[] } }).cursor.firstBatch
+    : [];
 
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
   await fs.writeFile(outputPath, JSON.stringify({ exportedAt: new Date().toISOString(), videos }, null, 2));
