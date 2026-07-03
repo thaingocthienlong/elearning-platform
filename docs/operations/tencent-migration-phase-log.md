@@ -89,3 +89,23 @@
 - Deferred checks: old media export is not run until a real cutover checkpoint
 - Rollback: `git revert <task-3-commit>`
 - Next: Task 4 Tencent VOD client and service layer
+
+## 2026-07-03 - Task 4: Tencent VOD Client And Service Layer
+
+- Status: complete
+- Branch: `codex/tencent-platform-migration`
+- Commit: pending
+- Backup: none required; service-layer addition only
+- Files changed:
+  - `src/lib/tencent/client.ts`
+  - `src/lib/tencent/vod.ts`
+  - `__tests__/lib/tencent-vod.test.ts`
+  - `docs/operations/tencent-migration-phase-log.md`
+  - `docs/verification/tencent-migration-verification-record.md`
+- Tools/plugins/MCPs affected: none
+- Verification evidence:
+  - `npm test -- __tests__/lib/tencent-vod.test.ts --runInBand` -> 1 suite passed, 2 tests passed.
+  - `npm run typecheck` -> passed.
+- Deferred checks: live Tencent API calls are deferred until credentials and test media exist
+- Rollback: `git revert <task-4-commit>`
+- Next: Task 5 Tencent upload, processing, status, and webhook routes

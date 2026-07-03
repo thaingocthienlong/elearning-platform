@@ -34,6 +34,8 @@ Tencent-only media migration from Axinom/Azure/R2 media pipeline to Tencent VOD 
 - Task 3 Prisma generation passed.
 - Task 3 cutover script tests passed: `npm test -- __tests__/scripts/tencent-cutover-scripts.test.ts --runInBand` reported 1 suite passed and 2 tests passed.
 - Task 3 typecheck passed.
+- Task 4 VOD helper tests passed: `npm test -- __tests__/lib/tencent-vod.test.ts --runInBand` reported 1 suite passed and 2 tests passed.
+- Task 4 typecheck passed.
 
 ## Gaps Or Deferred Checks
 
