@@ -20,6 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Vercel Staging Deployment and Smoke Suite** - Staging can be deployed and accepted through documented env, callback, build, log, and smoke checks.
 - [x] **Phase 7: Academic Frontend Redesign** - Existing routes and workflows receive a formal institute-style UI with responsive and screenshot coverage.
 - [x] **Phase 8: Maintainer Operations and Hardening Backlog** - Maintainers have subsystem, upgrade, readiness, and production-hardening guidance after staging readiness.
+- [x] **Phase 9: Tencent-Only Media Platform Migration** - Future incoming courses use Tencent VOD Commercial DRM as the only media upload, processing, DRM, playback, webhook, and deletion path.
 
 ## Phase Details
 
@@ -173,10 +174,24 @@ Plans:
 - [x] 08-03-PLAN.md - Health checklist and hardening backlog.
 - [x] 08-04-PLAN.md - Milestone gate and closure.
 
+### Phase 9: Tencent-Only Media Platform Migration
+**Goal**: Future incoming courses use Tencent VOD Commercial DRM as the only media upload, processing, DRM, playback, webhook, and deletion path.
+**Depends on**: Phase 8
+**Requirements**: TENCENT-01, TENCENT-02, TENCENT-03, TENCENT-04, TENCENT-05, TENCENT-06, TENCENT-07, TENCENT-08, TENCENT-09
+**Success Criteria** (what must be TRUE):
+  1. Maintainers can configure Tencent VOD Commercial DRM, processing templates, playback domain, webhook URL, and env vars without exposing secrets.
+  2. Old Axinom media rows can be exported before cleanup, and active Axinom upload, processing, webhook, sync, token, and verification paths are removed or fail closed.
+  3. Admin upload and processing produce Tencent video metadata, Tencent status, Tencent playback URLs, and Tencent deletion state.
+  4. Playback session data is issued only after shared media entitlement allows access, and Shaka can play a Tencent DRM test video in staging.
+  5. Verification covers unit tests, route tests, Tencent setup checks, build, staging smoke, and secret scanning.
+**Plans**: 1 plan
+Plans:
+- [x] 2026-07-02-tencent-only-migration.md - Tencent-only media migration implementation plan.
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -188,6 +203,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 6. Vercel Staging Deployment and Smoke Suite | 4/4 | Complete | 2026-05-06 |
 | 7. Academic Frontend Redesign | 4/4 | Complete | 2026-05-06 |
 | 8. Maintainer Operations and Hardening Backlog | 4/4 | Complete | 2026-05-06 |
+| 9. Tencent-Only Media Platform Migration | 1/1 | Complete | 2026-07-03 |
 
 ## Coverage
 
@@ -259,9 +275,18 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | OPS-03 | Phase 8 |
 | OPS-04 | Phase 8 |
 | OPS-05 | Phase 8 |
+| TENCENT-01 | Phase 9 |
+| TENCENT-02 | Phase 9 |
+| TENCENT-03 | Phase 9 |
+| TENCENT-04 | Phase 9 |
+| TENCENT-05 | Phase 9 |
+| TENCENT-06 | Phase 9 |
+| TENCENT-07 | Phase 9 |
+| TENCENT-08 | Phase 9 |
+| TENCENT-09 | Phase 9 |
 
 **Coverage validated:** 66/66 v1 requirements mapped exactly once.
 
 ---
 *Roadmap created: 2026-05-05*
-*Last updated: 2026-05-06 after Phase 8 verification*
+*Last updated: 2026-07-02 for Phase 9 Tencent-only media migration*

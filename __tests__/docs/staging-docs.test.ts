@@ -17,10 +17,8 @@ describe('staging deployment documentation contract', () => {
       'npm run verify:services:strict',
       'npm run verify:staging',
       'Google OAuth',
-      'Axinom webhook',
+      'Tencent webhook',
       'Zoom Meeting SDK',
-      'Azure Blob',
-      'Cloudflare R2',
       'maxDuration = 300',
       'Production hardening should move long-running encoding control to a queue',
     ]) {
@@ -37,11 +35,11 @@ describe('staging deployment documentation contract', () => {
       'PLAYBACK-01',
       'DRM-01',
       'HLS-01',
-      'AXINOM-01',
+      'TENCENT-UPLOAD-01',
+      'TENCENT-WEBHOOK-01',
       'ZOOM-01',
       'SUPPORT-01',
       'REDIS-01',
-      'STORAGE-01',
       'LOGS-01',
       'SENTRY-01',
       'GAP-01',
@@ -55,22 +53,12 @@ describe('staging deployment documentation contract', () => {
 });
 
 describe('Safari FairPlay staging docs', () => {
-  test('Axinom staging checklist documents real macOS Safari FairPlay verification', () => {
-    const checklist = readText('docs/axinom-staging-checklist.md');
-
-    expect(checklist).toContain('## 6B. macOS Safari FairPlay Smoke');
-    expect(checklist).toContain('npm run verify:safari-fairplay');
-    expect(checklist).toContain('Use real macOS Safari for acceptance');
-    expect(checklist).toContain('Playwright WebKit is not a FairPlay acceptance substitute');
-    expect(checklist).toContain('Do not paste license tokens, certificate contents, Communication Key values, or DRM content keys');
-  });
-
   test('staging smoke checklist has Safari-specific FairPlay and fallback rows', () => {
     const checklist = readText('docs/staging-smoke-checklist.md');
 
     expect(checklist).toContain('SAFARI-DRM-01');
     expect(checklist).toContain('SAFARI-FALLBACK-01');
     expect(checklist).toContain('real macOS Safari');
-    expect(checklist).toContain('clear HLS fallback');
+    expect(checklist).toContain('Tencent FairPlay');
   });
 });

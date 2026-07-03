@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { syncVideoWithAxinom, extractAxinomId } from '@/lib/axinom-sync';
+import { describeTencentMedia, extractTencentPlaybackUrls } from '@/lib/tencent/vod';
 
 export async function GET(request: NextRequest) {
     try {
@@ -11,14 +11,11 @@ export async function GET(request: NextRequest) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
-        // Find all unpublished videos with Axinom IDs
         const pendingVideos = await prisma.video.findMany({
             where: {
                 published: false,
-                description: {
-                    not: null,
-                    contains: 'axinom-id:'
-                }
+                isDeleted: false,
+                tencentFileId: { not: null },
             }
         });
 
@@ -28,17 +25,30 @@ export async function GET(request: NextRequest) {
         // Check each video
         for (const video of pendingVideos) {
             try {
-                const result = await syncVideoWithAxinom(video.id);
+                const mediaInfo = await describeTencentMedia(video.tencentFileId!);
+                const urls = extractTencentPlaybackUrls(mediaInfo);
 
-                if (result.success) {
-                    if (result.updated) {
-                        updatedCount++;
-                    }
+                if (urls.playbackUrl) {
+                    await prisma.video.update({
+                        where: { id: video.id },
+                        data: {
+                            dashUrl: urls.dashUrl,
+                            hlsUrl: urls.hlsUrl,
+                            tencentStatus: 'READY',
+                            tencentSyncedAt: new Date(),
+                            published: true,
+                        },
+                    });
+                    updatedCount++;
                 } else {
-                    console.error(`❌ Sync failed for ${video.id}: ${result.error}`);
-                    errorCount++;
+                    await prisma.video.update({
+                        where: { id: video.id },
+                        data: {
+                            tencentStatus: video.tencentStatus ?? 'PROCESSING',
+                            tencentSyncedAt: new Date(),
+                        },
+                    });
                 }
-
             } catch (error) {
                 console.error(`❌ Error processing video ${video.id}:`, error);
                 errorCount++;

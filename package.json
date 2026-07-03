@@ -15,18 +15,15 @@
     "verify:setup": "tsx scripts/verify-setup.ts",
     "verify:services": "tsx scripts/verify-services.ts",
     "verify:services:strict": "tsx scripts/verify-services.ts --strict",
-    "verify:axinom": "tsx scripts/verify-axinom-setup.ts",
-    "verify:safari-fairplay": "tsx scripts/verify-safari-fairplay.ts",
+    "verify:tencent": "tsx scripts/verify-tencent-setup.ts",
     "verify:staging": "tsx scripts/verify-staging-smoke.ts",
     "secrets:inventory": "tsx scripts/inventory-sensitive-files.ts",
     "secrets:scan": "tsx scripts/scan-secrets.ts",
+    "tencent:export-old-media": "tsx scripts/export-old-media-before-tencent-cutover.ts",
+    "tencent:cleanup-old-media": "tsx scripts/cleanup-old-media-for-tencent-cutover.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@aws-sdk/client-kms": "^3.936.0",
-    "@aws-sdk/client-s3": "^3.937.0",
-    "@aws-sdk/s3-request-presigner": "^3.937.0",
-    "@azure/storage-blob": "^12.29.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.1.0",
@@ -76,6 +73,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "uuid": "^13.0.0",
+    "vod-js-sdk-v6": "^1.8.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -94,6 +92,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "pg": "^8.16.3",

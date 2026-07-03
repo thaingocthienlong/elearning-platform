@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** Maintainers can reliably run, secure, deploy, and evolve the platform without guessing how its DRM, Zoom, database, authentication, and streaming flows fit together.
-**Current focus:** Milestone complete - staging-ready rescue baseline
+**Current focus:** Phase 9 - Tencent-only media migration for future incoming courses
 
 ## Current Position
 
-Phase: 8 of 8 (Maintainer Operations and Hardening Backlog)
-Plan: Complete
-Status: All v1 milestone phases complete; production hardening remains tracked in docs/operations/hardening-backlog.md
-Last activity: 2026-05-06 - Phase 8 operations runbooks, vendor upgrade playbooks, health checklist, hardening backlog, tests, and verification completed.
+Phase: 9 of 9 (Tencent-Only Media Platform Migration)
+Plan: 2026-07-02-tencent-only-migration.md
+Status: Complete locally; live Tencent staging checks remain deferred until credentials, console setup, and test media exist.
+Last activity: 2026-07-03 - Tencent-only media migration implemented, verified locally, old media rows exported, and handoff written.
 
 Progress: [##########] 100%
 
@@ -68,10 +68,12 @@ Recent decisions affecting current work:
 - [Phase 6]: Staging readiness is documented as a Vercel Preview/Custom Environment runbook plus smoke checklist, with unavailable live-provider checks marked `blocked: missing credentials/service access`.
 - [Phase 7]: Academic redesign prioritizes primary user surfaces and preserves admin density; screenshot rows exist but automated capture is blocked until browser automation tooling is installed.
 - [Phase 8]: Production launch blockers are tracked separately in `docs/operations/hardening-backlog.md`; v1 completion means staging-ready rescue baseline, not production certification.
+- [Phase 9]: Future incoming courses use Tencent VOD Commercial DRM as the only media provider; old Axinom videos are not supported after cutover.
+- [Phase 9]: Export old media rows before any cleanup and do not delete external provider assets without explicit user confirmation.
 
 ### Pending Todos
 
-- Optional: run milestone audit/summary/cleanup before starting the next milestone.
+- Run Tencent staging pilot after credentials, console setup, webhook URL, and test media are available.
 
 ### Blockers/Concerns
 
@@ -80,6 +82,7 @@ Recent decisions affecting current work:
 - [Phase 6]: Strict service and live Axinom validation require real staging credentials.
 - [Phase 7]: Automated screenshot capture is blocked until Playwright or equivalent browser automation tooling is installed/configured.
 - [Phase 8]: Production hardening P0 items remain open by design: strict CI secret scanning, credential rotation decisions, durable video processing orchestration, backup/restore drills, and incident response.
+- [Phase 9]: Local Tencent-only migration is complete; live Tencent API checks and browser playback smoke require Tencent credentials, console templates, webhook URL, and a test video.
 - [Quality]: `npm run lint` passes with inherited warnings; later phases should retire warnings as touched code is hardened.
 - [Tooling]: `gsd-sdk` was not available on PATH during Phase 1 verification, so Markdown tracking files were updated directly.
 

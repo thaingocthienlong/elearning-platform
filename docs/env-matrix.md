@@ -15,25 +15,12 @@ This matrix is the source of truth for environment variables used by the platfor
 | Redis | UPSTASH_REDIS_REST_URL | operational secret | optional | required | src/lib/redis.ts | Upstash REST endpoint for cache, rate limits, system mode, and revocation checks. |
 | Redis | UPSTASH_REDIS_REST_TOKEN | server secret | optional | required | src/lib/redis.ts | Upstash REST token. |
 | Redis | REDIS_URL | operational secret | optional | optional | .planning/codebase/STACK.md | Local Redis URL or legacy fallback for scripts/tests. |
-| Axinom | AXINOM_COM_KEY_ID | operational secret | optional | required | src/lib/axinom.ts | Axinom DRM communication key identifier. |
-| Axinom | AXINOM_COM_KEY_SECRET | server secret | optional | required | src/lib/axinom.ts | Axinom DRM communication key secret. |
-| Axinom | AXINOM_ENCODING_CLIENT_ID | operational secret | optional | required | src/lib/axinom-video-service.ts | Axinom Encoding API client identifier. |
-| Axinom | AXINOM_ENCODING_CLIENT_SECRET | server secret | optional | required | src/lib/axinom-video-service.ts | Axinom Encoding API client secret. |
-| Axinom | AXINOM_ENCODING_PROFILE_DRM | operational secret | optional | required | src/lib/axinom-video-service.ts | Axinom encoding profile ID for DRM output. |
-| Axinom | AXINOM_ENCODING_PROFILE_CLEAR | operational secret | optional | required | src/lib/axinom-video-service.ts | Axinom encoding profile ID required for the clear HLS fallback on Apple browsers. New video uploads fail processing when this is missing. |
-| Axinom | AXINOM_ENCODING_API_URL | public | optional | required | src/lib/axinom-env.ts | Axinom Encoding API base URL; default examples use the EU endpoint. Legacy alias `AX_ENCODING_BASE` is local-only compatibility. |
-| Axinom | AXINOM_VIDEO_SERVICE_URL | operational secret | optional | required | src/lib/axinom-video-service.ts | Axinom video service API base URL. |
-| Axinom | AXINOM_WEBHOOK_SECRET | server secret | optional | required | src/app/api/axinom/webhook/route.ts | Shared secret for Axinom webhook verification. |
-| Axinom | AXINOM_FAIRPLAY_CERT_URL | operational secret | optional | required | src/server/axinom.ts | FairPlay certificate URL used by player integration. |
-| Storage | AZURE_STORAGE_ACCOUNT | operational secret | optional | required | src/lib/azure-storage.ts | Azure Blob account for upload/input/output containers. |
-| Storage | AZURE_STORAGE_KEY | server secret | optional | required | src/lib/azure-storage.ts | Azure Blob account key. |
-| Storage | AZURE_VIDEO_INPUT_CONTAINER | operational secret | optional | required | src/lib/azure-storage.ts | Azure input container for source media. |
-| Storage | AZURE_VIDEO_OUTPUT_CONTAINER | operational secret | optional | required | src/lib/azure-storage.ts | Azure output container for encoded assets. |
-| Storage | R2_ENDPOINT | operational secret | optional | required | src/lib/r2.ts | Cloudflare R2 or S3-compatible endpoint. |
-| Storage | R2_ACCESS_KEY_ID | operational secret | optional | required | src/lib/r2.ts | R2 access key ID. |
-| Storage | R2_SECRET_ACCESS_KEY | server secret | optional | required | src/lib/r2.ts | R2 secret access key. |
-| Storage | R2_BUCKET | operational secret | optional | required | src/lib/r2.ts | R2 bucket containing playback assets. |
-| Storage | R2_PREFIX | public | optional | optional | src/lib/r2.ts | Optional asset key prefix; safe only when it does not disclose private naming. |
+| Tencent VOD | TENCENT_SECRET_ID | operational secret | optional | required | src/lib/tencent/env.ts | Tencent Cloud API secret ID for VOD OpenAPI calls. |
+| Tencent VOD | TENCENT_SECRET_KEY | server secret | optional | required | src/lib/tencent/env.ts | Tencent Cloud API secret key; never print or expose to browser code. |
+| Tencent VOD | TENCENT_VOD_REGION | public | optional | required | src/lib/tencent/env.ts | Tencent VOD OpenAPI region, for example `ap-singapore`. |
+| Tencent VOD | TENCENT_VOD_SUB_APP_ID | public | optional | optional | src/lib/tencent/env.ts | Optional VOD sub-application ID when the Tencent account uses sub-apps. |
+| Tencent VOD | TENCENT_VOD_PROCEDURE_NAME | public | optional | required | src/lib/tencent/env.ts | Tencent VOD DRM processing procedure name for upload and processing tasks. |
+| Tencent VOD | TENCENT_VOD_WEBHOOK_SIGN_KEY | server secret | optional | required | src/lib/tencent/env.ts | Shared sign key used to verify Tencent VOD event callbacks. |
 | Zoom | ZOOM_MEETING_SDK_KEY | operational secret | optional | required | src/app/api/zoom/signature/route.ts | Zoom Meeting SDK key used server-side for signatures. |
 | Zoom | ZOOM_MEETING_SDK_SECRET | server secret | optional | required | src/app/api/zoom/signature/route.ts | Zoom Meeting SDK secret; must never be exposed to browser code. |
 | Support/Email/reCAPTCHA | SMTP_HOST | operational secret | optional | required | src/lib/email.ts | SMTP host for support notifications. |
@@ -48,10 +35,10 @@ This matrix is the source of truth for environment variables used by the platfor
 | Public player/config | NEXT_PUBLIC_RECAPTCHA_SITE_KEY | public | optional | required | src/components/support | Browser-exposed reCAPTCHA site key. |
 | Public player/config | NEXT_PUBLIC_ZOOM_MEETING_ID | public | optional | required | src/app/meeting | Browser-exposed meeting ID for the current staging meeting flow. |
 | Public player/config | NEXT_PUBLIC_ZOOM_PASSCODE | public | optional | required | src/app/meeting | Browser-exposed Zoom passcode; do not treat as an access-control secret. |
-| Public player/config | NEXT_PUBLIC_ASSET_BASE | public | optional | required | src/components/video | Browser-exposed playback asset base URL. |
-| Public player/config | NEXT_PUBLIC_AX_WV_LS_URL | public | optional | required | src/hooks/player/useShakaPlayer.ts | Browser-exposed Axinom Widevine license service URL. |
-| Public player/config | NEXT_PUBLIC_AX_PR_LS_URL | public | optional | required | src/hooks/player/useShakaPlayer.ts | Browser-exposed Axinom PlayReady license service URL. |
-| Public player/config | NEXT_PUBLIC_AX_FP_LS_URL | public | optional | required | src/hooks/player/useShakaPlayer.ts | Browser-exposed Axinom FairPlay license service URL. |
+| Public player/config | NEXT_PUBLIC_ASSET_BASE | public | optional | optional | src/components/video | Optional browser-exposed asset base URL for non-provider assets. |
+| Public player/config | NEXT_PUBLIC_TENCENT_WIDEVINE_LICENSE_URL | public | optional | required | src/lib/shaka-tencent.ts | Browser-exposed Tencent Widevine license URL used by Shaka. |
+| Public player/config | NEXT_PUBLIC_TENCENT_FAIRPLAY_LICENSE_URL | public | optional | required | src/lib/shaka-tencent.ts | Browser-exposed Tencent FairPlay license URL used by Shaka when FairPlay is configured. |
+| Public player/config | NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL | public | optional | optional | src/app/api/drm/fairplay-cert/route.ts | Browser-safe FairPlay certificate URL or endpoint. |
 
 ## Staging Validation
 
@@ -60,7 +47,7 @@ Use this matrix with `docs/vercel-staging-runbook.md` before accepting a Vercel 
 ```bash
 npm run verify:setup
 npm run verify:services:strict
-npm run verify:axinom -- --strict
+npm run verify:tencent -- --strict
 npm run verify:staging
 ```
 
@@ -70,10 +57,11 @@ Staging-specific callback and origin values must be configured outside the repos
 |---------|----------------------------|----------------------|
 | Auth | Google OAuth redirect URI | `<STAGING_ORIGIN>/api/auth/callback/google` |
 | Auth | NextAuth base URL | `NEXTAUTH_URL=<STAGING_ORIGIN>` |
-| Axinom | Webhook URL | `<STAGING_ORIGIN>/api/webhook/axinom` |
+| Tencent VOD | Webhook URL | `<STAGING_ORIGIN>/api/webhook/tencent` |
+| Tencent VOD | Playback domain | Tencent VOD playback domain allowed for the course delivery origin |
+| Tencent VOD | DRM processing procedure | Procedure named by `TENCENT_VOD_PROCEDURE_NAME` with Commercial DRM enabled |
+| Tencent VOD | License URLs | `NEXT_PUBLIC_TENCENT_WIDEVINE_LICENSE_URL` and FairPlay URL/certificate when Safari is enabled |
 | Zoom | Meeting SDK domain/origin allowlist | The exact staging origin or domain used by `/meeting` |
-| Storage | Azure Blob CORS | Staging origin allowed where browser upload/output reads are required |
-| Storage | Cloudflare R2/S3 CORS and asset origin | Staging origin and `NEXT_PUBLIC_ASSET_BASE` aligned with the playback bucket/prefix |
 | Observability | Sentry environment | Staging project or staging environment tag with redaction enabled |
 
 If real provider access is unavailable during setup, record the affected smoke row as `blocked: missing credentials/service access` in `docs/staging-smoke-checklist.md`.

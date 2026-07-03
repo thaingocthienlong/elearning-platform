@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { syncVideoWithAxinom } from '@/lib/axinom-sync';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { describeTencentMedia, extractTencentPlaybackUrls } from '@/lib/tencent/vod';
 
 export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
@@ -17,9 +18,36 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Video ID required' }, { status: 400 });
         }
 
-        const result = await syncVideoWithAxinom(videoId);
+        const video = await prisma.video.findUnique({ where: { id: videoId } });
 
-        return NextResponse.json(result);
+        if (!video?.tencentFileId) {
+            return NextResponse.json(
+                { success: false, error: 'No Tencent file ID found' },
+                { status: 404 }
+            );
+        }
+
+        const mediaInfo = await describeTencentMedia(video.tencentFileId);
+        const urls = extractTencentPlaybackUrls(mediaInfo);
+
+        const updated = await prisma.video.update({
+            where: { id: videoId },
+            data: {
+                dashUrl: urls.dashUrl,
+                hlsUrl: urls.hlsUrl,
+                tencentStatus: urls.playbackUrl ? 'READY' : (video.tencentStatus ?? 'PROCESSING'),
+                tencentSyncedAt: new Date(),
+                published: Boolean(urls.playbackUrl),
+            },
+        });
+
+        return NextResponse.json({
+            success: true,
+            status: updated.tencentStatus,
+            updated: true,
+            dashUrl: updated.dashUrl,
+            hlsUrl: updated.hlsUrl,
+        });
     } catch (error) {
         return NextResponse.json(
             { success: false, error: (error as Error).message },

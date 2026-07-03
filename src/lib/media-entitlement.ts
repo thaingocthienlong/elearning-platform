@@ -39,7 +39,7 @@ export type MediaEntitlementAllowed = {
   video: {
     id: string;
     courseId: string;
-    drmKeyId?: string | null;
+    tencentFileId?: string | null;
     hlsUrl?: string | null;
     dashUrl?: string | null;
     hlsUrlClear?: string | null;

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { azureStorage } from '@/lib/azure-storage';
 import { prisma } from '@/lib/prisma';
+import { createTencentUploadSignature } from '@/lib/tencent/vod';
+import { loadTencentEnv } from '@/lib/tencent/env';
 import { z } from 'zod';
 
 // Input validation schema
@@ -62,20 +63,29 @@ export async function POST(req: Request) {
             );
         }
 
-        // Generate Azure SAS URL for upload
-        const { url: signedUrl, blobName } = await azureStorage.getUploadSasUrl(filename);
-
         // Create video record in DB (pending state)
         const video = await prisma.video.create({
             data: {
                 title: title || filename,
                 courseId: courseId,
-                r2Key: blobName,
+                tencentStatus: 'UPLOAD_APPLIED',
                 published: false,
             },
         });
 
-        return NextResponse.json({ signedUrl, videoId: video.id, key: blobName });
+        const env = loadTencentEnv();
+        const upload = createTencentUploadSignature({
+            videoId: video.id,
+        });
+
+        return NextResponse.json({
+            provider: 'tencent',
+            videoId: video.id,
+            uploadMode: 'web-sdk',
+            uploadSignature: upload.signature,
+            signatureExpiresAt: new Date(upload.expireTime * 1000).toISOString(),
+            tencentSubAppId: env.subAppId ?? null,
+        });
     } catch (error) {
         console.error('Error generating signed URL:', error);
         return new NextResponse('Internal Server Error', { status: 500 });

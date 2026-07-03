@@ -2,7 +2,7 @@
 
 This guide gives maintainers a step-by-step manual test plan for local verification and staging acceptance. It complements automated tests, `docs/staging-smoke-checklist.md`, `docs/operations/health-checklist.md`, and vendor runbooks.
 
-Do not paste secrets, tokens, service account values, DRM keys, certificates, database URLs, storage keys, Redis tokens, Zoom SDK secrets, Axinom communication secrets, SMTP passwords, or full user emails into test evidence.
+Do not paste secrets, tokens, service account values, DRM keys, certificates, database URLs, Redis tokens, Zoom SDK secrets, Tencent API secrets, SMTP passwords, or full user emails into test evidence.
 
 ## 1. Test Evidence Rules
 
@@ -43,13 +43,12 @@ Before manual tests, confirm:
 7. Test content exists:
    - One published open course.
    - One enrolled course for the learner.
-   - One protected video with Axinom DRM metadata and playable asset URLs.
+   - One protected video with Tencent VOD metadata and playable asset URLs.
 8. Provider access exists or is explicitly blocked:
    - Google OAuth.
-   - Axinom DRM/Encoding.
+   - Tencent VOD Commercial DRM.
    - Zoom Meeting SDK test meeting.
    - Upstash Redis.
-   - Azure Blob and R2/S3-compatible storage.
    - SMTP/reCAPTCHA.
    - Sentry.
 
@@ -78,7 +77,7 @@ For staging credentials:
 
 ```bash
 npm run verify:services:strict
-npm run verify:axinom -- --strict
+npm run verify:tencent -- --strict
 ```
 
 Expected result:
@@ -244,18 +243,19 @@ Expected result:
 - User is redirected or denied.
 - Denial is generic and does not expose operational secrets.
 
-### HLS-01: HLS Playlist Authorization
+### TENCENT-HLS-01: Tencent HLS Playback Authorization
 
 Steps:
 
-1. As an entitled learner, request `/api/hls/playlist/<videoId>`.
-2. As a non-entitled learner, request the same route.
+1. As an entitled learner, open `/watch/<videoId>` for a Tencent HLS/FairPlay-ready test video.
+2. Confirm the browser receives Tencent playback session data only after entitlement passes.
+3. As a non-entitled learner, open the same watch route or call the DRM token route for the same video.
 
 Expected result:
 
-- Entitled request succeeds.
-- Non-entitled request is denied.
-- HLS object URLs or storage keys are not exposed in evidence.
+- Entitled playback session issuance succeeds.
+- Non-entitled playback session issuance is denied.
+- Tencent HLS manifest URLs are treated as playback metadata; no app-hosted HLS proxy route is expected after cutover.
 
 ### WATERMARK-01: Watermark And Deterrence
 
@@ -413,25 +413,24 @@ Expected result:
 - Redis-backed features work.
 - Missing credentials are marked blocked, not pass.
 
-### STORAGE-01: Azure And R2/S3
+### TENCENT-UPLOAD-01: Upload Readiness
 
 Steps:
 
-1. Confirm Azure input/output containers exist.
-2. Confirm R2/S3 bucket and prefix exist.
-3. Confirm CORS/origin rules include staging.
-4. Load a playback asset through the app flow.
+1. Confirm `TENCENT_VOD_PROCEDURE_NAME` exists in Tencent VOD.
+2. Upload a short staging test video through the admin video flow.
+3. Confirm the local video row stores Tencent file/status metadata.
 
 Expected result:
 
-- Storage is reachable through intended app paths.
-- Direct sensitive storage credentials are not exposed.
+- Upload setup succeeds or is marked blocked by missing Tencent credentials.
+- No Tencent secret values appear in logs or evidence.
 
-### AXINOM-01: Webhook Readiness
+### TENCENT-WEBHOOK-01: Webhook Readiness
 
 Steps:
 
-1. Confirm Axinom webhook URL is `<STAGING_ORIGIN>/api/webhook/axinom`.
+1. Confirm Tencent webhook URL is `<STAGING_ORIGIN>/api/webhook/tencent`.
 2. Send or trigger a safe signed staging event.
 3. Send or simulate a malformed signature in a safe environment.
 
@@ -440,13 +439,13 @@ Expected result:
 - Valid signed event is accepted and processed.
 - Malformed signature is rejected without 500 errors or secret leakage.
 
-### AXINOM-02: Encoding And Playback
+### TENCENT-PLAYBACK-01: Processing And Playback
 
 Steps:
 
 1. Use a staging test video.
-2. Start or verify an Axinom encoding job.
-3. Confirm explicit Axinom operational fields/statuses on the video.
+2. Start or verify a Tencent VOD processing task.
+3. Confirm explicit Tencent operational fields/statuses on the video.
 4. Play the result through the watch page.
 
 Expected result:
@@ -538,9 +537,9 @@ Browser/device:
 
 ## External Services
 - REDIS-01:
-- STORAGE-01:
-- AXINOM-01:
-- AXINOM-02:
+- TENCENT-UPLOAD-01:
+- TENCENT-WEBHOOK-01:
+- TENCENT-PLAYBACK-01:
 - SENTRY-01:
 
 ## UI Screenshots

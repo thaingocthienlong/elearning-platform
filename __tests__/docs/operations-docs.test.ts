@@ -14,8 +14,8 @@ describe('operations documentation contract', () => {
     for (const term of [
       'Auth And Whitelist',
       'Media Entitlement',
-      'DRM And Axinom',
-      'Video Processing And Storage',
+      'DRM And Tencent VOD',
+      'Video Processing And Delivery',
       'Zoom Meetings',
       'Redis, Rate Limits, Cache, And Session Revocation',
       'Database',
@@ -32,13 +32,13 @@ describe('operations documentation contract', () => {
     const playbook = readText('docs/operations/vendor-upgrades.md');
 
     for (const term of [
-      'Axinom DRM And Encoding',
+      'Tencent VOD Commercial DRM',
       'Zoom Meeting SDK',
       'Next.js And React',
       'Prisma And MongoDB',
       'Shaka Player',
       'Vercel And Deployment Dependencies',
-      'https://docs.axinom.com/services/drm/',
+      'https://cloud.tencent.com/document/product/266',
       'https://marketplacefront.zoom.us/sdk/meeting/web/index.html',
       'https://nextjs.org/docs/app/guides/upgrading',
       'https://www.prisma.io/docs/guides/upgrade-prisma-orm/v5',
@@ -57,9 +57,8 @@ describe('operations documentation contract', () => {
       'HEALTH-AUTH-01',
       'HEALTH-DB-01',
       'HEALTH-REDIS-01',
-      'HEALTH-AXINOM-01',
+      'HEALTH-TENCENT-01',
       'HEALTH-ZOOM-01',
-      'HEALTH-STORAGE-01',
       'HEALTH-SENTRY-01',
       'HEALTH-UI-01',
     ]) {

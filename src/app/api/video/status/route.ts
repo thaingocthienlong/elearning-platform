@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getJobStatus } from '@/lib/axinom-encoding';
 import { prisma } from '@/lib/prisma';
-import { azureStorage } from '@/lib/azure-storage';
+import { describeTencentMedia, extractTencentPlaybackUrls } from '@/lib/tencent/vod';
 
 export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
@@ -22,37 +21,34 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Video not found' }, { status: 404 });
         }
 
-        // Extract job ID from description (temporary storage)
-        const jobIdMatch = video.description?.match(/Job ID: (.+)/);
-        if (!jobIdMatch) {
-            return NextResponse.json({ error: 'No encoding job found for this video' }, { status: 404 });
+        if (!video.tencentFileId) {
+            return NextResponse.json({ error: 'No Tencent file found for this video' }, { status: 404 });
         }
 
-        const jobId = jobIdMatch[1];
-        const status = await getJobStatus(jobId);
+        const mediaInfo = await describeTencentMedia(video.tencentFileId);
+        const urls = extractTencentPlaybackUrls(mediaInfo);
 
-        // If completed, update video with URLs
-        if (status.status === 'COMPLETED' || status.status === 'Finished') {
-            const dashUrl = azureStorage.getOutputUrl(`${videoId}/manifest.mpd`);
-            const hlsUrl = azureStorage.getOutputUrl(`${videoId}/master.m3u8`);
-
+        if (urls.playbackUrl) {
             await prisma.video.update({
                 where: { id: videoId },
                 data: {
                     published: true,
-                    dashUrl: dashUrl,
-                    hlsUrl: hlsUrl,
+                    dashUrl: urls.dashUrl,
+                    hlsUrl: urls.hlsUrl,
+                    tencentStatus: 'READY',
+                    tencentSyncedAt: new Date(),
                 },
             });
 
             return NextResponse.json({
                 status: 'COMPLETED',
-                dashUrl,
-                hlsUrl,
+                dashUrl: urls.dashUrl,
+                hlsUrl: urls.hlsUrl,
+                playbackUrl: urls.playbackUrl,
             });
         }
 
-        return NextResponse.json({ status: status.status });
+        return NextResponse.json({ status: video.tencentStatus ?? 'PROCESSING' });
     } catch (error) {
         console.error('Status check error:', error);
         return NextResponse.json({ error: (error as Error).message }, { status: 500 });

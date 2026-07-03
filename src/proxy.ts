@@ -90,7 +90,7 @@ export async function proxy(req: NextRequest) {
   }
 
   // Protected paths
-  if (path.startsWith('/admin') || path.startsWith('/api/drm') || path.startsWith('/api/hls') || path.startsWith('/meeting')) {
+  if (path.startsWith('/admin') || path.startsWith('/api/drm') || path.startsWith('/meeting')) {
     // For database sessions, we need to check the session cookie
     const sessionToken = req.cookies.get('next-auth.session-token')?.value ||
       req.cookies.get('__Secure-next-auth.session-token')?.value;

@@ -2,16 +2,14 @@
  * @jest-environment node
  */
 import { getServerSession } from 'next-auth';
-import { generateAxinomToken } from '@/lib/axinom';
 import {
   evaluateMediaEntitlement,
   mapMediaEntitlementToHttp,
 } from '@/lib/media-entitlement';
+import { createTencentDrmToken } from '@/lib/tencent/vod';
 import { prisma } from '@/lib/prisma';
-import { r2 } from '@/lib/r2';
 import { POST as drmTokenPost } from '@/app/api/drm/token/route';
 import { POST as drmLicensePost } from '@/app/api/drm/license/route';
-import { GET as hlsPlaylistGet } from '@/app/api/hls/playlist/[videoId]/route';
 import { POST as heartbeatPost } from '@/app/api/watch/heartbeat/route';
 
 jest.mock('next-auth', () => ({
@@ -22,8 +20,9 @@ jest.mock('@/lib/auth', () => ({
   authOptions: {},
 }));
 
-jest.mock('@/lib/axinom', () => ({
-  generateAxinomToken: jest.fn(() => 'signed-token'),
+jest.mock('@/lib/tencent/vod', () => ({
+  createTencentDrmToken: jest.fn(() => 'signed-token'),
+  resolveTencentLicenseUrl: jest.fn(() => 'https://license.example/widevine'),
 }));
 
 jest.mock('@/lib/media-entitlement', () => ({
@@ -48,16 +47,9 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
-jest.mock('@/lib/r2', () => ({
-  R2_BUCKET: 'test-bucket',
-  r2: {
-    send: jest.fn(),
-  },
-}));
-
 const mockedGetServerSession = getServerSession as jest.Mock;
 const mockedEvaluate = evaluateMediaEntitlement as jest.Mock;
-const mockedGenerateAxinomToken = generateAxinomToken as jest.Mock;
+const mockedCreateTencentDrmToken = createTencentDrmToken as jest.Mock;
 const mockedPrisma = prisma as unknown as {
   watchRecord: {
     findUnique: jest.Mock;
@@ -65,7 +57,6 @@ const mockedPrisma = prisma as unknown as {
     update: jest.Mock;
   };
 };
-const mockedR2 = r2 as unknown as { send: jest.Mock };
 
 const session = {
   user: {
@@ -99,21 +90,7 @@ describe('media route entitlement adoption', () => {
     expect(mockedEvaluate).toHaveBeenCalledWith(
       expect.objectContaining({ session, videoId: 'video-1', checkViewLimit: true })
     );
-    expect(mockedGenerateAxinomToken).not.toHaveBeenCalled();
-  });
-
-  test('HLS playlist route denies unauthorized users before R2 reads', async () => {
-    mockedEvaluate.mockResolvedValue({
-      allowed: false,
-      code: 'NO_VIDEO_ACCESS',
-    });
-
-    const response = await hlsPlaylistGet(new Request('http://localhost.test'), {
-      params: Promise.resolve({ videoId: 'video-1' }),
-    });
-
-    expect(response.status).toBe(403);
-    expect(mockedR2.send).not.toHaveBeenCalled();
+    expect(mockedCreateTencentDrmToken).not.toHaveBeenCalled();
   });
 
   test('heartbeat route denies view-limit failures before writing records', async () => {
@@ -162,14 +139,14 @@ describe('media route entitlement adoption', () => {
     const body = await response.json();
 
     expect(response.status).toBe(501);
-    expect(body.provider).toBe('Axinom License Service');
+    expect(body.provider).toBe('Tencent Commercial DRM');
   });
 
-  test('DRM token route signs authorized key IDs through Axinom helper', async () => {
+  test('DRM token route signs authorized Tencent file IDs through Tencent helper', async () => {
     mockedEvaluate.mockResolvedValue({
       allowed: true,
       user: { id: 'user-1' },
-      video: { id: 'video-1', drmKeyId: 'kid-1,kid-2' },
+      video: { id: 'video-1', tencentFileId: 'tencent-file-1' },
     });
 
     const response = await drmTokenPost(jsonRequest({ videoId: 'video-1' }));
@@ -177,11 +154,13 @@ describe('media route entitlement adoption', () => {
 
     expect(response.status).toBe(200);
     expect(body.token).toBe('signed-token');
-    expect(mockedGenerateAxinomToken).toHaveBeenCalledWith({
-      keyIds: 'kid-1,kid-2',
+    expect(body.provider).toBe('tencent');
+    expect(body.fileId).toBe('tencent-file-1');
+    expect(mockedCreateTencentDrmToken).toHaveBeenCalledWith({
+      fileId: 'tencent-file-1',
       userId: 'user-1',
-      ttlSeconds: 300,
-      allowPersistence: false,
+      videoId: 'video-1',
+      expiresAt: expect.any(Date),
     });
   });
 });

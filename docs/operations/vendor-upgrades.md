@@ -1,6 +1,6 @@
 # Vendor Upgrade Playbooks
 
-This document satisfies OPS-02. It defines repeatable upgrade playbooks for Axinom, Zoom, Next.js, Prisma, Shaka Player, and Vercel/deployment dependencies.
+This document satisfies OPS-02. It defines repeatable upgrade playbooks for Tencent VOD Commercial DRM, Zoom, Next.js, Prisma, Shaka Player, and Vercel/deployment dependencies.
 
 No upgrade is complete until local gates and staging smoke checks pass. Do not copy real credentials, keys, tokens, certificates, database URLs, or service account values into upgrade notes.
 
@@ -33,27 +33,25 @@ npm run verify:staging
 Then run the relevant live staging smoke rows in:
 
 - `docs/staging-smoke-checklist.md`
-- `docs/axinom-staging-checklist.md`
 - `docs/ui-screenshot-checklist.md`
 
-## Axinom DRM And Encoding
+## Tencent VOD Commercial DRM
 
 Official docs:
 
-- https://docs.axinom.com/services/drm/
-- https://docs.axinom.com/services/drm/license-service
-- https://docs.axinom.com/services/drm/license-service/sign-license-service-message
-- https://docs.axinom.com/services/drm/players/shaka
-- https://docs.axinom.com/services/encoding/quickstart/using-api/api
-- https://docs.axinom.com/services/video/setup-encoding-profiles/
+- https://cloud.tencent.com/document/product/266
+- https://cloud.tencent.com/document/api/266/31767
+- https://cloud.tencent.com/document/api/266/32586
+- https://cloud.tencent.com/document/product/266/103885
+- https://cloud.tencent.com/document/product/266/55244
 
 Upgrade steps:
 
-1. Review Axinom portal notices, API changes, license service message requirements, encoding profile requirements, and webhook signature behavior.
-2. Update `docs/axinom-setup.md` if portal fields, env names, license URLs, or profile setup changes.
-3. Keep License Service Message signing centralized in server-only code.
-4. Verify `scripts/verify-axinom-setup.ts` still maps canonical env values and does not require live API calls unless explicitly requested.
-5. Run Axinom staging smoke with a test video before accepting playback changes.
+1. Review Tencent VOD console notices, OpenAPI changes, Commercial DRM requirements, procedure/template behavior, license URLs, and event notification behavior.
+2. Update `docs/env-matrix.md` if Tencent env names, regions, procedure names, webhook sign key usage, license URLs, or FairPlay certificate handling changes.
+3. Keep Tencent API signing, webhook verification, and DRM token generation in server-only code.
+4. Verify `scripts/verify-tencent-setup.ts` still maps canonical env values and does not require live API calls unless explicitly requested.
+5. Run Tencent staging smoke with a short test video and course-like test video before accepting playback changes.
 
 Rollback:
 
@@ -120,7 +118,7 @@ Upgrade steps:
 2. Upgrade `prisma` and `@prisma/client` together.
 3. Run `npm run prisma:generate`.
 4. Review schema validation warnings and generated client type changes.
-5. Run tests for media entitlement, data bounds, admin analytics, watermark settings, and Axinom sync.
+5. Run tests for media entitlement, data bounds, admin analytics, watermark settings, and Tencent sync.
 6. Confirm indexes in the staging MongoDB database.
 
 Rollback:
@@ -139,9 +137,9 @@ Upgrade steps:
 
 1. Read Shaka's upgrade guide for API removals and DRM configuration changes.
 2. Review `src/hooks/player/useShakaPlayer.ts`, `src/components/video/Player.tsx`, and DRM license request filter behavior.
-3. Verify Widevine, PlayReady, FairPlay certificate, and HLS fallback behavior.
+3. Verify Widevine, FairPlay certificate, and HLS behavior.
 4. Smoke playback on Chrome, Edge, Safari/iOS where available.
-5. Confirm Shaka still sends Axinom entitlement tokens only to license requests.
+5. Confirm Shaka still sends Tencent DRM tokens only to license requests.
 
 Rollback:
 
@@ -161,7 +159,7 @@ Official docs:
 Upgrade steps:
 
 1. Review Vercel deployment, environment, and function-limit docs before changing deployment behavior.
-2. Reconfirm `NEXTAUTH_URL`, OAuth callbacks, Axinom webhook URLs, Zoom allowed domains, storage CORS, and public player origins.
+2. Reconfirm `NEXTAUTH_URL`, OAuth callbacks, Tencent webhook URLs, Zoom allowed domains, Tencent playback domain, and public player origins.
 3. Do not treat long video processing HTTP requests as production workers.
 4. Run `vercel build` or the Vercel preview deployment build.
 5. Complete `docs/staging-smoke-checklist.md`.

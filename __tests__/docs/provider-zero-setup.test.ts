@@ -13,11 +13,9 @@ describe('provider zero setup guide', () => {
 
     for (const term of [
       'Google OAuth From Zero',
-      'Axinom DRM And Encoding From Zero',
+      'Tencent VOD Commercial DRM From Zero',
       'Zoom Meeting SDK From Zero',
       'Upstash Redis From Zero',
-      'Azure Blob Storage From Zero',
-      'Cloudflare R2/S3-Compatible Storage From Zero',
       'SMTP Provider From Zero',
       'Google reCAPTCHA From Zero',
       'Sentry From Zero',
@@ -33,13 +31,12 @@ describe('provider zero setup guide', () => {
     for (const envName of [
       'GOOGLE_CLIENT_ID',
       'GOOGLE_CLIENT_SECRET',
-      'AXINOM_COM_KEY_ID',
-      'AXINOM_COM_KEY_SECRET',
+      'TENCENT_SECRET_ID',
+      'TENCENT_SECRET_KEY',
+      'TENCENT_VOD_PROCEDURE_NAME',
       'ZOOM_MEETING_SDK_KEY',
       'ZOOM_MEETING_SDK_SECRET',
       'UPSTASH_REDIS_REST_URL',
-      'AZURE_STORAGE_ACCOUNT',
-      'R2_ACCESS_KEY_ID',
       'SMTP_HOST',
       'RECAPTCHA_SECRET_KEY',
       'SENTRY_DSN',
@@ -53,11 +50,9 @@ describe('provider zero setup guide', () => {
 
     for (const term of [
       'https://developers.google.com/identity/protocols/oauth2/web-server',
-      'https://docs.axinom.com/services/drm/',
+      'https://cloud.tencent.com/document/product/266',
       'https://marketplacefront.zoom.us/sdk/meeting/web/index.html',
       'https://upstash.com/docs/redis',
-      'https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create',
-      'https://developers.cloudflare.com/r2/get-started/s3/',
       'https://nodemailer.com/smtp',
       'https://cloud.google.com/recaptcha/docs/create-key-website',
       'https://docs.sentry.dev/product/sentry-basics/integrate-backend/getting-started/',
@@ -67,25 +62,17 @@ describe('provider zero setup guide', () => {
     }
   });
 
-  test('documents concrete Axinom portal setup steps', () => {
+  test('documents concrete Tencent setup steps', () => {
     const guide = readText('docs/provider-zero-setup.md');
 
     for (const term of [
-      'Open https://portal.axinom.com/.',
-      'My Mosaic',
-      'Management System',
-      'Acquire Credentials',
-      'Credentials Protection Tool',
-      'Settings** -> **Video Encoding',
-      'Acquisition Profile',
-      'Publishing Profile',
-      'Processing Profile',
-      'STAGING_DRM',
-      'https://<staging-domain>/api/webhook/axinom',
-      'Videos',
-      'New',
-      'Encode',
-      'AX_CLIENT_ID',
+      'VOD application',
+      'playback domain',
+      'DRM-capable procedure',
+      'https://<staging-domain>/api/webhook/tencent',
+      'TENCENT_VOD_WEBHOOK_SIGN_KEY',
+      'NEXT_PUBLIC_TENCENT_WIDEVINE_LICENSE_URL',
+      'npm run verify:tencent -- --strict',
     ]) {
       expect(guide).toContain(term);
     }

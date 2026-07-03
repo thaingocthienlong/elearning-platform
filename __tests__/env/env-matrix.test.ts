@@ -12,11 +12,9 @@ const requiredStarterVariables = [
   'GOOGLE_CLIENT_SECRET',
   'UPSTASH_REDIS_REST_URL',
   'UPSTASH_REDIS_REST_TOKEN',
-  'AXINOM_COM_KEY_ID',
-  'AXINOM_COM_KEY_SECRET',
-  'R2_ENDPOINT',
-  'R2_ACCESS_KEY_ID',
-  'R2_SECRET_ACCESS_KEY',
+  'TENCENT_SECRET_ID',
+  'TENCENT_SECRET_KEY',
+  'TENCENT_VOD_REGION',
   'ZOOM_MEETING_SDK_KEY',
   'ZOOM_MEETING_SDK_SECRET',
   'SMTP_HOST',
@@ -31,8 +29,7 @@ const requiredServiceGroups = [
   'Database',
   'Auth',
   'Redis',
-  'Axinom',
-  'Storage',
+  'Tencent VOD',
   'Zoom',
   'Support/Email/reCAPTCHA',
   'Observability',
@@ -86,11 +83,11 @@ describe('env documentation contract', () => {
     }
   });
 
-  test('marks the Axinom clear profile as required for staging uploads', () => {
+  test('marks the Tencent procedure as required for staging uploads', () => {
     const envMatrix = readText(envMatrixPath);
-    const clearProfileRow = findMatrixRow(envMatrix, 'AXINOM_ENCODING_PROFILE_CLEAR');
+    const procedureRow = findMatrixRow(envMatrix, 'TENCENT_VOD_PROCEDURE_NAME');
 
-    expect(clearProfileRow).toContain('| optional | required |');
-    expect(clearProfileRow).toContain('clear HLS fallback');
+    expect(procedureRow).toContain('| optional | required |');
+    expect(procedureRow).toContain('DRM processing procedure');
   });
 });

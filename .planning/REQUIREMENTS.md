@@ -100,6 +100,18 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 - [x] **OPS-04**: Admin health or checklist documentation identifies readiness of Axinom, Zoom, Redis, storage, database, OAuth, Sentry, and webhooks.
 - [x] **OPS-05**: Remaining production-hardening items are captured after staging readiness is achieved.
 
+## Tencent Migration Requirements
+
+- [x] **TENCENT-01**: Maintainer can configure Tencent VOD, Commercial DRM, processing templates, playback domain, webhook URL, and required env vars without exposing secrets.
+- [x] **TENCENT-02**: Old Axinom video/course media rows can be exported before cutover cleanup.
+- [x] **TENCENT-03**: Old Axinom media playback, upload, processing, sync, webhook, and verification paths are removed or fail closed.
+- [x] **TENCENT-04**: Admin upload creates Tencent VOD upload instructions and local `Video` rows with Tencent metadata.
+- [x] **TENCENT-05**: Tencent processing, webhook, and reconciliation update video readiness idempotently.
+- [x] **TENCENT-06**: Playback session API issues Tencent playback data only after shared media entitlement allows access.
+- [x] **TENCENT-07**: Shaka playback works with Tencent Widevine and the documented third-party player license flow.
+- [x] **TENCENT-08**: Admin delete marks videos safely and requests Tencent media deletion only after provider confirmation.
+- [x] **TENCENT-09**: Verification covers unit tests, route tests, Tencent setup checks, build, and staging smoke.
+
 ## v2 Requirements
 
 Deferred to future milestones after staging readiness.
@@ -128,7 +140,7 @@ Explicitly excluded from v1 to prevent scope creep.
 | Feature | Reason |
 |---------|--------|
 | Immediate database migration | User selected optimize-existing first; migration before tests and profiling adds unnecessary risk. |
-| Replacing Axinom DRM | Current backend depends on Axinom trial services; first milestone must make that path reproducible. |
+| Replacing Axinom DRM in v1 | Historical v1 milestone required Axinom reproducibility. The Tencent migration milestone now supersedes this for future incoming courses. |
 | Replacing Zoom | Current meeting workflow must be preserved and upgraded, not replaced. |
 | Production launch certification | The target is staging deployment readiness; production hardening is later. |
 | Client-side recording prevention as a guarantee | Client controls are deterrence/telemetry; server entitlement, DRM, watermarking, and audit are enforceable layers. |

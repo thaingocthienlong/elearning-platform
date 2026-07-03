@@ -4,7 +4,7 @@ describe('watch playback source routing', () => {
   const dashUrl = 'https://media.example/video/manifest.mpd';
   const hlsUrl = 'https://media.example/video/protected.m3u8';
   const hlsUrlClear = 'https://media.example/video/clear.m3u8';
-  const drmToken = 'signed-axinom-token';
+  const drmToken = 'signed-tencent-token';
 
   test('detects all iOS browsers as Apple HLS browsers', () => {
     expect(

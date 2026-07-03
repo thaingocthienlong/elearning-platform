@@ -1,6 +1,6 @@
 # Verification Commands
 
-Run these commands from the repository root. They are the maintainer-facing verification surface for Phase 1 and later staging checks.
+Run these commands from the repository root. They are the maintainer-facing verification surface for setup, Tencent media migration, and staging checks.
 
 ## Core Checks
 
@@ -22,13 +22,13 @@ npm run build
 npm run verify:setup
 npm run verify:services
 npm run verify:services:strict
-npm run verify:axinom
+npm run verify:tencent
 ```
 
 - `npm run verify:setup` checks Node >=20.9.0, npm availability, expected root setup files, Prisma schema presence, `.env.example`, `docs/env-matrix.md`, and required root package scripts.
 - `npm run verify:services` derives service groups and required variable names from `docs/env-matrix.md`. In default local mode, missing external service credentials print `SKIP <service>: missing VAR_NAME` messages and the command exits 0.
 - `npm run verify:services:strict` runs the same env-matrix-derived checks with strict failure semantics. It exits nonzero when required service groups are missing variables. `CI=true` applies the same strict-fail behavior.
-- `npm run verify:axinom` validates Axinom-specific canonical env configuration and skips live API calls by default. Use `npm run verify:axinom -- --strict` for staging-style env validation and `npm run verify:axinom -- --strict --live` only when real Axinom trial tenant values are intentionally configured.
+- `npm run verify:tencent` validates Tencent VOD and Commercial DRM env shape and skips live API calls by default. Use `npm run verify:tencent -- --strict` for staging-style env validation and `npm run verify:tencent -- --strict --live` only after real Tencent credentials and a safe test FileId plan exist.
 
 Service verification reports missing variable names only. It must not print env values, tokens, connection strings, masks, or service-account material.
 
@@ -47,7 +47,7 @@ npm run secrets:scan
 ```bash
 npm run verify:setup
 npm run verify:services
-npm run verify:axinom
+npm run verify:tencent
 npm run lint
 npm run typecheck
 npm test
@@ -56,4 +56,4 @@ npm run secrets:inventory
 npm run secrets:scan
 ```
 
-Use `npm run verify:services:strict` when validating staging readiness or CI completeness. Strict service verification may fail on a local placeholder-only checkout until real service credentials are configured.
+Use `npm run verify:services:strict` and `npm run verify:tencent -- --strict` when validating staging readiness or CI completeness. Strict service verification may fail on a local placeholder-only checkout until real service credentials are configured.

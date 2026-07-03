@@ -121,17 +121,23 @@ model Video {
   duration      Float?
   position      Int             @default(0)
   published     Boolean         @default(false)
-  r2Key         String?
   dashUrl       String?
   hlsUrl        String?
   hlsUrlClear   String?
-  drmKeyId      String?
-  axinomVideoId String?
-  axinomIdClear String?
-  axinomJobId   String?
-  axinomEncodingStatus String?
-  axinomOutputLocation String?
-  axinomSyncedAt DateTime?
+  tencentFileId             String?
+  tencentTaskId             String?
+  tencentStatus             String?
+  tencentSubAppId           Int?
+  tencentProcedureName      String?
+  tencentStorageBucket      String?
+  tencentStorageRegion      String?
+  tencentMediaStoragePath   String?
+  tencentDrmTemplateId      String?
+  tencentAdaptiveTemplateId String?
+  tencentWidevineLicenseUrl String?
+  tencentFairplayLicenseUrl String?
+  tencentSyncedAt           DateTime?
+  tencentDeletedAt          DateTime?
   viewLimit     Int?
   courseId      String          @db.ObjectId
   createdAt     DateTime        @default(now())
@@ -147,10 +153,10 @@ model Video {
   // Compound indexes for common queries
   @@index([courseId, published, isDeleted])
   @@index([courseId, position])
-  @@index([drmKeyId])  // For DRM license lookups
-  @@index([axinomVideoId])
-  @@index([axinomIdClear])
-  @@index([axinomEncodingStatus])
+  @@index([tencentFileId])
+  @@index([tencentTaskId])
+  @@index([tencentStatus])
+  @@index([tencentDeletedAt])
 }
 
 model WatchRecord {
