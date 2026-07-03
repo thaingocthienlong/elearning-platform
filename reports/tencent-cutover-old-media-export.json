@@ -1,0 +1,209 @@
+{
+  "exportedAt": "2026-07-03T01:59:13.790Z",
+  "videos": [
+    {
+      "_id": {
+        "$oid": "6a1e508cd9a9efe0099fc6a1"
+      },
+      "title": "Buổi 1 - Sáng 20/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T03:39:56.179Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:42:45.45Z"
+      },
+      "isDeleted": false
+    },
+    {
+      "_id": {
+        "$oid": "6a1e50efbbb09f8dc40ead8e"
+      },
+      "title": "Buổi 2 - Chiều 20/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T03:41:35.79Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:42:50.916Z"
+      },
+      "isDeleted": false
+    },
+    {
+      "_id": {
+        "$oid": "6a1e524fbbb09f8dc40ead90"
+      },
+      "title": "Buổi 3 - Sáng 21/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T03:47:27.27Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:26:32.608Z"
+      },
+      "isDeleted": false
+    },
+    {
+      "_id": {
+        "$oid": "6a1e5290bbb09f8dc40ead92"
+      },
+      "title": "Buổi 4 - Chiều 21/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T03:48:32.466Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:17:42.382Z"
+      },
+      "isDeleted": false
+    },
+    {
+      "_id": {
+        "$oid": "6a1e52dabbb09f8dc40ead94"
+      },
+      "title": "Buổi 5 - Sáng 22/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T03:49:46.513Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:22:51.757Z"
+      },
+      "isDeleted": false
+    },
+    {
+      "_id": {
+        "$oid": "6a1e542dbbb09f8dc40ead96"
+      },
+      "title": "Buổi 6 - Chiều 22/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T03:55:25.249Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:37:21.122Z"
+      },
+      "isDeleted": false
+    },
+    {
+      "_id": {
+        "$oid": "6a1e556bbbb09f8dc40ead98"
+      },
+      "title": "Buổi 7 - Sáng 24/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T04:00:43.09Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:44:20.32Z"
+      },
+      "isDeleted": false
+    },
+    {
+      "_id": {
+        "$oid": "6a1e55a2bbb09f8dc40ead9a"
+      },
+      "title": "Buổi 8 - Chiều 24/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T04:01:38.265Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:37:39.219Z"
+      },
+      "isDeleted": false
+    },
+    {
+      "_id": {
+        "$oid": "6a1e569bbbb09f8dc40ead9c"
+      },
+      "title": "Buổi 9 - Sáng 25/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T04:05:47.429Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:38:03.179Z"
+      },
+      "isDeleted": false
+    },
+    {
+      "_id": {
+        "$oid": "6a1e56cabbb09f8dc40ead9e"
+      },
+      "title": "Buổi 10 - Chiều 25/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T04:06:34.692Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:42:15.822Z"
+      },
+      "isDeleted": false
+    },
+    {
+      "_id": {
+        "$oid": "6a1e570cbbb09f8dc40eada0"
+      },
+      "title": "Buổi 11 - Sáng 26/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T04:07:40.004Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:41:57.354Z"
+      },
+      "isDeleted": false
+    },
+    {
+      "_id": {
+        "$oid": "6a1e5739bbb09f8dc40eada2"
+      },
+      "title": "Buổi 12 - Chiều 26/05",
+      "published": true,
+      "courseId": {
+        "$oid": "6a1830aaa79bec722fbe6fbe"
+      },
+      "createdAt": {
+        "$date": "2026-06-02T04:08:25.265Z"
+      },
+      "updatedAt": {
+        "$date": "2026-06-02T04:40:42.878Z"
+      },
+      "isDeleted": false
+    }
+  ]
+}

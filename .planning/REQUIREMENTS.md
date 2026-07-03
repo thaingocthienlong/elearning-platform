@@ -102,15 +102,15 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 
 ## Tencent Migration Requirements
 
-- [ ] **TENCENT-01**: Maintainer can configure Tencent VOD, Commercial DRM, processing templates, playback domain, webhook URL, and required env vars without exposing secrets.
-- [ ] **TENCENT-02**: Old Axinom video/course media rows can be exported before cutover cleanup.
-- [ ] **TENCENT-03**: Old Axinom media playback, upload, processing, sync, webhook, and verification paths are removed or fail closed.
-- [ ] **TENCENT-04**: Admin upload creates Tencent VOD upload instructions and local `Video` rows with Tencent metadata.
-- [ ] **TENCENT-05**: Tencent processing, webhook, and reconciliation update video readiness idempotently.
-- [ ] **TENCENT-06**: Playback session API issues Tencent playback data only after shared media entitlement allows access.
-- [ ] **TENCENT-07**: Shaka playback works with Tencent Widevine and the documented third-party player license flow.
-- [ ] **TENCENT-08**: Admin delete marks videos safely and requests Tencent media deletion only after provider confirmation.
-- [ ] **TENCENT-09**: Verification covers unit tests, route tests, Tencent setup checks, build, and staging smoke.
+- [x] **TENCENT-01**: Maintainer can configure Tencent VOD, Commercial DRM, processing templates, playback domain, webhook URL, and required env vars without exposing secrets.
+- [x] **TENCENT-02**: Old Axinom video/course media rows can be exported before cutover cleanup.
+- [x] **TENCENT-03**: Old Axinom media playback, upload, processing, sync, webhook, and verification paths are removed or fail closed.
+- [x] **TENCENT-04**: Admin upload creates Tencent VOD upload instructions and local `Video` rows with Tencent metadata.
+- [x] **TENCENT-05**: Tencent processing, webhook, and reconciliation update video readiness idempotently.
+- [x] **TENCENT-06**: Playback session API issues Tencent playback data only after shared media entitlement allows access.
+- [x] **TENCENT-07**: Shaka playback works with Tencent Widevine and the documented third-party player license flow.
+- [x] **TENCENT-08**: Admin delete marks videos safely and requests Tencent media deletion only after provider confirmation.
+- [x] **TENCENT-09**: Verification covers unit tests, route tests, Tencent setup checks, build, and staging smoke.
 
 ## v2 Requirements
 

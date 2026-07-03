@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-05-06)
 
 Phase: 9 of 9 (Tencent-Only Media Platform Migration)
 Plan: 2026-07-02-tencent-only-migration.md
-Status: In progress; v1 rescue baseline remains complete, and new Tencent-only migration supersedes Axinom for future incoming courses.
-Last activity: 2026-07-02 - Tencent-only migration plan and Codex Operating Workflow controls created.
+Status: Complete locally; live Tencent staging checks remain deferred until credentials, console setup, and test media exist.
+Last activity: 2026-07-03 - Tencent-only media migration implemented, verified locally, old media rows exported, and handoff written.
 
-Progress: [#########-] 90%
+Progress: [##########] 100%
 
 ## Performance Metrics
 
@@ -73,7 +73,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Execute `docs/superpowers/plans/2026-07-02-tencent-only-migration.md` task-by-task.
+- Run Tencent staging pilot after credentials, console setup, webhook URL, and test media are available.
 
 ### Blockers/Concerns
 
@@ -82,7 +82,7 @@ Recent decisions affecting current work:
 - [Phase 6]: Strict service and live Axinom validation require real staging credentials.
 - [Phase 7]: Automated screenshot capture is blocked until Playwright or equivalent browser automation tooling is installed/configured.
 - [Phase 8]: Production hardening P0 items remain open by design: strict CI secret scanning, credential rotation decisions, durable video processing orchestration, backup/restore drills, and incident response.
-- [Phase 9]: Live Tencent API checks and browser playback smoke require Tencent credentials, console templates, webhook URL, and a test video.
+- [Phase 9]: Local Tencent-only migration is complete; live Tencent API checks and browser playback smoke require Tencent credentials, console templates, webhook URL, and a test video.
 - [Quality]: `npm run lint` passes with inherited warnings; later phases should retire warnings as touched code is hardened.
 - [Tooling]: `gsd-sdk` was not available on PATH during Phase 1 verification, so Markdown tracking files were updated directly.
 

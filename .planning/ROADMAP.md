@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Vercel Staging Deployment and Smoke Suite** - Staging can be deployed and accepted through documented env, callback, build, log, and smoke checks.
 - [x] **Phase 7: Academic Frontend Redesign** - Existing routes and workflows receive a formal institute-style UI with responsive and screenshot coverage.
 - [x] **Phase 8: Maintainer Operations and Hardening Backlog** - Maintainers have subsystem, upgrade, readiness, and production-hardening guidance after staging readiness.
-- [ ] **Phase 9: Tencent-Only Media Platform Migration** - Future incoming courses use Tencent VOD Commercial DRM as the only media upload, processing, DRM, playback, webhook, and deletion path.
+- [x] **Phase 9: Tencent-Only Media Platform Migration** - Future incoming courses use Tencent VOD Commercial DRM as the only media upload, processing, DRM, playback, webhook, and deletion path.
 
 ## Phase Details
 
@@ -186,7 +186,7 @@ Plans:
   5. Verification covers unit tests, route tests, Tencent setup checks, build, staging smoke, and secret scanning.
 **Plans**: 1 plan
 Plans:
-- [ ] 2026-07-02-tencent-only-migration.md - Tencent-only media migration implementation plan.
+- [x] 2026-07-02-tencent-only-migration.md - Tencent-only media migration implementation plan.
 
 ## Progress
 
@@ -203,7 +203,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 6. Vercel Staging Deployment and Smoke Suite | 4/4 | Complete | 2026-05-06 |
 | 7. Academic Frontend Redesign | 4/4 | Complete | 2026-05-06 |
 | 8. Maintainer Operations and Hardening Backlog | 4/4 | Complete | 2026-05-06 |
-| 9. Tencent-Only Media Platform Migration | 0/1 | In Progress |  |
+| 9. Tencent-Only Media Platform Migration | 1/1 | Complete | 2026-07-03 |
 
 ## Coverage
 

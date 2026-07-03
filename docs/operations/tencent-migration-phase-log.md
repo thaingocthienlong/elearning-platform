@@ -235,3 +235,36 @@
 - Deferred checks: real Tencent browser upload, DRM processing, webhook callback, and playback smoke remain deferred until staging credentials and Tencent console setup exist.
 - Rollback: `git revert <task-8-commit>`; reinstall old dependencies only by reverting lockfile, not by manual package drift.
 - Next: Task 9 final verification, export, and handoff
+
+## 2026-07-03 - Task 9: Final Verification And Staging Gate
+
+- Status: complete
+- Branch: `codex/tencent-platform-migration`
+- Commit: pending
+- Backup: `reports/tencent-cutover-old-media-export.json` created before destructive cleanup; cleanup was not run
+- Files changed:
+  - `jest.config.ts`
+  - `scripts/export-old-media-before-tencent-cutover.ts`
+  - `reports/tencent-cutover-old-media-export.json`
+  - `docs/tencent-migration-handoff.md`
+  - `.planning/STATE.md`
+  - `.planning/ROADMAP.md`
+  - `.planning/REQUIREMENTS.md`
+  - `docs/operations/tencent-migration-phase-log.md`
+  - `docs/verification/tencent-migration-verification-record.md`
+- Tools/plugins/MCPs affected: Jest now ignores local `.agents/` and `codex-plugins/` tool directories so repo tests do not execute plugin source trees.
+- Verification evidence:
+  - `npm run prisma:generate` -> passed.
+  - `npm run lint` -> passed with inherited warnings and 0 errors.
+  - `npm run typecheck` -> passed.
+  - First `npm run test -- --runInBand` exposed local tool-directory test discovery under `codex-plugins/`; after adding Jest ignores, rerun passed with 30 suites and 100 tests.
+  - `npm run build` -> passed.
+  - `npm run verify:tencent` -> passed with expected local warning for missing live Tencent credentials.
+  - `npm run secrets:scan` -> exited 0 and reported gitleaks is not installed, so gitleaks scanning was skipped locally.
+  - `npm run tencent:export-old-media -- reports/tencent-cutover-old-media-export.json` -> exported 12 old media rows.
+  - `rg -n "secret|password|token|credential|private|BEGIN|DATABASE_URL|mongodb" reports/tencent-cutover-old-media-export.json` -> no matches.
+  - After export-script env loading patch, `npm run typecheck`, `npm test -- __tests__/scripts/tencent-cutover-scripts.test.ts --runInBand`, and `npm run verify:tencent` were rerun and passed.
+  - Active old provider/storage scans returned no matches outside historical plan/log/verification exclusions.
+- Deferred checks: live Tencent staging upload/webhook/playback and strict Tencent verification require credentials and console setup.
+- Rollback: `git revert <task-9-commit>`; keep or delete the local export according to rollback need, but do not run cleanup without explicit user confirmation.
+- Next: Staging pilot with real Tencent credentials and test media

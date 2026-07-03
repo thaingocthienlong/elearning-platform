@@ -1,6 +1,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import dotenv from 'dotenv';
 import { prisma } from '../src/lib/prisma';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local'), override: true });
 
 const legacyProviderPrefix = 'axi' + 'nom';
 const legacyStorageKey = 'r' + '2Key';

@@ -14,6 +14,8 @@ const config: Config = {
   testPathIgnorePatterns: [
     '<rootDir>/.next/',
     '<rootDir>/node_modules/',
+    '<rootDir>/.agents/',
+    '<rootDir>/codex-plugins/',
     '<rootDir>/zoom-webapp/',
     '<rootDir>/public/zoom/',
     '<rootDir>/public/lib/zoom/',

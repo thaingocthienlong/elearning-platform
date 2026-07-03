@@ -9,13 +9,13 @@ Tencent-only media migration from Axinom/Azure/R2 media pipeline to Tencent VOD 
 | Command | Expected Result | Actual Result |
 | --- | --- | --- |
 | `git status --short` | Only intended files shown. | Task 0 showed intended untracked plan/workflow docs plus pre-existing unrelated `.agents/` and `codex-plugins/`. |
-| `npm run prisma:generate` | Prisma client generation succeeds. | Task 3 passed. |
-| `npm run lint` | ESLint passes. | Task 8 passed with inherited warnings and 0 errors. |
-| `npm run typecheck` | TypeScript passes. | Task 8 passed. |
-| `npm run test -- --runInBand` | Jest passes. | Not run yet. |
-| `npm run build` | Next build succeeds. | Not run yet. |
-| `npm run verify:tencent` | Tencent local verification passes or warns without live credentials. | Task 8 passed with expected local warning for missing live Tencent credentials. |
-| `npm run secrets:scan` | Secret scan passes or documents local scanner absence. | Not run yet. |
+| `npm run prisma:generate` | Prisma client generation succeeds. | Task 9 passed. |
+| `npm run lint` | ESLint passes. | Task 9 passed with inherited warnings and 0 errors. |
+| `npm run typecheck` | TypeScript passes. | Task 9 passed. |
+| `npm run test -- --runInBand` | Jest passes. | Task 9 passed after Jest ignored local tool directories: 30 suites, 100 tests. |
+| `npm run build` | Next build succeeds. | Task 9 passed. |
+| `npm run verify:tencent` | Tencent local verification passes or warns without live credentials. | Task 9 passed with expected local warning for missing live Tencent credentials. |
+| `npm run secrets:scan` | Secret scan passes or documents local scanner absence. | Task 9 exited 0 and documented that gitleaks is not installed, so gitleaks scanning was skipped. |
 
 ## Tooling Checks
 
@@ -50,6 +50,11 @@ Tencent-only media migration from Axinom/Azure/R2 media pipeline to Tencent VOD 
 - Task 8 env/docs/package tests passed: `npm test -- __tests__/env/env-matrix.test.ts __tests__/scripts/package-scripts.test.ts __tests__/docs/provider-zero-setup.test.ts --runInBand` reported 3 suites passed and 9 tests passed.
 - Task 8 `npm run verify:setup`, `npm run verify:tencent`, `npm run verify:services`, and `npm run verify:staging` passed.
 - Task 8 old provider/storage scans returned no matches for active Axinom/Azure/R2/HLS-proxy references outside historical plan/log/verification exclusions.
+- Task 9 first full Jest run failed because untracked `codex-plugins/` source tests were discovered. `jest.config.ts` now ignores `.agents/` and `codex-plugins/`; rerun passed with 30 suites and 100 tests.
+- Task 9 `npm run prisma:generate`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run verify:tencent`, and `npm run secrets:scan` completed. Secret scan reported local gitleaks absence and exited 0 under non-strict behavior.
+- Task 9 old media export succeeded: `npm run tencent:export-old-media -- reports/tencent-cutover-old-media-export.json` exported 12 rows.
+- Task 9 export safety scan passed: `rg -n "secret|password|token|credential|private|BEGIN|DATABASE_URL|mongodb" reports/tencent-cutover-old-media-export.json` returned no matches.
+- Task 9 recheck after export-script env loading patch passed: `npm run typecheck`, `npm test -- __tests__/scripts/tencent-cutover-scripts.test.ts --runInBand`, and `npm run verify:tencent`.
 
 ## Gaps Or Deferred Checks
 
@@ -57,4 +62,4 @@ Tencent-only media migration from Axinom/Azure/R2 media pipeline to Tencent VOD 
 
 ## Result
 
-deferred
+local pass; live Tencent staging checks deferred until credentials, console setup, and test media exist
