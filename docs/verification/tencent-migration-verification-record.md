@@ -36,6 +36,8 @@ Tencent-only media migration from Axinom/Azure/R2 media pipeline to Tencent VOD 
 - Task 3 typecheck passed.
 - Task 4 VOD helper tests passed: `npm test -- __tests__/lib/tencent-vod.test.ts --runInBand` reported 1 suite passed and 2 tests passed.
 - Task 4 typecheck passed.
+- Task 5 upload/process route and webhook tests passed: `npm test -- __tests__/api/tencent-upload-process.test.ts __tests__/lib/tencent-webhook.test.ts --runInBand` reported 2 suites passed and 5 tests passed.
+- Task 5 typecheck passed.
 
 ## Gaps Or Deferred Checks
 

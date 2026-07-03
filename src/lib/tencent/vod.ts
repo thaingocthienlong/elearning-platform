@@ -69,6 +69,42 @@ export async function processTencentMedia(fileId: string) {
   });
 }
 
+export async function describeTencentMedia(fileId: string) {
+  const response = await callTencentVod<{
+    MediaInfoSet?: Array<{
+      FileId?: string;
+      BasicInfo?: {
+        Name?: string;
+        MediaUrl?: string;
+      };
+      AdaptiveDynamicStreamingInfo?: {
+        AdaptiveDynamicStreamingSet?: Array<{
+          Url?: string;
+        }>;
+      };
+      MetaData?: {
+        Duration?: number;
+      };
+    }>;
+  }>('DescribeMediaInfos', {
+    FileIds: [fileId],
+  });
+
+  return response.MediaInfoSet?.[0] ?? null;
+}
+
+export function extractTencentPlaybackUrls(mediaInfo: Awaited<ReturnType<typeof describeTencentMedia>>) {
+  const adaptiveUrl = mediaInfo?.AdaptiveDynamicStreamingInfo?.AdaptiveDynamicStreamingSet?.find((item) => item.Url)?.Url;
+  const mediaUrl = mediaInfo?.BasicInfo?.MediaUrl;
+  const playbackUrl = adaptiveUrl ?? mediaUrl;
+
+  return {
+    dashUrl: playbackUrl?.endsWith('.mpd') ? playbackUrl : undefined,
+    hlsUrl: playbackUrl?.includes('.m3u8') ? playbackUrl : undefined,
+    playbackUrl,
+  };
+}
+
 export async function deleteTencentMedia(fileId: string) {
   return callTencentVod<Record<string, never>>('DeleteMedia', {
     FileId: fileId,

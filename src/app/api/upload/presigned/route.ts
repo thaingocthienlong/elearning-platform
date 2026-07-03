@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { azureStorage } from '@/lib/azure-storage';
 import { prisma } from '@/lib/prisma';
+import { applyTencentUpload } from '@/lib/tencent/vod';
 import { z } from 'zod';
 
 // Input validation schema
@@ -62,20 +62,41 @@ export async function POST(req: Request) {
             );
         }
 
-        // Generate Azure SAS URL for upload
-        const { url: signedUrl, blobName } = await azureStorage.getUploadSasUrl(filename);
-
         // Create video record in DB (pending state)
         const video = await prisma.video.create({
             data: {
                 title: title || filename,
                 courseId: courseId,
-                r2Key: blobName,
+                tencentStatus: 'UPLOAD_APPLIED',
                 published: false,
             },
         });
 
-        return NextResponse.json({ signedUrl, videoId: video.id, key: blobName });
+        const mediaType = filename.split('.').pop()?.toLowerCase() || 'mp4';
+        const upload = await applyTencentUpload({
+            filename,
+            mediaType,
+            videoId: video.id,
+        });
+
+        await prisma.video.update({
+            where: { id: video.id },
+            data: {
+                tencentStorageBucket: upload.storageBucket,
+                tencentStorageRegion: upload.storageRegion,
+                tencentMediaStoragePath: upload.mediaStoragePath,
+            },
+        });
+
+        return NextResponse.json({
+            provider: 'tencent',
+            videoId: video.id,
+            storageBucket: upload.storageBucket,
+            storageRegion: upload.storageRegion,
+            mediaStoragePath: upload.mediaStoragePath,
+            vodSessionKey: upload.vodSessionKey,
+            tempCertificate: upload.tempCertificate,
+        });
     } catch (error) {
         console.error('Error generating signed URL:', error);
         return new NextResponse('Internal Server Error', { status: 500 });

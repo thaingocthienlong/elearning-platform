@@ -109,3 +109,29 @@
 - Deferred checks: live Tencent API calls are deferred until credentials and test media exist
 - Rollback: `git revert <task-4-commit>`
 - Next: Task 5 Tencent upload, processing, status, and webhook routes
+
+## 2026-07-03 - Task 5: Tencent Upload, Processing, Status, And Webhook Routes
+
+- Status: complete
+- Branch: `codex/tencent-platform-migration`
+- Commit: pending
+- Backup: none required; route migration only
+- Files changed:
+  - `src/app/api/upload/presigned/route.ts`
+  - `src/app/api/video/process/route.ts`
+  - `src/app/api/video/status/route.ts`
+  - `src/app/api/video/sync/route.ts`
+  - `src/app/api/webhook/tencent/route.ts`
+  - `src/lib/tencent/vod.ts`
+  - `src/lib/tencent/webhook.ts`
+  - `__tests__/api/tencent-upload-process.test.ts`
+  - `__tests__/lib/tencent-webhook.test.ts`
+  - `docs/operations/tencent-migration-phase-log.md`
+  - `docs/verification/tencent-migration-verification-record.md`
+- Tools/plugins/MCPs affected: none
+- Verification evidence:
+  - `npm test -- __tests__/api/tencent-upload-process.test.ts __tests__/lib/tencent-webhook.test.ts --runInBand` -> 2 suites passed, 5 tests passed.
+  - `npm run typecheck` -> passed.
+- Deferred checks: live upload/process/webhook with real Tencent credentials deferred to staging
+- Rollback: `git revert <task-5-commit>`
+- Next: Task 6 Tencent playback session and Shaka integration
