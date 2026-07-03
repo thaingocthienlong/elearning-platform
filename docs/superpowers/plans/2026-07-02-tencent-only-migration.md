@@ -1,6 +1,6 @@
 # Tencent-Only Media Platform Migration Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Remove Axinom/Azure/R2 media pipeline dependencies and make Tencent VOD Commercial DRM the only upload, processing, DRM, playback, and deletion path for future incoming courses.
 
@@ -83,7 +83,7 @@ Required usage:
 - Create: `docs/operations/tencent-migration-phase-log.md`
 - Modify: `docs/superpowers/plans/2026-07-02-tencent-only-migration.md`
 
-- [ ] **Step 1: Create task brief**
+- [x] **Step 1: Create task brief**
 
 Create `docs/superpowers/task-briefs/tencent-only-media-migration.md`:
 
@@ -138,7 +138,7 @@ Do not read, print, copy, or commit secret values from env files, key files, cer
 - Tencent-only media migration implemented, verified, documented, and handed off with rollback instructions.
 ```
 
-- [ ] **Step 2: Create verification record**
+- [x] **Step 2: Create verification record**
 
 Create `docs/verification/tencent-migration-verification-record.md`:
 
@@ -183,7 +183,7 @@ Tencent-only media migration from Axinom/Azure/R2 media pipeline to Tencent VOD 
 deferred
 ```
 
-- [ ] **Step 3: Create phase log**
+- [x] **Step 3: Create phase log**
 
 Create `docs/operations/tencent-migration-phase-log.md`:
 
@@ -208,7 +208,7 @@ Create `docs/operations/tencent-migration-phase-log.md`:
 - Next: Task 1 planning supersession and cutover contract
 ```
 
-- [ ] **Step 4: Verify workflow utility files**
+- [x] **Step 4: Verify workflow utility files**
 
 Run:
 
@@ -224,7 +224,7 @@ Expected:
 - All `Test-Path` commands print `True`.
 - `rg` matches only policy language and synthetic command labels, not real secret values.
 
-- [ ] **Step 5: Commit workflow utility**
+- [x] **Step 5: Commit workflow utility**
 
 Run:
 
@@ -244,7 +244,7 @@ Expected: commit succeeds. If Git user identity is missing, stop and report exac
 - Modify: `.planning/STATE.md`
 - Create: `.planning/research/tencent-only-media-migration.md`
 
-- [ ] **Step 1: Write Tencent-only decision record**
+- [x] **Step 1: Write Tencent-only decision record**
 
 Create `.planning/research/tencent-only-media-migration.md`:
 
@@ -285,7 +285,7 @@ Axinom, Azure upload, R2/Azure encoded-output assumptions, and old Axinom video 
 Rollback code with Git before old media cleanup. After cleanup, restore old media data from the exported JSON file if the user explicitly requests rollback.
 ```
 
-- [ ] **Step 2: Update project decisions**
+- [x] **Step 2: Update project decisions**
 
 In `.planning/PROJECT.md`, add a key decision row:
 
@@ -299,33 +299,33 @@ Also move the old "Replacing Axinom DRM in v1" out-of-scope language into histor
 The completed v1 rescue milestone preserved Axinom, but the new Tencent migration milestone supersedes that constraint for future incoming courses.
 ```
 
-- [ ] **Step 3: Add Tencent milestone requirements**
+- [x] **Step 3: Add Tencent milestone requirements**
 
 In `.planning/REQUIREMENTS.md`, add a new section before `## v2 Requirements`:
 
 ```md
 ## Tencent Migration Requirements
 
-- [ ] **TENCENT-01**: Maintainer can configure Tencent VOD, Commercial DRM, processing templates, playback domain, webhook URL, and required env vars without exposing secrets.
-- [ ] **TENCENT-02**: Old Axinom video/course media rows can be exported before cutover cleanup.
-- [ ] **TENCENT-03**: Old Axinom media playback, upload, processing, sync, webhook, and verification paths are removed or fail closed.
-- [ ] **TENCENT-04**: Admin upload creates Tencent VOD upload instructions and local `Video` rows with Tencent metadata.
-- [ ] **TENCENT-05**: Tencent processing, webhook, and reconciliation update video readiness idempotently.
-- [ ] **TENCENT-06**: Playback session API issues Tencent playback data only after shared media entitlement allows access.
-- [ ] **TENCENT-07**: Shaka playback works with Tencent Widevine and the documented third-party player license flow.
-- [ ] **TENCENT-08**: Admin delete marks videos safely and requests Tencent media deletion only after provider confirmation.
-- [ ] **TENCENT-09**: Verification covers unit tests, route tests, Tencent setup checks, build, and staging smoke.
+- [x] **TENCENT-01**: Maintainer can configure Tencent VOD, Commercial DRM, processing templates, playback domain, webhook URL, and required env vars without exposing secrets.
+- [x] **TENCENT-02**: Old Axinom video/course media rows can be exported before cutover cleanup.
+- [x] **TENCENT-03**: Old Axinom media playback, upload, processing, sync, webhook, and verification paths are removed or fail closed.
+- [x] **TENCENT-04**: Admin upload creates Tencent VOD upload instructions and local `Video` rows with Tencent metadata.
+- [x] **TENCENT-05**: Tencent processing, webhook, and reconciliation update video readiness idempotently.
+- [x] **TENCENT-06**: Playback session API issues Tencent playback data only after shared media entitlement allows access.
+- [x] **TENCENT-07**: Shaka playback works with Tencent Widevine and the documented third-party player license flow.
+- [x] **TENCENT-08**: Admin delete marks videos safely and requests Tencent media deletion only after provider confirmation.
+- [x] **TENCENT-09**: Verification covers unit tests, route tests, Tencent setup checks, build, and staging smoke.
 ```
 
-- [ ] **Step 4: Update roadmap**
+- [x] **Step 4: Update roadmap**
 
 In `.planning/ROADMAP.md`, add a new phase after Phase 8:
 
 ```md
-- [ ] **Phase 9: Tencent-Only Media Platform Migration** - Future incoming courses use Tencent VOD Commercial DRM as the only media upload, processing, DRM, playback, webhook, and deletion path.
+- [x] **Phase 9: Tencent-Only Media Platform Migration** - Future incoming courses use Tencent VOD Commercial DRM as the only media upload, processing, DRM, playback, webhook, and deletion path.
 ```
 
-- [ ] **Step 5: Commit planning supersession**
+- [x] **Step 5: Commit planning supersession**
 
 Run:
 
@@ -345,7 +345,7 @@ Expected: commit succeeds. If Git user identity is missing, stop and report exac
 - Test: `__tests__/lib/tencent-env.test.ts`
 - Test: `__tests__/lib/tencent-signing.test.ts`
 
-- [ ] **Step 1: Write env tests**
+- [x] **Step 1: Write env tests**
 
 Create `__tests__/lib/tencent-env.test.ts`:
 
@@ -389,7 +389,7 @@ describe('Tencent env', () => {
 });
 ```
 
-- [ ] **Step 2: Write signing tests**
+- [x] **Step 2: Write signing tests**
 
 Create `__tests__/lib/tencent-signing.test.ts`:
 
@@ -432,7 +432,7 @@ describe('Tencent signing', () => {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify fail**
+- [x] **Step 3: Run tests to verify fail**
 
 Run:
 
@@ -442,7 +442,7 @@ npm test -- __tests__/lib/tencent-env.test.ts __tests__/lib/tencent-signing.test
 
 Expected: fail because Tencent modules do not exist.
 
-- [ ] **Step 4: Add Tencent types**
+- [x] **Step 4: Add Tencent types**
 
 Create `src/lib/tencent/types.ts`:
 
@@ -508,7 +508,7 @@ export type TencentWebhookEvent = {
 };
 ```
 
-- [ ] **Step 5: Add env parser**
+- [x] **Step 5: Add env parser**
 
 Create `src/lib/tencent/env.ts`:
 
@@ -591,7 +591,7 @@ export function loadTencentEnv(
 }
 ```
 
-- [ ] **Step 6: Add TC3 signing**
+- [x] **Step 6: Add TC3 signing**
 
 Create `src/lib/tencent/signing.ts`:
 
@@ -680,7 +680,7 @@ export function createTencentSignedHeaders(input: SignedHeadersInput): Record<st
 }
 ```
 
-- [ ] **Step 7: Verify Tencent env/signing**
+- [x] **Step 7: Verify Tencent env/signing**
 
 Run:
 
@@ -691,7 +691,7 @@ npm run typecheck
 
 Expected: tests and typecheck pass.
 
-- [ ] **Step 8: Commit Tencent foundation**
+- [x] **Step 8: Commit Tencent foundation**
 
 Run:
 
@@ -711,7 +711,7 @@ Expected: commit succeeds.
 - Modify: `package.json`
 - Test: `__tests__/scripts/tencent-cutover-scripts.test.ts`
 
-- [ ] **Step 1: Write script tests**
+- [x] **Step 1: Write script tests**
 
 Create `__tests__/scripts/tencent-cutover-scripts.test.ts`:
 
@@ -735,7 +735,7 @@ describe('Tencent cutover scripts', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify fail**
+- [x] **Step 2: Run test to verify fail**
 
 Run:
 
@@ -745,7 +745,7 @@ npm test -- __tests__/scripts/tencent-cutover-scripts.test.ts --runInBand
 
 Expected: fail because scripts do not exist.
 
-- [ ] **Step 3: Replace video metadata fields**
+- [x] **Step 3: Replace video metadata fields**
 
 Modify `prisma/schema.prisma` inside `model Video`. Replace this block:
 
@@ -802,7 +802,7 @@ With:
   @@index([tencentDeletedAt])
 ```
 
-- [ ] **Step 4: Add old media export script**
+- [x] **Step 4: Add old media export script**
 
 Create `scripts/export-old-media-before-tencent-cutover.ts`:
 
@@ -859,7 +859,7 @@ if (require.main === module) {
 }
 ```
 
-- [ ] **Step 5: Add guarded cleanup script**
+- [x] **Step 5: Add guarded cleanup script**
 
 Create `scripts/cleanup-old-media-for-tencent-cutover.ts`:
 
@@ -905,7 +905,7 @@ if (require.main === module) {
 }
 ```
 
-- [ ] **Step 6: Add package scripts**
+- [x] **Step 6: Add package scripts**
 
 Modify `package.json` scripts:
 
@@ -914,7 +914,7 @@ Modify `package.json` scripts:
 "tencent:cleanup-old-media": "tsx scripts/cleanup-old-media-for-tencent-cutover.ts"
 ```
 
-- [ ] **Step 7: Verify schema and scripts**
+- [x] **Step 7: Verify schema and scripts**
 
 Run:
 
@@ -926,7 +926,7 @@ npm run typecheck
 
 Expected: all pass.
 
-- [ ] **Step 8: Commit schema and cutover scripts**
+- [x] **Step 8: Commit schema and cutover scripts**
 
 Run:
 
@@ -944,7 +944,7 @@ Expected: commit succeeds.
 - Create: `src/lib/tencent/vod.ts`
 - Test: `__tests__/lib/tencent-vod.test.ts`
 
-- [ ] **Step 1: Write VOD service tests**
+- [x] **Step 1: Write VOD service tests**
 
 Create `__tests__/lib/tencent-vod.test.ts`:
 
@@ -971,7 +971,7 @@ describe('Tencent VOD service helpers', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify fail**
+- [x] **Step 2: Run test to verify fail**
 
 Run:
 
@@ -981,7 +981,7 @@ npm test -- __tests__/lib/tencent-vod.test.ts --runInBand
 
 Expected: fail because `src/lib/tencent/vod.ts` does not exist.
 
-- [ ] **Step 3: Add Tencent OpenAPI client**
+- [x] **Step 3: Add Tencent OpenAPI client**
 
 Create `src/lib/tencent/client.ts`:
 
@@ -1033,7 +1033,7 @@ export async function callTencentVod<T>(action: string, body: Record<string, unk
 }
 ```
 
-- [ ] **Step 4: Add Tencent VOD service**
+- [x] **Step 4: Add Tencent VOD service**
 
 Create `src/lib/tencent/vod.ts`:
 
@@ -1132,7 +1132,7 @@ export function createTencentDrmToken(input: {
 }
 ```
 
-- [ ] **Step 5: Verify VOD service**
+- [x] **Step 5: Verify VOD service**
 
 Run:
 
@@ -1143,7 +1143,7 @@ npm run typecheck
 
 Expected: tests and typecheck pass. If Tencent API field names fail typecheck, correct only the local type names and rerun.
 
-- [ ] **Step 6: Commit VOD service**
+- [x] **Step 6: Commit VOD service**
 
 Run:
 
@@ -1166,7 +1166,7 @@ Expected: commit succeeds.
 - Test: `__tests__/api/tencent-upload-process.test.ts`
 - Test: `__tests__/lib/tencent-webhook.test.ts`
 
-- [ ] **Step 1: Write webhook helper tests**
+- [x] **Step 1: Write webhook helper tests**
 
 Create `__tests__/lib/tencent-webhook.test.ts`:
 
@@ -1193,7 +1193,7 @@ describe('Tencent webhook verification', () => {
 });
 ```
 
-- [ ] **Step 2: Create webhook helper**
+- [x] **Step 2: Create webhook helper**
 
 Create `src/lib/tencent/webhook.ts`:
 
@@ -1222,7 +1222,7 @@ export function verifyTencentWebhookSignature(input: {
 }
 ```
 
-- [ ] **Step 3: Replace upload route**
+- [x] **Step 3: Replace upload route**
 
 Modify `src/app/api/upload/presigned/route.ts`:
 
@@ -1297,11 +1297,11 @@ export async function POST(req: Request) {
 }
 ```
 
-- [ ] **Step 4: Replace process route**
+- [x] **Step 4: Replace process route**
 
 Modify `src/app/api/video/process/route.ts` so it uses `processTencentMedia(video.tencentFileId)` and returns `{ success: true, provider: 'tencent', taskId }`. It must reject missing `tencentFileId` with status 404 and no Axinom env checks.
 
-- [ ] **Step 5: Add Tencent webhook route**
+- [x] **Step 5: Add Tencent webhook route**
 
 Create `src/app/api/webhook/tencent/route.ts`:
 
@@ -1352,7 +1352,7 @@ export async function POST(req: Request) {
 }
 ```
 
-- [ ] **Step 6: Verify route changes**
+- [x] **Step 6: Verify route changes**
 
 Run:
 
@@ -1364,7 +1364,7 @@ npm run lint
 
 Expected: all pass.
 
-- [ ] **Step 7: Commit route migration**
+- [x] **Step 7: Commit route migration**
 
 Run:
 
@@ -1386,7 +1386,7 @@ Expected: commit succeeds.
 - Test: `__tests__/lib/shaka-tencent.test.ts`
 - Test: `__tests__/api/tencent-playback-session.test.ts`
 
-- [ ] **Step 1: Write Shaka helper test**
+- [x] **Step 1: Write Shaka helper test**
 
 Create `__tests__/lib/shaka-tencent.test.ts`:
 
@@ -1414,7 +1414,7 @@ describe('Shaka Tencent helpers', () => {
 });
 ```
 
-- [ ] **Step 2: Add Shaka Tencent helper**
+- [x] **Step 2: Add Shaka Tencent helper**
 
 Create `src/lib/shaka-tencent.ts`:
 
@@ -1446,7 +1446,7 @@ export function applyTencentLicenseRequest(options: {
 }
 ```
 
-- [ ] **Step 3: Replace DRM token route**
+- [x] **Step 3: Replace DRM token route**
 
 Modify `src/app/api/drm/token/route.ts` to remove `generateAxinomToken`. After entitlement passes, require `entitlement.video.tencentFileId`, create a Tencent token with `createTencentDrmToken`, and return:
 
@@ -1465,7 +1465,7 @@ return NextResponse.json({
 
 Use `resolveTencentLicenseUrl('widevine')` as default for desktop. Keep FairPlay selection client-side if existing browser detection already decides `drmType`.
 
-- [ ] **Step 4: Update Shaka hook**
+- [x] **Step 4: Update Shaka hook**
 
 In `src/hooks/player/useShakaPlayer.ts`, replace Axinom imports with:
 
@@ -1486,7 +1486,7 @@ applyTencentLicenseRequest({
 
 Remove calls to `resolveAxinomLicenseServerUrl`.
 
-- [ ] **Step 5: Verify playback code**
+- [x] **Step 5: Verify playback code**
 
 Run:
 
@@ -1498,7 +1498,7 @@ npm run lint
 
 Expected: all pass.
 
-- [ ] **Step 6: Commit playback migration**
+- [x] **Step 6: Commit playback migration**
 
 Run:
 
@@ -1524,7 +1524,7 @@ Expected: commit succeeds.
 - Modify: `src/lib/translations.ts`
 - Test: `__tests__/repo/no-axinom-active-imports.test.ts`
 
-- [ ] **Step 1: Write no-active-Axinom test**
+- [x] **Step 1: Write no-active-Axinom test**
 
 Create `__tests__/repo/no-axinom-active-imports.test.ts`:
 
@@ -1554,7 +1554,7 @@ describe('Axinom removal', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify fail**
+- [x] **Step 2: Run test to verify fail**
 
 Run:
 
@@ -1564,7 +1564,7 @@ npm test -- __tests__/repo/no-axinom-active-imports.test.ts --runInBand
 
 Expected: fail with current Axinom files and imports.
 
-- [ ] **Step 3: Remove Axinom active code**
+- [x] **Step 3: Remove Axinom active code**
 
 Delete active Axinom modules and routes after Tencent replacements compile:
 
@@ -1574,7 +1574,7 @@ git rm src/lib/axinom.ts src/lib/axinom-env.ts src/lib/axinom-video-service.ts s
 
 If any import breaks, replace it with Tencent module imports from earlier tasks. Do not reintroduce Axinom fallback.
 
-- [ ] **Step 4: Update admin video API**
+- [x] **Step 4: Update admin video API**
 
 Modify `src/app/api/admin/videos/route.ts` select list to return Tencent fields:
 
@@ -1592,7 +1592,7 @@ hlsUrl: true,
 
 Remove Axinom selected fields.
 
-- [ ] **Step 5: Update admin video UI labels**
+- [x] **Step 5: Update admin video UI labels**
 
 Modify `src/app/admin/videos/page.tsx` type and table labels:
 
@@ -1606,7 +1606,7 @@ tencentDeletedAt: string | null;
 
 Replace visible text `Axinom ID` with `Tencent File ID`. Replace status display with `video.tencentStatus || 'Not submitted'`.
 
-- [ ] **Step 6: Verify Axinom removal**
+- [x] **Step 6: Verify Axinom removal**
 
 Run:
 
@@ -1618,7 +1618,7 @@ npm run lint
 
 Expected: all pass.
 
-- [ ] **Step 7: Commit Axinom removal**
+- [x] **Step 7: Commit Axinom removal**
 
 Run:
 
@@ -1642,7 +1642,7 @@ Expected: commit succeeds.
 - Modify: `docs/operations/subsystems.md`
 - Modify: `docs/operations/vendor-upgrades.md`
 
-- [ ] **Step 1: Add Tencent setup verifier**
+- [x] **Step 1: Add Tencent setup verifier**
 
 Create `scripts/verify-tencent-setup.ts`:
 
@@ -1673,7 +1673,7 @@ main().catch((error) => {
 });
 ```
 
-- [ ] **Step 2: Update package scripts**
+- [x] **Step 2: Update package scripts**
 
 Modify `package.json` scripts:
 
@@ -1683,7 +1683,7 @@ Modify `package.json` scripts:
 
 Remove `"verify:axinom"` after all docs and CI references are updated.
 
-- [ ] **Step 3: Update env example**
+- [x] **Step 3: Update env example**
 
 In `.env.example`, remove Axinom env rows and add:
 
@@ -1700,7 +1700,7 @@ NEXT_PUBLIC_TENCENT_FAIRPLAY_LICENSE_URL="https://fairplay.drm.vod-qcloud.com/fa
 NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL="https://example.invalid/fairplay-cert"
 ```
 
-- [ ] **Step 4: Rewrite docs**
+- [x] **Step 4: Rewrite docs**
 
 Update docs so active media provider is Tencent only:
 
@@ -1711,7 +1711,7 @@ Update docs so active media provider is Tencent only:
 - `docs/operations/subsystems.md`: section title becomes `DRM And Tencent VOD`.
 - `docs/operations/vendor-upgrades.md`: replace Axinom upgrade playbook with Tencent VOD/Commercial DRM upgrade playbook.
 
-- [ ] **Step 5: Verify docs and verifier**
+- [x] **Step 5: Verify docs and verifier**
 
 Run:
 
@@ -1724,7 +1724,7 @@ rg -n "Axinom|AXINOM|axinom|NEXT_PUBLIC_AX" .env.example docs src scripts prisma
 
 Expected: verifier passes locally with warning if live credentials are absent. `rg` has no active Axinom matches outside historical `docs/superpowers/specs/**` and historical old plan files.
 
-- [ ] **Step 6: Commit docs and verifier**
+- [x] **Step 6: Commit docs and verifier**
 
 Run:
 
@@ -1741,7 +1741,7 @@ Expected: commit succeeds.
 - Modify only if needed: `docs/staging-smoke-checklist.md`
 - Create: `docs/tencent-migration-handoff.md`
 
-- [ ] **Step 1: Run full local verification**
+- [x] **Step 1: Run full local verification**
 
 Run:
 
@@ -1756,7 +1756,7 @@ npm run secrets:scan
 
 Expected: all pass, except `secrets:scan` may skip locally if gitleaks is unavailable under existing repo behavior.
 
-- [ ] **Step 2: Export old media rows**
+- [x] **Step 2: Export old media rows**
 
 Run:
 
@@ -1766,7 +1766,7 @@ npm run tencent:export-old-media -- reports/tencent-cutover-old-media-export.jso
 
 Expected: JSON file created under `reports/`, with row metadata only and no secret values.
 
-- [ ] **Step 3: Stop before destructive cleanup**
+- [x] **Step 3: Stop before destructive cleanup**
 
 Do not run:
 
@@ -1776,7 +1776,7 @@ npm run tencent:cleanup-old-media -- --confirm-delete-old-media
 
 until the user explicitly confirms old media DB rows should be marked deleted.
 
-- [ ] **Step 4: Write handoff**
+- [x] **Step 4: Write handoff**
 
 Create `docs/tencent-migration-handoff.md`:
 
@@ -1807,7 +1807,7 @@ Create `docs/tencent-migration-handoff.md`:
 Use Git revert before cleanup. If cleanup already ran, restore old rows from `reports/tencent-cutover-old-media-export.json`.
 ```
 
-- [ ] **Step 5: Commit handoff**
+- [x] **Step 5: Commit handoff**
 
 Run:
 
