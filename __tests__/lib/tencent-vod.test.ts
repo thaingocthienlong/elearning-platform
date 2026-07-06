@@ -1,8 +1,10 @@
 import {
   createTencentUploadSignature,
   normalizeTencentStatus,
+  processTencentMedia,
   resolveTencentLicenseUrl,
 } from '@/lib/tencent/vod';
+import { callTencentVod } from '@/lib/tencent/client';
 
 jest.mock('@/lib/tencent/env', () => ({
   loadTencentEnv: jest.fn(() => ({
@@ -15,7 +17,17 @@ jest.mock('@/lib/tencent/env', () => ({
   })),
 }));
 
+jest.mock('@/lib/tencent/client', () => ({
+  callTencentVod: jest.fn(),
+}));
+
+const mockedCallTencentVod = callTencentVod as jest.Mock;
+
 describe('Tencent VOD service helpers', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test('normalizes Tencent processing states', () => {
     expect(normalizeTencentStatus('FINISH')).toBe('READY');
     expect(normalizeTencentStatus('PROCESSING')).toBe('PROCESSING');
@@ -48,5 +60,19 @@ describe('Tencent VOD service helpers', () => {
     expect(decoded).toContain('sourceContext=64b7f0000000000000000002');
     expect(decoded).toContain('vodSubAppId=123456');
     expect(decoded).not.toContain('test-secret-key');
+  });
+
+  test('submits named task flow through ProcessMediaByProcedure', async () => {
+    mockedCallTencentVod.mockResolvedValue({ TaskId: 'task-id', RequestId: 'request-id' });
+
+    await expect(processTencentMedia('tencent-file-id')).resolves.toEqual({
+      TaskId: 'task-id',
+      RequestId: 'request-id',
+    });
+
+    expect(mockedCallTencentVod).toHaveBeenCalledWith('ProcessMediaByProcedure', {
+      FileId: 'tencent-file-id',
+      ProcedureName: 'course-drm-720p',
+    });
   });
 });

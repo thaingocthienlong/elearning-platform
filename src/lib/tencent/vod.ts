@@ -109,7 +109,7 @@ export function createTencentUploadSignature(input: {
 
 export async function processTencentMedia(fileId: string) {
   const env = loadTencentEnv();
-  return callTencentVod<{ TaskId: string }>('ProcessMedia', {
+  return callTencentVod<{ TaskId: string }>('ProcessMediaByProcedure', {
     FileId: fileId,
     ProcedureName: env.procedureName,
   });
