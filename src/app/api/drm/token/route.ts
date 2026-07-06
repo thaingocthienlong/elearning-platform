@@ -40,8 +40,6 @@ export async function POST(req: Request) {
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
         const token = createTencentDrmToken({
             fileId: entitlement.video.tencentFileId,
-            userId: entitlement.user.id,
-            videoId,
             expiresAt,
         });
 

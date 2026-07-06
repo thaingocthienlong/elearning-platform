@@ -158,8 +158,6 @@ describe('media route entitlement adoption', () => {
     expect(body.fileId).toBe('tencent-file-1');
     expect(mockedCreateTencentDrmToken).toHaveBeenCalledWith({
       fileId: 'tencent-file-1',
-      userId: 'user-1',
-      videoId: 'video-1',
       expiresAt: expect.any(Date),
     });
   });

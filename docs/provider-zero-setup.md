@@ -178,12 +178,12 @@ Tencent's third-party DRM playback flow requires a `DrmToken`. Official docs say
 6. Click **Generate**, **Show**, or **Copy**.
 7. Save it in the password manager.
 
-Current repo note: `docs/env-matrix.md` and `src/lib/tencent/env.ts` do not currently list a `TENCENT_PLAYBACK_KEY` variable. Keep the playback key ready because real Tencent third-party DRM playback may fail until the app signs Tencent `DrmToken` values with this playback key.
+Implementation note: this repo uses `TENCENT_VOD_PLAYBACK_KEY` for Tencent third-party DRM `DrmToken` signing. Legacy aliases `TENCENT_PLAYBACK_KEY` and `TENCENT_VOD_PKEY` are accepted, but use `TENCENT_VOD_PLAYBACK_KEY` in new Vercel/local env.
 
 Planned/env value after implementation support:
 
 ```env
-TENCENT_PLAYBACK_KEY=<vod-playback-key-used-for-drmtoken-signing>
+TENCENT_VOD_PLAYBACK_KEY=<vod-playback-key-used-for-drmtoken-signing>
 ```
 
 ### 8. Configure license URLs
@@ -247,10 +247,10 @@ NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL=<fairplay-certificate-url-or-empty-until-f
 Also save the VOD playback key for Tencent `DrmToken` signing. Do not expose it to browser code:
 
 ```env
-TENCENT_PLAYBACK_KEY=<vod-playback-key-used-for-drmtoken-signing>
+TENCENT_VOD_PLAYBACK_KEY=<vod-playback-key-used-for-drmtoken-signing>
 ```
 
-If `npm run verify:tencent -- --strict` does not yet require `TENCENT_PLAYBACK_KEY`, treat that as an implementation gap, not proof that Tencent license playback can work without it.
+`npm run verify:tencent -- --strict` requires `TENCENT_VOD_PLAYBACK_KEY`; if it is missing, Tencent license playback cannot work.
 
 ### 11. Verify setup from the repo
 

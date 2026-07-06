@@ -15,6 +15,7 @@ export type TencentDrmType = 'widevine' | 'fairplay';
 export type TencentEnv = {
   secretId: string;
   secretKey: string;
+  playbackKey: string;
   region: string;
   subAppId?: number;
   procedureName: string;

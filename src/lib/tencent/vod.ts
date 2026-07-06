@@ -159,16 +159,39 @@ export async function deleteTencentMedia(fileId: string) {
 
 export function createTencentDrmToken(input: {
   fileId: string;
-  userId: string;
-  videoId: string;
   expiresAt: Date;
+  nowSeconds?: number;
+  random?: number;
+  multiDrm?: boolean;
 }) {
   const env = loadTencentEnv();
-  const payload = JSON.stringify({
+  if (!env.subAppId) {
+    throw new Error('TENCENT_VOD_SUB_APP_ID is required to create Tencent DrmToken.');
+  }
+
+  const header = {
+    alg: 'HS256',
+    typ: 'JWT',
+  };
+  const currentTimeStamp = input.nowSeconds ?? Math.floor(Date.now() / 1000);
+  const payload: Record<string, string | number> = {
+    type: 'DrmToken',
+    appId: env.subAppId,
     fileId: input.fileId,
-    userId: input.userId,
-    videoId: input.videoId,
-    exp: Math.floor(input.expiresAt.getTime() / 1000),
-  });
-  return crypto.createHmac('sha256', env.secretKey).update(payload, 'utf8').digest('base64url');
+    currentTimeStamp,
+    expireTimeStamp: Math.floor(input.expiresAt.getTime() / 1000),
+    random: input.random ?? crypto.randomInt(0, 0xffffffff),
+    issuer: 'client',
+  };
+
+  if (input.multiDrm ?? true) {
+    payload.multiDrm = 1;
+  }
+
+  const encodedHeader = Buffer.from(JSON.stringify(header), 'utf8').toString('base64url');
+  const encodedPayload = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  const signatureInput = `${encodedHeader}.${encodedPayload}`;
+  const signature = crypto.createHmac('sha256', env.playbackKey).update(signatureInput, 'utf8').digest('base64url');
+
+  return `${encodedHeader}~${encodedPayload}~${signature}`;
 }

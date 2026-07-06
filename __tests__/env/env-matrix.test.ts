@@ -14,6 +14,7 @@ const requiredStarterVariables = [
   'UPSTASH_REDIS_REST_TOKEN',
   'TENCENT_SECRET_ID',
   'TENCENT_SECRET_KEY',
+  'TENCENT_VOD_PLAYBACK_KEY',
   'TENCENT_VOD_REGION',
   'ZOOM_MEETING_SDK_KEY',
   'ZOOM_MEETING_SDK_SECRET',
@@ -70,6 +71,7 @@ describe('env documentation contract', () => {
       'DATABASE_URL',
       'NEXTAUTH_SECRET',
       'ZOOM_MEETING_SDK_SECRET',
+      'TENCENT_VOD_PLAYBACK_KEY',
     ]) {
       expect(findMatrixRow(envMatrix, variableName)).toContain('server secret');
       expect(findMatrixRow(envMatrix, variableName)).not.toContain('public');

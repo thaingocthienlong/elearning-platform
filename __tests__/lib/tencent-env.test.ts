@@ -3,6 +3,7 @@ import { loadTencentEnv, validateTencentEnv } from '@/lib/tencent/env';
 const validEnv = {
   TENCENT_SECRET_ID: 'test-secret-id',
   TENCENT_SECRET_KEY: 'test-secret-key',
+  TENCENT_VOD_PLAYBACK_KEY: 'test-playback-key',
   TENCENT_VOD_REGION: 'ap-singapore',
   TENCENT_VOD_SUB_APP_ID: '123456',
   TENCENT_VOD_PROCEDURE_NAME: 'course-drm-720p',
@@ -16,6 +17,7 @@ describe('Tencent env', () => {
   test('loads valid env with numeric sub app id', () => {
     expect(loadTencentEnv(validEnv)).toMatchObject({
       secretId: 'test-secret-id',
+      playbackKey: 'test-playback-key',
       region: 'ap-singapore',
       subAppId: 123456,
       procedureName: 'course-drm-720p',

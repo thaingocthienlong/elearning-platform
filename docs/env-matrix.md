@@ -17,6 +17,7 @@ This matrix is the source of truth for environment variables used by the platfor
 | Redis | REDIS_URL | operational secret | optional | optional | .planning/codebase/STACK.md | Local Redis URL or legacy fallback for scripts/tests. |
 | Tencent VOD | TENCENT_SECRET_ID | operational secret | optional | required | src/lib/tencent/env.ts | Tencent Cloud API secret ID for VOD OpenAPI calls. |
 | Tencent VOD | TENCENT_SECRET_KEY | server secret | optional | required | src/lib/tencent/env.ts | Tencent Cloud API secret key; never print or expose to browser code. |
+| Tencent VOD | TENCENT_VOD_PLAYBACK_KEY | server secret | optional | required | src/lib/tencent/env.ts | VOD playback key used to sign third-party Commercial DRM `DrmToken` values; never expose to browser code. |
 | Tencent VOD | TENCENT_VOD_REGION | public | optional | required | src/lib/tencent/env.ts | Tencent VOD OpenAPI region, for example `ap-singapore`. |
 | Tencent VOD | TENCENT_VOD_SUB_APP_ID | public | optional | optional | src/lib/tencent/env.ts | Optional VOD sub-application ID when the Tencent account uses sub-apps. |
 | Tencent VOD | TENCENT_VOD_PROCEDURE_NAME | public | optional | required | src/lib/tencent/env.ts | Tencent VOD DRM processing procedure name for upload and processing tasks. |

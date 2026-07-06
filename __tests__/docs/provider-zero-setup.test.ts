@@ -33,6 +33,7 @@ describe('provider zero setup guide', () => {
       'GOOGLE_CLIENT_SECRET',
       'TENCENT_SECRET_ID',
       'TENCENT_SECRET_KEY',
+      'TENCENT_VOD_PLAYBACK_KEY',
       'TENCENT_VOD_PROCEDURE_NAME',
       'ZOOM_MEETING_SDK_KEY',
       'ZOOM_MEETING_SDK_SECRET',
