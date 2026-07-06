@@ -8,6 +8,9 @@ export function ConsoleLoggerInit() {
         // Initialize console logger on client side
         if (typeof window !== 'undefined') {
             initializeConsoleLogger();
+            console.log(
+                `[app-version] version=${process.env.NEXT_PUBLIC_APP_VERSION ?? 'unknown'} sha=${(process.env.NEXT_PUBLIC_APP_BUILD_SHA ?? 'local').slice(0, 12)}`
+            );
         }
     }, []);
 

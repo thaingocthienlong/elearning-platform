@@ -95,6 +95,34 @@ describe('DRM playback routing', () => {
     });
   });
 
+  test('routes Chrome to Widevine HLS when Tencent does not provide DASH', () => {
+    setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+    );
+
+    expect(getOptimalDRMConfig(null, hlsUrl)).toEqual({
+      drmType: 'widevine',
+      manifestUrl: hlsUrl,
+      protocol: 'HLS',
+      robustness: 'SW_SECURE_CRYPTO',
+      requiresL1: false,
+    });
+  });
+
+  test('routes Windows Edge to Widevine HLS fallback when DASH is missing', () => {
+    setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0'
+    );
+
+    expect(getOptimalDRMConfig(null, hlsUrl)).toEqual({
+      drmType: 'widevine',
+      manifestUrl: hlsUrl,
+      protocol: 'HLS',
+      robustness: 'SW_SECURE_CRYPTO',
+      requiresL1: false,
+    });
+  });
+
   test('routes Android Chromium browsers to Widevine hardware attempt with fallback', () => {
     setUserAgent(
       'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36'

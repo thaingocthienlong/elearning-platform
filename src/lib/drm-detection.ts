@@ -207,24 +207,29 @@ export function getOptimalDRMConfig(
     };
   }
 
-  // 3. Microsoft Edge on Windows - PlayReady (hardware DRM)
+  // 3. Microsoft Edge on Windows - PlayReady when DASH is available.
+  // Tencent may return only DRM HLS for some Commercial DRM templates; Shaka can
+  // still use Widevine over HLS, so fall through to Widevine fallback instead
+  // of hard-failing when DASH is absent.
   if (/Edg/.test(ua) && /Windows/.test(ua)) {
-    if (!dashUrl) {
-      console.warn('DASH manifest required for PlayReady but not available');
-      return null;
+    if (dashUrl) {
+      console.log('🔐 Using PlayReady for Edge');
+      return {
+        drmType: 'playready',
+        manifestUrl: dashUrl,
+        protocol: 'DASH',
+        requiresL1: true, // PlayReady supports hardware DRM
+      };
     }
-    console.log('🔐 Using PlayReady for Edge');
-    return {
-      drmType: 'playready',
-      manifestUrl: dashUrl,
-      protocol: 'DASH',
-      requiresL1: true, // PlayReady supports hardware DRM
-    };
+    console.warn('DASH manifest not available for PlayReady; trying Widevine HLS fallback');
   }
 
   // 4. Chrome/Firefox and other browsers - Widevine
-  if (!dashUrl) {
-    console.warn('DASH manifest required for Widevine but not available');
+  const widevineManifestUrl = dashUrl ?? hlsUrl;
+  const widevineProtocol = dashUrl ? 'DASH' : 'HLS';
+
+  if (!widevineManifestUrl) {
+    console.warn('DASH or HLS manifest required for Widevine but not available');
     return null;
   }
 
@@ -236,15 +241,15 @@ export function getOptimalDRMConfig(
   const isDesktop = !isMobile;
 
   if (isDesktop) {
-    console.log('🔐 Using Widevine L3 (software) for desktop browser');
+    console.log(`🔐 Using Widevine L3 (software) ${widevineProtocol} for desktop browser`);
   } else {
-    console.log('🔐 Attempting Widevine L1 (hardware) for mobile - will fallback to L3 if needed');
+    console.log(`🔐 Attempting Widevine L1 (hardware) ${widevineProtocol} for mobile - will fallback to L3 if needed`);
   }
 
   return {
     drmType: 'widevine',
-    manifestUrl: dashUrl,
-    protocol: 'DASH',
+    manifestUrl: widevineManifestUrl,
+    protocol: widevineProtocol,
     // Desktop: Always use L3 (SW_SECURE_CRYPTO)
     // Mobile Android: Try L1 (HW_SECURE_ALL) with auto-fallback
     robustness: isDesktop ? 'SW_SECURE_CRYPTO' : 'HW_SECURE_ALL',
