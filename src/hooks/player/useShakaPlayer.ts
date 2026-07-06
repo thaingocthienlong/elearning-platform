@@ -110,7 +110,7 @@ export function useShakaPlayer({
 
             // Add DRM token to license requests
             if (!isClearPlayback) {
-                newPlayer.getNetworkingEngine()?.registerRequestFilter(async (type: number, request: { headers: Record<string, string> }) => {
+                newPlayer.getNetworkingEngine()?.registerRequestFilter(async (type: number, request: { headers: Record<string, string>; uris?: string[] }) => {
                     let message = drmToken ?? '';
 
                     if (type === shaka.net.NetworkingEngine.RequestType.LICENSE && videoId) {

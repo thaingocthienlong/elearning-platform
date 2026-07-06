@@ -124,7 +124,10 @@ describe('useShakaPlayer', () => {
     });
 
     const requestFilter = mockRegisterRequestFilter.mock.calls[0][0];
-    const request = { headers: {} as Record<string, string> };
+    const request = {
+      headers: {} as Record<string, string>,
+      uris: ['https://license.example/widevine'],
+    };
 
     await requestFilter(1, request);
 
@@ -133,6 +136,9 @@ describe('useShakaPlayer', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ videoId: 'video-1', drmType: 'widevine' }),
     });
-    expect(request.headers.DrmToken).toBe('fresh-token');
+    expect(request.uris).toEqual([
+      'https://license.example/widevine?drmToken=fresh-token',
+    ]);
+    expect(request.headers.DrmToken).toBeUndefined();
   });
 });

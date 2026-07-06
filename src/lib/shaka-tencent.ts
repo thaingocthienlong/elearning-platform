@@ -17,9 +17,13 @@ export function resolveTencentShakaLicenseServerUrl(
 export function applyTencentLicenseRequest(options: {
   requestType: number;
   licenseRequestType: number;
-  request: { headers: Record<string, string> };
+  request: { headers: Record<string, string>; uris?: string[] };
   drmToken?: string;
 }) {
   if (options.requestType !== options.licenseRequestType || !options.drmToken) return;
-  options.request.headers['DrmToken'] = options.drmToken;
+
+  options.request.uris = (options.request.uris ?? []).map((uri) => {
+    const separator = uri.includes('?') ? '&' : '?';
+    return `${uri}${separator}drmToken=${encodeURIComponent(options.drmToken!)}`;
+  });
 }
