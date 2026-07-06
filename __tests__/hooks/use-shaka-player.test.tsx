@@ -112,7 +112,7 @@ describe('useShakaPlayer', () => {
 
     render(
       <ShakaHarness
-        drmToken="initial-token"
+        drmToken=""
         drmType="widevine"
         licenseServerUrl="https://license.example/widevine"
         manifestUrl="https://media.example/video/protected.mpd"
@@ -140,5 +140,36 @@ describe('useShakaPlayer', () => {
       'https://license.example/widevine?drmToken=fresh-token',
     ]);
     expect(request.headers.DrmToken).toBeUndefined();
+  });
+
+  test('uses initial DRM token without refreshing when provided', async () => {
+    const fetchMock = jest.fn();
+    global.fetch = fetchMock;
+
+    render(
+      <ShakaHarness
+        drmToken="initial-token"
+        drmType="widevine"
+        licenseServerUrl="https://license.example/widevine"
+        manifestUrl="https://media.example/video/protected.mpd"
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockRegisterRequestFilter).toHaveBeenCalled();
+    });
+
+    const requestFilter = mockRegisterRequestFilter.mock.calls[0][0];
+    const request = {
+      headers: {} as Record<string, string>,
+      uris: ['https://license.example/widevine'],
+    };
+
+    await requestFilter(1, request);
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(request.uris).toEqual([
+      'https://license.example/widevine?drmToken=initial-token',
+    ]);
   });
 });

@@ -113,7 +113,7 @@ export function useShakaPlayer({
                 newPlayer.getNetworkingEngine()?.registerRequestFilter(async (type: number, request: { headers: Record<string, string>; uris?: string[] }) => {
                     let message = drmToken ?? '';
 
-                    if (type === shaka.net.NetworkingEngine.RequestType.LICENSE && videoId) {
+                    if (type === shaka.net.NetworkingEngine.RequestType.LICENSE && videoId && !message) {
                         try {
                             const response = await fetch('/api/drm/token', {
                                 method: 'POST',

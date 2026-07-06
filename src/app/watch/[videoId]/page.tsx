@@ -5,6 +5,8 @@ import { authOptions } from '@/lib/auth';
 import { SecurityWrapper } from '@/components/video/SecurityWrapper';
 import WatchPageClient from '@/components/course/WatchPageClient';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
+import { serverLog } from '@/lib/server-log';
+import { createTencentDrmToken } from '@/lib/tencent/vod';
 
 export const dynamic = 'force-dynamic';
 
@@ -96,6 +98,18 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         completed: !!watchRecords.find((r) => r.videoId === v.id)?.completedAt,
     }));
 
+    let initialDrmToken = '';
+    if (video.tencentFileId) {
+        try {
+            initialDrmToken = createTencentDrmToken({
+                fileId: video.tencentFileId,
+                expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+            });
+        } catch (error) {
+            serverLog.error('Failed to create initial Tencent DRM token', error);
+        }
+    }
+
     return (
         <SecurityWrapper videoId={videoId}>
             <WatchPageClient
@@ -113,7 +127,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 watermarkText={whitelistEntry?.fullname && whitelistEntry?.phone
                     ? `${whitelistEntry.fullname} • ${whitelistEntry.phone}`
                     : user.name || user.email!}
-                drmToken=""
+                drmToken={initialDrmToken}
                 dashUrl={video.dashUrl ?? null}
                 hlsUrl={video.hlsUrl ?? null}
                 hlsUrlClear={video.hlsUrlClear ?? null}
