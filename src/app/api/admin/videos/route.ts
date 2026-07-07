@@ -25,6 +25,7 @@ export async function GET() {
                 tencentFileId: true,
                 tencentTaskId: true,
                 tencentStatus: true,
+                tencentAppleFallbackDrmType: true,
                 tencentStorageRegion: true,
                 tencentMediaStoragePath: true,
                 tencentSyncedAt: true,

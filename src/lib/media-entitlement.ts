@@ -43,6 +43,8 @@ export type MediaEntitlementAllowed = {
     hlsUrl?: string | null;
     dashUrl?: string | null;
     hlsUrlClear?: string | null;
+    tencentAppleFallbackDrmType?: string | null;
+    duration?: number | null;
     viewLimit?: number | null;
     Course?: {
       id?: string;

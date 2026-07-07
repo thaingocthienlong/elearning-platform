@@ -97,7 +97,7 @@ export default function DRMPlayerWrapper({
                     return;
                 }
 
-                // Skip FairPlay verification if using clear HLS (no cert available)
+                // Skip FairPlay verification if using Apple HLS fallback.
                 if (config.drmType === 'fairplay' && config.requiresL1 && !caps.fairplay) {
                     toast.error('Your device does not support FairPlay DRM');
                     setIsLoading(false);

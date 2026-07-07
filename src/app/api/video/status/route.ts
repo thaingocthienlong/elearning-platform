@@ -35,6 +35,9 @@ export async function POST(request: Request) {
                     published: true,
                     dashUrl: urls.dashUrl,
                     hlsUrl: urls.hlsUrl,
+                    hlsUrlClear: urls.hlsUrlClear,
+                    tencentAdaptiveTemplateId: urls.tencentAdaptiveTemplateId?.toString(),
+                    tencentAppleFallbackDrmType: urls.tencentAppleFallbackDrmType,
                     tencentStatus: 'READY',
                     tencentSyncedAt: new Date(),
                 },
@@ -44,6 +47,7 @@ export async function POST(request: Request) {
                 status: 'COMPLETED',
                 dashUrl: urls.dashUrl,
                 hlsUrl: urls.hlsUrl,
+                hlsUrlClear: urls.hlsUrlClear,
                 playbackUrl: urls.playbackUrl,
             });
         }

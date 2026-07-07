@@ -11,7 +11,7 @@ describe('DRM playback routing', () => {
   const dashUrl = 'https://media.example/video/manifest.mpd';
   const hlsUrl = 'https://media.example/video/master.m3u8';
 
-  test('routes iOS browsers to clear HLS when a clear fallback is selected', () => {
+  test('routes iOS browsers to Apple HLS fallback when a fallback is selected', () => {
     setUserAgent(
       'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
     );
@@ -25,7 +25,7 @@ describe('DRM playback routing', () => {
     });
   });
 
-  test('routes macOS Safari to clear HLS when a clear fallback is selected', () => {
+  test('routes macOS Safari to Apple HLS fallback when a fallback is selected', () => {
     setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15'
     );

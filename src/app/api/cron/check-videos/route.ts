@@ -34,6 +34,9 @@ export async function GET(request: NextRequest) {
                         data: {
                             dashUrl: urls.dashUrl,
                             hlsUrl: urls.hlsUrl,
+                            hlsUrlClear: urls.hlsUrlClear,
+                            tencentAdaptiveTemplateId: urls.tencentAdaptiveTemplateId?.toString(),
+                            tencentAppleFallbackDrmType: urls.tencentAppleFallbackDrmType,
                             tencentStatus: 'READY',
                             tencentSyncedAt: new Date(),
                             published: true,

@@ -30,7 +30,7 @@ describe('watch playback source routing', () => {
     ).toBe(false);
   });
 
-  test('routes iOS to clear HLS and suppresses the DRM token when clear fallback exists', () => {
+  test('routes iOS to Apple HLS fallback and suppresses the DRM token when fallback exists', () => {
     expect(
       selectWatchPlaybackSources({
         userAgent:
@@ -49,7 +49,7 @@ describe('watch playback source routing', () => {
     });
   });
 
-  test('routes macOS Safari to clear HLS and suppresses the DRM token when clear fallback exists', () => {
+  test('routes macOS Safari to Apple HLS fallback and suppresses the DRM token when fallback exists', () => {
     expect(
       selectWatchPlaybackSources({
         userAgent:

@@ -53,6 +53,7 @@ type Video = {
     tencentFileId: string | null;
     tencentTaskId: string | null;
     tencentStatus: string | null;
+    tencentAppleFallbackDrmType: string | null;
     tencentSyncedAt: string | null;
     tencentDeletedAt: string | null;
 };
@@ -373,13 +374,13 @@ export default function AdminVideosPage() {
                                                                 </Badge>
                                                             </div>
                                                         )}
-                                                        {/* Clear Status */}
+                                                        {/* Apple fallback Status */}
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-xs text-muted-foreground w-12">Clear:</span>
+                                                            <span className="text-xs text-muted-foreground w-12">Apple:</span>
                                                             {video.tencentFileId ? (
-                                                                video.hlsUrl ? (
+                                                                video.hlsUrlClear ? (
                                                                     <Badge className="bg-blue-500 hover:bg-blue-600 text-xs">
-                                                                        <CheckCircle className="w-3 h-3 mr-1" /> Ready
+                                                                        <CheckCircle className="w-3 h-3 mr-1" /> {video.tencentAppleFallbackDrmType ?? 'Ready'}
                                                                     </Badge>
                                                                 ) : (
                                                                     <Badge variant="secondary" className="text-xs">

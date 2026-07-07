@@ -134,6 +134,7 @@ model Video {
   tencentMediaStoragePath   String?
   tencentDrmTemplateId      String?
   tencentAdaptiveTemplateId String?
+  tencentAppleFallbackDrmType String?
   tencentWidevineLicenseUrl String?
   tencentFairplayLicenseUrl String?
   tencentSyncedAt           DateTime?

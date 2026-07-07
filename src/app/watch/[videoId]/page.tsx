@@ -6,7 +6,11 @@ import { SecurityWrapper } from '@/components/video/SecurityWrapper';
 import WatchPageClient from '@/components/course/WatchPageClient';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
 import { serverLog } from '@/lib/server-log';
-import { createTencentDrmToken } from '@/lib/tencent/vod';
+import {
+    createTencentAppleFallbackTokenExpiry,
+    createTencentDrmToken,
+    createTencentSimpleAesPlaybackUrl,
+} from '@/lib/tencent/vod';
 
 export const dynamic = 'force-dynamic';
 
@@ -110,6 +114,23 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         }
     }
 
+    let appleFallbackHlsUrl = video.hlsUrlClear ?? null;
+    if (video.hlsUrlClear && video.tencentAppleFallbackDrmType === 'SimpleAES' && video.tencentFileId) {
+        try {
+            const fallbackToken = createTencentDrmToken({
+                fileId: video.tencentFileId,
+                expiresAt: createTencentAppleFallbackTokenExpiry({
+                    durationSeconds: video.duration,
+                }),
+                multiDrm: false,
+            });
+            appleFallbackHlsUrl = createTencentSimpleAesPlaybackUrl(video.hlsUrlClear, fallbackToken);
+        } catch (error) {
+            appleFallbackHlsUrl = null;
+            serverLog.error('Failed to create Tencent Apple fallback token', error);
+        }
+    }
+
     return (
         <SecurityWrapper videoId={videoId}>
             <WatchPageClient
@@ -130,7 +151,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 drmToken={initialDrmToken}
                 dashUrl={video.dashUrl ?? null}
                 hlsUrl={video.hlsUrl ?? null}
-                hlsUrlClear={video.hlsUrlClear ?? null}
+                hlsUrlClear={appleFallbackHlsUrl}
                 isFairPlayConfigured={Boolean(process.env.NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL)}
                 chatLog={(video as any).chatLog}
             />

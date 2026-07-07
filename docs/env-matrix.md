@@ -20,7 +20,7 @@ This matrix is the source of truth for environment variables used by the platfor
 | Tencent VOD | TENCENT_VOD_PLAYBACK_KEY | server secret | optional | required | src/lib/tencent/env.ts | VOD playback key used to sign third-party Commercial DRM `DrmToken` values; never expose to browser code. |
 | Tencent VOD | TENCENT_VOD_REGION | public | optional | required | src/lib/tencent/env.ts | Tencent VOD OpenAPI region, for example `ap-singapore`. |
 | Tencent VOD | TENCENT_VOD_SUB_APP_ID | public | optional | optional | src/lib/tencent/env.ts | Optional VOD sub-application ID when the Tencent account uses sub-apps. |
-| Tencent VOD | TENCENT_VOD_PROCEDURE_NAME | public | optional | required | src/lib/tencent/env.ts | Tencent VOD DRM processing procedure name for upload and processing tasks. |
+| Tencent VOD | TENCENT_VOD_PROCEDURE_NAME | public | optional | required | src/lib/tencent/env.ts | Tencent VOD DRM processing procedure name for upload and processing tasks; should include Widevine plus SimpleAES/basic HLS Apple fallback output when FairPlay is unavailable. |
 | Tencent VOD | TENCENT_VOD_WEBHOOK_SIGN_KEY | server secret | optional | required | src/lib/tencent/env.ts | Shared sign key used to verify Tencent VOD event callbacks. |
 | Zoom | ZOOM_MEETING_SDK_KEY | operational secret | optional | required | src/app/api/zoom/signature/route.ts | Zoom Meeting SDK key used server-side for signatures. |
 | Zoom | ZOOM_MEETING_SDK_SECRET | server secret | optional | required | src/app/api/zoom/signature/route.ts | Zoom Meeting SDK secret; must never be exposed to browser code. |
@@ -60,8 +60,8 @@ Staging-specific callback and origin values must be configured outside the repos
 | Auth | NextAuth base URL | `NEXTAUTH_URL=<STAGING_ORIGIN>` |
 | Tencent VOD | Webhook URL | `<STAGING_ORIGIN>/api/webhook/tencent` |
 | Tencent VOD | Playback domain | Tencent VOD playback domain allowed for the course delivery origin |
-| Tencent VOD | DRM processing procedure | Procedure named by `TENCENT_VOD_PROCEDURE_NAME` with Commercial DRM enabled |
-| Tencent VOD | License URLs | `NEXT_PUBLIC_TENCENT_WIDEVINE_LICENSE_URL` and FairPlay URL/certificate when Safari is enabled |
+| Tencent VOD | DRM processing procedure | Procedure named by `TENCENT_VOD_PROCEDURE_NAME` with Commercial DRM Widevine output and SimpleAES/basic HLS Apple fallback output when FairPlay is unavailable |
+| Tencent VOD | License URLs | `NEXT_PUBLIC_TENCENT_WIDEVINE_LICENSE_URL`; FairPlay URL/certificate only when Safari FairPlay is enabled |
 | Zoom | Meeting SDK domain/origin allowlist | The exact staging origin or domain used by `/meeting` |
 | Observability | Sentry environment | Staging project or staging environment tag with redaction enabled |
 

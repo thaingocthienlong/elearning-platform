@@ -35,6 +35,9 @@ export async function POST(request: Request) {
             data: {
                 dashUrl: urls.dashUrl,
                 hlsUrl: urls.hlsUrl,
+                hlsUrlClear: urls.hlsUrlClear,
+                tencentAdaptiveTemplateId: urls.tencentAdaptiveTemplateId?.toString(),
+                tencentAppleFallbackDrmType: urls.tencentAppleFallbackDrmType,
                 tencentStatus: urls.playbackUrl ? 'READY' : (video.tencentStatus ?? 'PROCESSING'),
                 tencentSyncedAt: new Date(),
                 published: Boolean(urls.playbackUrl),
@@ -47,6 +50,7 @@ export async function POST(request: Request) {
             updated: true,
             dashUrl: updated.dashUrl,
             hlsUrl: updated.hlsUrl,
+            hlsUrlClear: updated.hlsUrlClear,
         });
     } catch (error) {
         return NextResponse.json(

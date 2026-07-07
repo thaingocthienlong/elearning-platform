@@ -247,13 +247,16 @@ Expected result:
 
 Steps:
 
-1. As an entitled learner, open `/watch/<videoId>` for a Tencent HLS/FairPlay-ready test video.
-2. Confirm the browser receives Tencent playback session data only after entitlement passes.
-3. As a non-entitled learner, open the same watch route or call the DRM token route for the same video.
+1. As an entitled learner, open `/watch/<videoId>` for a Tencent HLS-ready test video.
+2. In Chrome/Edge, confirm Widevine playback session data is issued only after entitlement passes.
+3. In iOS Safari, iOS Chrome, or macOS Safari without FairPlay configured, confirm the player loads the Tencent SimpleAES/private HLS or basic HLS fallback URL.
+4. For SimpleAES fallback, confirm the manifest filename includes `voddrm.token.`.
+5. As a non-entitled learner, open the same watch route or call the DRM token route for the same video.
 
 Expected result:
 
 - Entitled playback session issuance succeeds.
+- Apple fallback is recorded as SimpleAES/basic HLS fallback, not FairPlay DRM success.
 - Non-entitled playback session issuance is denied.
 - Tencent HLS manifest URLs are treated as playback metadata; no app-hosted HLS proxy route is expected after cutover.
 

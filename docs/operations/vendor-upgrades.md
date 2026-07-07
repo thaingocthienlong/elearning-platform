@@ -48,7 +48,7 @@ Official docs:
 Upgrade steps:
 
 1. Review Tencent VOD console notices, OpenAPI changes, Commercial DRM requirements, procedure/template behavior, license URLs, and event notification behavior.
-2. Update `docs/env-matrix.md` if Tencent env names, regions, procedure names, webhook sign key usage, license URLs, or FairPlay certificate handling changes.
+2. Update `docs/env-matrix.md` if Tencent env names, regions, procedure names, webhook sign key usage, license URLs, SimpleAES/basic HLS fallback, or FairPlay certificate handling changes.
 3. Keep Tencent API signing, webhook verification, and DRM token generation in server-only code.
 4. Verify `scripts/verify-tencent-setup.ts` still maps canonical env values and does not require live API calls unless explicitly requested.
 5. Run Tencent staging smoke with a short test video and course-like test video before accepting playback changes.
@@ -137,8 +137,8 @@ Upgrade steps:
 
 1. Read Shaka's upgrade guide for API removals and DRM configuration changes.
 2. Review `src/hooks/player/useShakaPlayer.ts`, `src/components/video/Player.tsx`, and DRM license request filter behavior.
-3. Verify Widevine, FairPlay certificate, and HLS behavior.
-4. Smoke playback on Chrome, Edge, Safari/iOS where available.
+3. Verify Widevine, Apple SimpleAES/basic HLS fallback, FairPlay certificate when configured, and HLS behavior.
+4. Smoke playback on Chrome, Edge, iOS WebKit, and macOS Safari where available.
 5. Confirm Shaka still sends Tencent DRM tokens only to license requests.
 
 Rollback:

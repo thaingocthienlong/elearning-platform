@@ -15,6 +15,9 @@ Do not paste real secrets, tokens, service account values, database URLs, certif
 - Tencent client upload guide: https://www.tencentcloud.com/document/product/266/33921
 - Tencent VOD event notifications: https://cloud.tencent.com/document/product/266/55244
 - Tencent FairPlay certificate setup: https://www.tencentcloud.com/document/product/266/49668
+- Tencent HLS private encryption: https://www.tencentcloud.com/document/product/266/46780
+- Tencent third-party SimpleAES playback: https://www.tencentcloud.com/document/product/266/51849
+- Tencent encryption and DRM overview: https://www.tencentcloud.com/document/product/266/49275
 - Zoom Meeting SDK: https://marketplacefront.zoom.us/sdk/meeting/web/index.html
 - Upstash Redis: https://upstash.com/docs/redis
 - Nodemailer SMTP: https://nodemailer.com/smtp
@@ -44,9 +47,10 @@ Use this first-pass setup unless a Tencent support engineer tells you otherwise:
 - Primary VOD application, not a sub-application.
 - `ap-singapore` VOD API region.
 - Chrome/Edge Widevine first.
+- iOS/macOS WebKit fallback through Tencent HLS Private Encryption/SimpleAES or basic HLS when FairPlay is not available.
 - Default Tencent playback domain first.
 - No Tencent Key Hotlink Protection until the app implements Tencent playback URL signing.
-- FairPlay/Safari only after Widevine works and FairPlay certificate material is available.
+- FairPlay/Safari DRM only after Widevine works and FairPlay certificate material is available.
 
 ### 1. Create or activate Tencent Cloud VOD
 
@@ -122,6 +126,26 @@ FairPlay is needed for Safari. To configure it later:
 
 Never commit FairPlay certificates, private keys, passwords, ASK values, or screenshots that reveal them.
 
+### 4b. Configure Apple fallback without FairPlay
+
+If you do not have Apple Developer Program membership, use Tencent HLS Private Encryption/SimpleAES as the Apple-browser fallback. This is not FairPlay and not hardware DRM, but Tencent documents it as a compatibility-first encrypted HLS protection path for broad device support.
+
+Console intent:
+
+1. Keep Commercial DRM/Widevine output for Chrome, Edge, and Android Chrome.
+2. Add a second adaptive bitrate output for Apple fallback.
+3. Set that second output encryption type to **Private (SimpleAES)** or **HLS Private Encryption**.
+4. Keep the Apple fallback below 720p because Tencent states HLS private encryption supports resolutions lower than 720p.
+5. If SimpleAES is unavailable in your console, use a basic unencrypted HLS output as the last-resort Apple fallback and treat it as lower security.
+
+Implementation behavior:
+
+- The app stores Widevine/DRM HLS or DASH in `dashUrl`/`hlsUrl`.
+- The app stores the Apple fallback HLS output in `hlsUrlClear`.
+- If Tencent reports `DrmType=SimpleAES`, the app inserts `voddrm.token.<DrmToken>.` into the HLS manifest filename before sending it to iOS/macOS WebKit.
+- If Tencent reports an unencrypted HLS output, the app uses it without a `DrmToken`.
+- Docs, tests, and reports must describe this as **Apple fallback**, not as FairPlay success.
+
 ### 5. Create or select a DRM-capable procedure
 
 Tencent encrypts VOD output through media processing. This repo sends a `procedure` value during upload/processing, so the procedure name must exactly match a Tencent task flow.
@@ -133,7 +157,7 @@ Recommended preset path:
 3. Open **Media Processing** > **Task Flow** or **Task Flow Template**.
 4. Look for Tencent's MultiDRM preset. Official docs commonly name it `MultiDrm-WV-FP-V1-Preset`; some console surfaces show `WidevineFairPlayPreset`.
 5. Open or view the preset details.
-6. Confirm it creates adaptive bitrate output with Widevine and/or FairPlay DRM encryption.
+6. Confirm it creates adaptive bitrate output with Widevine DRM encryption.
 7. Copy the exact task flow name into `TENCENT_VOD_PROCEDURE_NAME`.
 
 If the preset is unavailable, create a custom task flow:
@@ -142,9 +166,11 @@ If the preset is unavailable, create a custom task flow:
 2. Name it `course-drm-720p`.
 3. Add an adaptive bitrate or HLS output step.
 4. Set the output to a 720p-focused profile for the first course test.
-5. Enable MultiDRM/Commercial DRM encryption on the adaptive output.
-6. Save the task flow.
-7. Use `course-drm-720p` as `TENCENT_VOD_PROCEDURE_NAME`.
+5. Enable MultiDRM/Commercial DRM encryption on the main adaptive output for Widevine.
+6. Add a second adaptive bitrate/HLS output for Apple fallback.
+7. Set the second output to **Private (SimpleAES)** or **HLS Private Encryption** and keep it below 720p.
+8. Save the task flow.
+9. Use `course-drm-720p` as `TENCENT_VOD_PROCEDURE_NAME`.
 
 Map the value:
 
@@ -196,7 +222,7 @@ NEXT_PUBLIC_TENCENT_FAIRPLAY_LICENSE_URL=https://fairplay.drm.vod-qcloud.com/fai
 NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL=<fairplay-certificate-url-or-empty-until-fairplay-is-configured>
 ```
 
-Chrome and Edge use Widevine. Safari requires FairPlay certificate setup first.
+Chrome and Edge use Widevine. iOS and macOS WebKit use the Apple fallback HLS output when FairPlay certificate setup is not available.
 
 ### 9. Configure the Tencent webhook callback
 
@@ -285,7 +311,10 @@ npm run verify:staging
 11. Open `/watch/<videoId>` in Chrome or Edge.
 12. Confirm the player loads the Tencent DRM manifest and sends a Widevine license request to `https://widevine.drm.vod-qcloud.com/widevine/getlicense/v2`.
 13. Sign in as a user without entitlement and confirm playback session data is denied.
-14. Mark Safari/FairPlay as blocked until FairPlay certificate URL and license flow are configured and tested on real Safari.
+14. Open the same `/watch/<videoId>` in iOS Safari or iOS Chrome.
+15. Confirm the app loads the Tencent Apple fallback HLS manifest.
+16. For SimpleAES fallback, confirm the manifest filename contains `voddrm.token.` and playback starts.
+17. Mark Safari/FairPlay DRM as blocked until FairPlay certificate URL and license flow are configured; record SimpleAES/basic HLS as Apple fallback success only.
 
 Common failure mapping:
 
@@ -295,7 +324,9 @@ Common failure mapping:
 - Processing succeeds in Tencent but the app stays pending: check webhook URL, webhook sign key, staging logs, and manual resync.
 - Manifest URL is missing: check that the task flow creates adaptive DRM output, then resync media info.
 - Widevine license request returns authorization/token errors: verify Tencent third-party DRM `DrmToken` signing against the official docs and confirm the app uses the VOD playback key, not the CAM API secret.
-- Safari fails: configure FairPlay certificate material first and set `NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL`.
+- Safari fails with no fallback URL: update the Tencent task flow to generate SimpleAES/private HLS or basic HLS, rerun processing, then use manual resync.
+- Safari loads fallback URL but playback fails: confirm the fallback output is below 720p, the URL is an HLS `.m3u8`, and SimpleAES URLs include `voddrm.token.` before the manifest filename.
+- Safari FairPlay fails: configure FairPlay certificate material first and set `NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL`.
 
 Staging smoke must prove upload metadata, processing status, webhook verification, entitlement denial, and Tencent DRM playback before cutover acceptance.
 

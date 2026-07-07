@@ -125,6 +125,9 @@ export async function describeTencentMedia(fileId: string) {
       };
       AdaptiveDynamicStreamingInfo?: {
         AdaptiveDynamicStreamingSet?: Array<{
+          Definition?: number;
+          Package?: string;
+          DrmType?: string;
           Url?: string;
         }>;
       };
@@ -139,16 +142,65 @@ export async function describeTencentMedia(fileId: string) {
   return response.MediaInfoSet?.[0] ?? null;
 }
 
-export function extractTencentPlaybackUrls(mediaInfo: Awaited<ReturnType<typeof describeTencentMedia>>) {
-  const adaptiveUrl = mediaInfo?.AdaptiveDynamicStreamingInfo?.AdaptiveDynamicStreamingSet?.find((item) => item.Url)?.Url;
-  const mediaUrl = mediaInfo?.BasicInfo?.MediaUrl;
-  const playbackUrl = adaptiveUrl ?? mediaUrl;
+type TencentAdaptiveOutput = {
+  Definition?: number;
+  Package?: string;
+  DrmType?: string;
+  Url?: string;
+};
+
+function isHlsUrl(url: string | undefined) {
+  return Boolean(url?.includes('.m3u8'));
+}
+
+function isDashUrl(url: string | undefined) {
+  return Boolean(url?.endsWith('.mpd') || url?.includes('.mpd?'));
+}
+
+function isSimpleAesOutput(item: TencentAdaptiveOutput) {
+  return item.DrmType?.toLowerCase() === 'simpleaes';
+}
+
+function isPlainHlsOutput(item: TencentAdaptiveOutput) {
+  return !item.DrmType && (item.Package?.toUpperCase() === 'HLS' || isHlsUrl(item.Url));
+}
+
+export function extractTencentPlaybackUrlsFromAdaptiveOutputs(
+  outputs: TencentAdaptiveOutput[] | undefined,
+  mediaUrl?: string
+) {
+  const adaptiveOutputs = outputs?.filter((item) => item.Url) ?? [];
+  const dashOutput = adaptiveOutputs.find((item) => isDashUrl(item.Url));
+  const protectedHlsOutput = adaptiveOutputs.find((item) =>
+    isHlsUrl(item.Url) && !isSimpleAesOutput(item) && !isPlainHlsOutput(item)
+  );
+  const simpleAesOutput = adaptiveOutputs.find((item) => isHlsUrl(item.Url) && isSimpleAesOutput(item));
+  const plainHlsOutput = adaptiveOutputs.find((item) => isHlsUrl(item.Url) && isPlainHlsOutput(item));
+  const mediaHlsUrl = isHlsUrl(mediaUrl) ? mediaUrl : undefined;
+  const hlsFallbackOutput = simpleAesOutput ?? plainHlsOutput;
+  const hlsUrlClear = hlsFallbackOutput?.Url ?? mediaHlsUrl;
+  const fallbackDrmType = hlsFallbackOutput
+    ? (isSimpleAesOutput(hlsFallbackOutput) ? 'SimpleAES' : 'Plain')
+    : (mediaHlsUrl ? 'Plain' : undefined);
+  const dashUrl = dashOutput?.Url;
+  const hlsUrl = protectedHlsOutput?.Url;
 
   return {
-    dashUrl: playbackUrl?.endsWith('.mpd') ? playbackUrl : undefined,
-    hlsUrl: playbackUrl?.includes('.m3u8') ? playbackUrl : undefined,
-    playbackUrl,
+    dashUrl,
+    hlsUrl,
+    hlsUrlClear,
+    tencentAdaptiveTemplateId: dashOutput?.Definition ?? protectedHlsOutput?.Definition,
+    tencentAppleFallbackTemplateId: hlsFallbackOutput?.Definition,
+    tencentAppleFallbackDrmType: fallbackDrmType,
+    playbackUrl: dashUrl ?? hlsUrl ?? hlsUrlClear ?? mediaUrl,
   };
+}
+
+export function extractTencentPlaybackUrls(mediaInfo: Awaited<ReturnType<typeof describeTencentMedia>>) {
+  return extractTencentPlaybackUrlsFromAdaptiveOutputs(
+    mediaInfo?.AdaptiveDynamicStreamingInfo?.AdaptiveDynamicStreamingSet,
+    mediaInfo?.BasicInfo?.MediaUrl
+  );
 }
 
 export async function deleteTencentMedia(fileId: string) {
@@ -194,4 +246,30 @@ export function createTencentDrmToken(input: {
   const signature = crypto.createHmac('sha256', env.playbackKey).update(signatureInput, 'utf8').digest('base64url');
 
   return `${encodedHeader}~${encodedPayload}~${signature}`;
+}
+
+export function createTencentAppleFallbackTokenExpiry(input: {
+  durationSeconds?: number | null;
+  nowMs?: number;
+}) {
+  const nowMs = input.nowMs ?? Date.now();
+  const durationMs = Math.max(0, input.durationSeconds ?? 0) * 1000;
+  const minimumMs = 30 * 60 * 1000;
+  const maximumMs = 4 * 60 * 60 * 1000;
+  const bufferMs = 30 * 60 * 1000;
+  const ttlMs = Math.min(Math.max(durationMs + bufferMs, minimumMs), maximumMs);
+  return new Date(nowMs + ttlMs);
+}
+
+export function createTencentSimpleAesPlaybackUrl(url: string, drmToken: string) {
+  if (!drmToken) return url;
+
+  const parsed = new URL(url);
+  const pathParts = parsed.pathname.split('/');
+  const fileName = pathParts.pop();
+  if (!fileName || fileName.startsWith('voddrm.token.')) return url;
+
+  pathParts.push(`voddrm.token.${drmToken}.${fileName}`);
+  parsed.pathname = pathParts.join('/');
+  return parsed.toString();
 }

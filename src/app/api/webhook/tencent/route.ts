@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { loadTencentEnv } from '@/lib/tencent/env';
 import { verifyTencentWebhookSignature } from '@/lib/tencent/webhook';
-import { normalizeTencentStatus } from '@/lib/tencent/vod';
+import { extractTencentPlaybackUrlsFromAdaptiveOutputs, normalizeTencentStatus } from '@/lib/tencent/vod';
 import { serverLog } from '@/lib/server-log';
 
 type TencentWebhookPayload = {
@@ -26,6 +26,10 @@ type TencentWebhookPayload = {
       };
       AdaptiveDynamicStreamingTask?: {
         Output?: {
+          Definition?: number;
+          Format?: string;
+          Package?: string;
+          DrmType?: string;
           Url?: string;
         };
       };
@@ -40,10 +44,15 @@ function compactWhere(fileId?: string, taskId?: string) {
   return clauses;
 }
 
-function extractPlaybackUrl(payload: TencentWebhookPayload) {
-  return payload.ProcedureStateChangeEvent?.MediaProcessResultSet
-    ?.map((item) => item.AdaptiveDynamicStreamingTask?.Output?.Url ?? item.TranscodeTask?.Output?.Url)
+function extractPlaybackUrls(payload: TencentWebhookPayload) {
+  const adaptiveOutputs = payload.ProcedureStateChangeEvent?.MediaProcessResultSet
+    ?.map((item) => item.AdaptiveDynamicStreamingTask?.Output)
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
+  const transcodeUrl = payload.ProcedureStateChangeEvent?.MediaProcessResultSet
+    ?.map((item) => item.TranscodeTask?.Output?.Url)
     .find(Boolean);
+
+  return extractTencentPlaybackUrlsFromAdaptiveOutputs(adaptiveOutputs, transcodeUrl);
 }
 
 export async function POST(req: Request) {
@@ -68,17 +77,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, ignored: true });
   }
 
-  const playbackUrl = extractPlaybackUrl(payload);
+  const urls = extractPlaybackUrls(payload);
   await prisma.video.updateMany({
     where: { OR: whereClauses },
     data: {
       tencentFileId: fileId,
       tencentTaskId: taskId,
-      tencentStatus: playbackUrl ? 'READY' : status,
-      dashUrl: playbackUrl?.endsWith('.mpd') ? playbackUrl : undefined,
-      hlsUrl: playbackUrl?.includes('.m3u8') ? playbackUrl : undefined,
+      tencentStatus: urls.playbackUrl ? 'READY' : status,
+      dashUrl: urls.dashUrl,
+      hlsUrl: urls.hlsUrl,
+      hlsUrlClear: urls.hlsUrlClear,
+      tencentAdaptiveTemplateId: urls.tencentAdaptiveTemplateId?.toString(),
+      tencentAppleFallbackDrmType: urls.tencentAppleFallbackDrmType,
       tencentSyncedAt: new Date(),
-      published: Boolean(playbackUrl) || status === 'READY',
+      published: Boolean(urls.playbackUrl) || status === 'READY',
     },
   });
 

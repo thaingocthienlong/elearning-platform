@@ -153,7 +153,7 @@ export function getOptimalDRMConfig(
     }
 
     if (isClearHlsFallback) {
-      console.warn('⚠️ Using clear HLS fallback on iOS');
+      console.warn('⚠️ Using Apple HLS fallback on iOS');
       return {
         drmType: 'fairplay',
         manifestUrl: hlsUrl,
@@ -164,7 +164,7 @@ export function getOptimalDRMConfig(
     }
 
     if (!isFairPlayConfigured) {
-      console.warn('FairPlay is not configured and no clear HLS fallback is available for iOS');
+      console.warn('FairPlay is not configured and no Apple HLS fallback is available for iOS');
       return null;
     }
 
@@ -184,7 +184,7 @@ export function getOptimalDRMConfig(
     }
 
     if (isClearHlsFallback) {
-      console.warn('⚠️ Using clear HLS fallback on Safari');
+      console.warn('⚠️ Using Apple HLS fallback on Safari');
       return {
         drmType: 'fairplay',
         manifestUrl: hlsUrl,
@@ -195,7 +195,7 @@ export function getOptimalDRMConfig(
     }
 
     if (!isFairPlayConfigured) {
-      console.warn('FairPlay is not configured and no clear HLS fallback is available for Safari');
+      console.warn('FairPlay is not configured and no Apple HLS fallback is available for Safari');
       return null;
     }
 

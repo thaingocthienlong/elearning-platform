@@ -21,8 +21,8 @@ Do not paste secrets, raw tokens, service account values, DRM keys, database URL
 | PLAYBACK-01 | Playback | Authorized learner can open `/watch/<videoId>` and the player loads a Tencent DRM staging manifest. | not run | |
 | DRM-01 | DRM token | Authorized learner receives Tencent DRM playback session data for the staging test video; unauthorized user is denied. | not run | |
 | SAFARI-DRM-01 | Safari DRM | On real macOS Safari with Tencent FairPlay env configured, an authorized learner can open `/watch/<videoId>`, load protected HLS, request the Tencent FairPlay license, and play for at least 10 seconds. | not run | |
-| SAFARI-FALLBACK-01 | Safari fallback | When Tencent FairPlay env is not configured, Safari DRM acceptance is marked blocked; it is not recorded as FairPlay DRM success. | not run | |
-| TENCENT-HLS-01 | Tencent HLS playback | Authorized Safari/FairPlay staging playback uses the Tencent VOD HLS manifest URL after entitlement; there is no app-hosted HLS proxy route after cutover. | not run | |
+| SAFARI-FALLBACK-01 | Safari fallback | When Tencent FairPlay env is not configured, iOS/macOS WebKit uses Tencent SimpleAES/private HLS or basic HLS fallback; it is not recorded as FairPlay DRM success. | not run | |
+| TENCENT-HLS-01 | Tencent HLS playback | Authorized Apple fallback playback uses the Tencent VOD HLS manifest URL after entitlement; SimpleAES URLs include `voddrm.token.` and there is no app-hosted HLS proxy route after cutover. | not run | |
 | ZOOM-01 | Zoom | Authenticated learner can launch the meeting page and join through the preserved Zoom iframe flow with learner role. | not run | |
 | SUPPORT-01 | Support | Authenticated user can submit a support ticket with reCAPTCHA/SMTP behavior matching staging configuration. | not run | |
 | REDIS-01 | Redis | Redis-backed cache/rate-limit/session-revocation paths are available and do not fall back because staging credentials are missing. | not run | |

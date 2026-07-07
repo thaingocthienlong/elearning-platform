@@ -81,7 +81,7 @@ Tencent VOD Commercial DRM is the active media provider. The app requests Tencen
 Operational checks:
 
 - Tencent API secret key and webhook sign key stay server-only.
-- Widevine/FairPlay license URLs and optional FairPlay certificate URL match the Tencent VOD application.
+- Widevine license URL, SimpleAES/basic HLS fallback output, and optional FairPlay certificate URL match the Tencent VOD application.
 - Webhook verification rejects malformed signatures without leaking details.
 - Local DRM license endpoint is not a production DRM substitute; Tencent license URLs handle browser license requests.
 

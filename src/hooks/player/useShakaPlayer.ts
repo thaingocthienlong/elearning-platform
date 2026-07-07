@@ -46,8 +46,8 @@ export function useShakaPlayer({
             activePlayer = newPlayer;
             await newPlayer.attach(videoRef.current);
 
-            // Configure Multi-DRM with L1 support
-            // Skip DRM config for clear HLS (FairPlay without certificate)
+            // Configure Multi-DRM with L1 support.
+            // Apple HLS fallback uses SimpleAES/basic HLS without EME DRM config.
             const isClearPlayback = drmType === 'fairplay' && !fairplayCertUrl;
 
             if (isClearPlayback) {

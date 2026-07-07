@@ -32,7 +32,7 @@ Date: 2026-07-03
 6. Confirm Tencent processing/webhook moves video to ready state and sync stores playback URLs.
 7. Confirm authorized Chrome/Edge playback through Shaka/Widevine.
 8. Confirm unauthorized user cannot receive Tencent playback session data.
-9. Confirm Safari/FairPlay only after Tencent FairPlay cert/license URLs are configured.
+9. Confirm iOS/macOS WebKit through Tencent SimpleAES/basic HLS fallback when FairPlay is unavailable; record FairPlay as blocked until Tencent FairPlay cert/license URLs are configured.
 10. Confirm admin deletion marks app state and requests Tencent delete only after explicit admin action.
 
 ## Rollback
