@@ -18,7 +18,9 @@ export async function GET() {
                 title: true,
                 accessType: true,
                 _count: {
-                    select: { Enrollment: true },
+                    select: {
+                        Enrollment: { where: { isDeleted: false } },
+                    },
                 },
             },
             orderBy: { title: 'asc' },

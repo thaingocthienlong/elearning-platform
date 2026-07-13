@@ -3,6 +3,13 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { invalidateCacheKey, invalidateCache } from '@/lib/redis';
+import { z } from 'zod';
+
+const permissionUpdateSchema = z.object({
+    userId: z.string().min(1),
+    enrollments: z.array(z.string().min(1)).max(500),
+    videoAccess: z.array(z.string().min(1)).max(2_000),
+});
 
 // GET - Fetch user's current permissions
 export async function GET(request: Request) {
@@ -54,22 +61,31 @@ export async function POST(request: Request) {
     }
 
     try {
-        const { userId, enrollments, videoAccess } = await request.json();
-
-        if (!userId) {
-            return new NextResponse('User ID is required', { status: 400 });
+        const parsed = permissionUpdateSchema.safeParse(await request.json().catch(() => null));
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'Invalid permissions payload' }, { status: 400 });
         }
+        const userId = parsed.data.userId;
+        const enrollments = [...new Set(parsed.data.enrollments)];
+        const videoAccess = [...new Set(parsed.data.videoAccess)];
 
-        // Validate that all videos belong to enrolled courses
-        const videos = await prisma.video.findMany({
-            where: {
-                id: { in: videoAccess },
-            },
-            select: {
-                id: true,
-                courseId: true,
-            },
-        });
+        const [user, courseCount, videos] = await Promise.all([
+            prisma.user.findFirst({
+                where: { id: userId, isDeleted: false },
+                select: { id: true },
+            }),
+            prisma.course.count({
+                where: { id: { in: enrollments }, isDeleted: false },
+            }),
+            prisma.video.findMany({
+                where: { id: { in: videoAccess }, isDeleted: false },
+                select: { id: true, courseId: true },
+            }),
+        ]);
+
+        if (!user || courseCount !== enrollments.length || videos.length !== videoAccess.length) {
+            return NextResponse.json({ error: 'Permissions reference an inactive or missing record' }, { status: 400 });
+        }
 
         const invalidVideos = videos.filter(
             (video) => !enrollments.includes(video.courseId)
@@ -191,8 +207,7 @@ export async function POST(request: Request) {
             videoAccessDeleted: videoAccessToRemove.length,
         });
     } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('Failed to update user permissions:', error);
-        return new NextResponse(`Internal Server Error: ${message}`, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update user permissions' }, { status: 500 });
     }
 }

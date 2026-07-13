@@ -19,6 +19,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Trash, RotateCcw, Pencil } from 'lucide-react';
+import { toast } from 'sonner';
 import { CreateDialog } from './CreateDialog';
 
 interface Column<T> {
@@ -42,8 +43,9 @@ export function GenericTable<T extends { id: string; isDeleted?: boolean }>({
 }: GenericTableProps<T>) {
     const [selected, setSelected] = useState<string[]>([]);
     const [search, setSearch] = useState('');
-
     const [isProcessing, setIsProcessing] = useState(false);
+    const [editingItem, setEditingItem] = useState<T | null>(null);
+    const [editOpen, setEditOpen] = useState(false);
 
     const filteredData = data.filter((item) =>
         Object.values(item).some(
@@ -67,84 +69,54 @@ export function GenericTable<T extends { id: string; isDeleted?: boolean }>({
         }
     };
 
-    const handleBatchDelete = async () => {
+    const runAction = async (ids: string[], action: 'delete' | 'restore') => {
         if (isProcessing) return;
-        setIsProcessing(true);
-        try {
-            const response = await fetch('/api/admin/table-action', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ table: tableName, ids: selected, action: 'delete' }),
-            });
-
-            if (response.ok) {
-                window.location.reload();
-            }
-        } catch (error) {
-            console.error('Delete failed:', error);
-            setIsProcessing(false);
+        if (ids.length === 0) return;
+        if (action === 'delete') {
+            const confirmed = window.confirm(
+                `Delete ${ids.length} ${ids.length === 1 ? 'record' : 'records'}? You can restore them later.`
+            );
+            if (!confirmed) return;
         }
-    };
 
-    const handleBatchRestore = async () => {
-        if (isProcessing) return;
         setIsProcessing(true);
         try {
             const response = await fetch('/api/admin/table-action', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ table: tableName, ids: selected, action: 'restore' }),
+                body: JSON.stringify({ table: tableName, ids, action }),
             });
 
-            if (response.ok) {
-                window.location.reload();
+            if (!response.ok) {
+                const body = await response.text();
+                let message = body;
+                try {
+                    const parsed = JSON.parse(body) as { error?: unknown };
+                    if (typeof parsed.error === 'string') message = parsed.error;
+                } catch {
+                    // Keep the plain-text response.
+                }
+                throw new Error(message || `Unable to ${action} records`);
             }
+
+            toast.success(`${ids.length} ${ids.length === 1 ? 'record' : 'records'} ${action === 'delete' ? 'deleted' : 'restored'}`);
+            window.location.reload();
         } catch (error) {
-            console.error('Restore failed:', error);
-            setIsProcessing(false);
-        }
-    };
-
-    const handleDelete = async (id: string) => {
-        if (isProcessing) return;
-        setIsProcessing(true);
-        try {
-            const response = await fetch('/api/admin/table-action', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ table: tableName, ids: [id], action: 'delete' }),
-            });
-
-            if (response.ok) {
-                window.location.reload();
-            }
-        } catch (error) {
-            console.error('Delete failed:', error);
-            setIsProcessing(false);
-        }
-    };
-
-    const handleRestore = async (id: string) => {
-        if (isProcessing) return;
-        setIsProcessing(true);
-        try {
-            const response = await fetch('/api/admin/table-action', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ table: tableName, ids: [id], action: 'restore' }),
-            });
-
-            if (response.ok) {
-                window.location.reload();
-            }
-        } catch (error) {
-            console.error('Restore failed:', error);
+            toast.error(error instanceof Error ? error.message : `Unable to ${action} records`);
+        } finally {
             setIsProcessing(false);
         }
     };
 
     const handleEdit = (item: T) => {
-        // Edit functionality placeholder
+        setEditingItem(item);
+        setEditOpen(true);
+    };
+
+    const itemLabel = (item: T) => {
+        const values = item as T & { name?: unknown; title?: unknown; email?: unknown };
+        const label = values.name ?? values.title ?? values.email ?? item.id;
+        return String(label);
     };
 
     return (
@@ -155,7 +127,7 @@ export function GenericTable<T extends { id: string; isDeleted?: boolean }>({
                     <CreateDialog tableName={tableName} tableTitle={title} />
                     {selected.length > 0 && (
                         <>
-                            <Button variant="destructive" size="sm" onClick={handleBatchDelete} disabled={isProcessing}>
+                            <Button variant="destructive" size="sm" onClick={() => runAction(selected, 'delete')} disabled={isProcessing}>
                                 {isProcessing ? (
                                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                                 ) : (
@@ -163,7 +135,7 @@ export function GenericTable<T extends { id: string; isDeleted?: boolean }>({
                                 )}
                                 Delete ({selected.length})
                             </Button>
-                            <Button variant="outline" size="sm" onClick={handleBatchRestore} disabled={isProcessing}>
+                            <Button variant="outline" size="sm" onClick={() => runAction(selected, 'restore')} disabled={isProcessing}>
                                 {isProcessing ? (
                                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                                 ) : (
@@ -223,22 +195,24 @@ export function GenericTable<T extends { id: string; isDeleted?: boolean }>({
                                 <TableCell>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild disabled={isProcessing}>
-                                            <Button variant="ghost" size="icon">
+                                            <Button variant="ghost" size="icon" aria-label={`Actions for ${itemLabel(item)}`}>
                                                 <MoreHorizontal className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={() => handleEdit(item)}>
-                                                <Pencil className="mr-2 h-4 w-4" /> Edit
-                                            </DropdownMenuItem>
+                                            {!item.isDeleted && (
+                                                <DropdownMenuItem onClick={() => handleEdit(item)}>
+                                                    <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                </DropdownMenuItem>
+                                            )}
                                             {item.isDeleted ? (
-                                                <DropdownMenuItem onClick={() => handleRestore(item.id)}>
+                                                <DropdownMenuItem onClick={() => runAction([item.id], 'restore')}>
                                                     <RotateCcw className="mr-2 h-4 w-4" /> Restore
                                                 </DropdownMenuItem>
                                             ) : (
                                                 <DropdownMenuItem
                                                     className="text-destructive"
-                                                    onClick={() => handleDelete(item.id)}
+                                                    onClick={() => runAction([item.id], 'delete')}
                                                 >
                                                     <Trash className="mr-2 h-4 w-4" /> Delete
                                                 </DropdownMenuItem>
@@ -251,6 +225,18 @@ export function GenericTable<T extends { id: string; isDeleted?: boolean }>({
                     </TableBody>
                 </Table>
             </div>
+            <CreateDialog
+                key={editingItem?.id ?? 'edit-dialog'}
+                tableName={tableName}
+                tableTitle={title}
+                mode="edit"
+                record={editingItem as unknown as Record<string, unknown> | null}
+                open={editOpen}
+                onOpenChange={(nextOpen) => {
+                    setEditOpen(nextOpen);
+                    if (!nextOpen) setEditingItem(null);
+                }}
+            />
         </div>
     );
 }

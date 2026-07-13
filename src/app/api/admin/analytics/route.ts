@@ -84,11 +84,7 @@ async function buildAnalyticsPayload() {
       select: {
         id: true,
         title: true,
-        Course: {
-          select: {
-            title: true,
-          },
-        },
+        courseId: true,
         WatchRecord: {
           select: {
             viewCount: true,
@@ -104,6 +100,17 @@ async function buildAnalyticsPayload() {
       take: POPULAR_LIMIT,
     });
 
+    const popularVideoCourseIds = [...new Set(popularVideosRaw.map((video) => video.courseId))];
+    const popularVideoCourses = popularVideoCourseIds.length > 0
+      ? await prisma.course.findMany({
+          where: { id: { in: popularVideoCourseIds } },
+          select: { id: true, title: true },
+        })
+      : [];
+    const popularVideoCoursesById = new Map(
+      popularVideoCourses.map((course) => [course.id, course.title])
+    );
+
     const popularVideos = popularVideosRaw.map((video) => {
       const totalViewCount = video.WatchRecord.reduce(
         (sum, record) => sum + record.viewCount,
@@ -114,7 +121,7 @@ async function buildAnalyticsPayload() {
       return {
         id: video.id,
         title: video.title,
-        courseTitle: video.Course.title,
+        courseTitle: popularVideoCoursesById.get(video.courseId) ?? 'Unknown Course',
         viewCount: totalViewCount,
         uniqueViewers,
       };
@@ -222,17 +229,6 @@ async function buildAnalyticsPayload() {
         videoId: true,
         viewCount: true,
         lastViewedAt: true,
-        User: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-        Video: {
-          select: {
-            title: true,
-          },
-        },
       },
       orderBy: {
         lastViewedAt: 'desc',
@@ -240,14 +236,37 @@ async function buildAnalyticsPayload() {
       take: RECENT_ACTIVITY_LIMIT,
     });
 
-    const recentActivity = recentActivityRaw.map((record) => ({
-      id: record.id,
-      userName: record.User.name || 'No name',
-      userEmail: record.User.email,
-      videoTitle: record.Video.title,
-      lastViewedAt: record.lastViewedAt.toISOString(),
-      viewCount: record.viewCount,
-    }));
+    const recentUserIds = [...new Set(recentActivityRaw.map((record) => record.userId))];
+    const recentVideoIds = [...new Set(recentActivityRaw.map((record) => record.videoId))];
+    const [recentUsers, recentVideos] = await Promise.all([
+      recentUserIds.length > 0
+        ? prisma.user.findMany({
+            where: { id: { in: recentUserIds } },
+            select: { id: true, name: true, email: true },
+          })
+        : Promise.resolve([]),
+      recentVideoIds.length > 0
+        ? prisma.video.findMany({
+            where: { id: { in: recentVideoIds } },
+            select: { id: true, title: true },
+          })
+        : Promise.resolve([]),
+    ]);
+    const recentUsersById = new Map(recentUsers.map((user) => [user.id, user]));
+    const recentVideosById = new Map(recentVideos.map((video) => [video.id, video]));
+
+    const recentActivity = recentActivityRaw.map((record) => {
+      const user = recentUsersById.get(record.userId);
+      const video = recentVideosById.get(record.videoId);
+      return {
+        id: record.id,
+        userName: user?.name || (user ? 'No name' : 'Deleted user'),
+        userEmail: user?.email ?? `deleted-user:${record.userId}`,
+        videoTitle: video?.title ?? 'Deleted video',
+        lastViewedAt: record.lastViewedAt.toISOString(),
+        viewCount: record.viewCount,
+      };
+    });
 
     const viewsRaw = await prisma.watchRecord.groupBy({
       by: ['lastViewedAt'],

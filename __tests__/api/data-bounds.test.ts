@@ -110,6 +110,16 @@ describe('admin data bounds', () => {
     );
   });
 
+  test('watermark GET rejects unauthenticated requests without reading settings', async () => {
+    mockedGetServerSession.mockResolvedValue(null);
+
+    const response = await watermarkGet();
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: 'Unauthorized' });
+    expect(mockedPrisma.watermarkSettings.upsert).not.toHaveBeenCalled();
+  });
+
   test('watermark POST updates the singleton instead of appending settings rows', async () => {
     mockedPrisma.user.findUnique.mockResolvedValue({ role: 'ADMIN' });
     mockedPrisma.watermarkSettings.upsert.mockResolvedValue({

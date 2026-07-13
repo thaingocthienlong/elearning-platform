@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { revokeSession } from '@/lib/session-revocation';
 
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
@@ -17,21 +17,25 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // Get session details before deleting (to get user email and token)
+    // Fetch scalar session data first so orphaned sessions remain revocable.
     const sessionToDelete = await prisma.session.findUnique({
       where: { id },
-      include: {
-        user: {
-          select: {
-            email: true,
-          },
-        },
+      select: {
+        id: true,
+        userId: true,
+        sessionToken: true,
       },
     });
 
     if (!sessionToDelete) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
+
+    const user = await prisma.user.findUnique({
+      where: { id: sessionToDelete.userId },
+      select: { email: true },
+    });
+    const auditEmail = user?.email ?? `deleted-user:${sessionToDelete.userId}`;
 
     // Mark session as revoked in Redis for SSE clients
     // This will trigger immediate sign-out for connected clients
@@ -46,14 +50,14 @@ export async function DELETE(
       // Record revocation for cooldown/audit
       prisma.revokedSession.create({
         data: {
-          email: sessionToDelete.user.email!,
+          email: auditEmail,
           reason: 'Revoked by admin',
         },
       }),
     ]);
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('✅ Session revoked and deleted for:', sessionToDelete.user.email);
+      console.log('Session revoked and deleted for:', auditEmail);
     }
 
     return NextResponse.json({ success: true });

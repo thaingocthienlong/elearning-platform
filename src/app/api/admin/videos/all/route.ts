@@ -16,13 +16,10 @@ export async function GET() {
                 published: true,
                 isDeleted: false,
             },
-            include: {
-                Course: {
-                    select: {
-                        id: true,
-                        title: true,
-                    },
-                },
+            select: {
+                id: true,
+                title: true,
+                courseId: true,
             },
             orderBy: [
                 { courseId: 'asc' },
@@ -30,12 +27,21 @@ export async function GET() {
             ],
         });
 
+        const courseIds = [...new Set(videos.map((video) => video.courseId))];
+        const courses = courseIds.length > 0
+            ? await prisma.course.findMany({
+                where: { id: { in: courseIds } },
+                select: { id: true, title: true },
+            })
+            : [];
+        const coursesById = new Map(courses.map((course) => [course.id, course]));
+
         // Transform to simpler format
         const formattedVideos = videos.map((video) => ({
             id: video.id,
             title: video.title,
             courseId: video.courseId,
-            courseTitle: video.Course?.title || 'Unknown Course',
+            courseTitle: coursesById.get(video.courseId)?.title || 'Unknown Course',
         }));
 
         return NextResponse.json(formattedVideos);

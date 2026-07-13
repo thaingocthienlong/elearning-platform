@@ -19,7 +19,7 @@ export default async function DRMMonitoringPage() {
         hardwareDRMCount,
         softwareDRMCount,
         drmTypeBreakdown,
-        recentSessions,
+        recentSessionRows,
     ] = await Promise.all([
         prisma.dRMSession.count(),
         prisma.dRMSession.count({ where: { isHardwareDRM: true } }),
@@ -31,12 +31,35 @@ export default async function DRMMonitoringPage() {
         prisma.dRMSession.findMany({
             take: 20,
             orderBy: { createdAt: 'desc' },
-            include: {
-                User: { select: { email: true, name: true } },
-                Video: { select: { title: true } },
-            },
         }),
     ]);
+
+    const userIds = [...new Set(recentSessionRows.map((item) => item.userId))];
+    const videoIds = [...new Set(recentSessionRows.map((item) => item.videoId))];
+    const [users, videos] = await Promise.all([
+        userIds.length > 0
+            ? prisma.user.findMany({
+                where: { id: { in: userIds } },
+                select: { id: true, email: true, name: true },
+            })
+            : Promise.resolve([]),
+        videoIds.length > 0
+            ? prisma.video.findMany({
+                where: { id: { in: videoIds } },
+                select: { id: true, title: true },
+            })
+            : Promise.resolve([]),
+    ]);
+    const usersById = new Map(users.map((user) => [user.id, user]));
+    const videosById = new Map(videos.map((video) => [video.id, video]));
+    const recentSessions = recentSessionRows.map((item) => ({
+        ...item,
+        User: usersById.get(item.userId) ?? {
+            name: 'Nguoi dung khong ton tai',
+            email: 'Email khong ton tai',
+        },
+        Video: videosById.get(item.videoId) ?? { title: 'Video khong ton tai' },
+    }));
 
     const hardwarePercentage = totalSessions > 0
         ? ((hardwareDRMCount / totalSessions) * 100).toFixed(1)

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAdminData } from '@/hooks/admin/useAdminData';
 import { useAdminFilters } from '@/hooks/admin/useAdminFilters';
 import { useTablePagination } from '@/hooks/admin/useTablePagination';
@@ -62,7 +62,6 @@ export default function WhitelistPage() {
         totalPages,
         nextPage,
         prevPage,
-        setPageSize
     } = useTablePagination(filteredEmails, 10);
 
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -78,26 +77,23 @@ export default function WhitelistPage() {
     const [importing, setImporting] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
-    useEffect(() => {
-        // fetchEmails handled by hook
-        fetchCourses();
-    }, []);
-
-    const fetchCourses = async () => {
+    const fetchCourses = useCallback(async () => {
         try {
             const response = await fetch('/api/admin/options?type=course');
-            if (response.ok) {
-                const data = await response.json();
-                // API returns {id, label} format, transform to {id, title}
-                setCourses(data.map((c: { id: string, label: string }) => ({
-                    id: c.id,
-                    title: c.label
-                })));
-            }
-        } catch (error) {
-            console.error('Failed to fetch courses:', error);
+            if (!response.ok) throw new Error((await response.text()) || 'Failed to load courses');
+            const data = await response.json();
+            setCourses(data.map((c: { id: string, label: string }) => ({
+                id: c.id,
+                title: c.label
+            })));
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : 'Failed to load courses');
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        void Promise.resolve().then(fetchCourses);
+    }, [fetchCourses]);
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -209,10 +205,13 @@ ${results.errors.length > 0 ? `\nErrors:\n${results.errors.join('\n')}` : ''}`;
             });
 
             if (response.ok) {
-                refreshEmails();
+                toast.success('Email removed from whitelist');
+                await refreshEmails();
+            } else {
+                throw new Error((await response.text()) || 'Failed to remove email');
             }
-        } catch (error) {
-            console.error('Failed to delete email:', error);
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : 'Failed to remove email');
         } finally {
             setDeletingId(null);
         }

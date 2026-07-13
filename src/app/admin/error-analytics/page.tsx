@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle, TrendingUp, Bug } from 'lucide-react';
@@ -28,17 +28,14 @@ interface AnalyticsData {
     errorTrends: { date: string; count: number }[];
     totalTickets: number;
     totalErrors: number;
+    uniqueErrorCount: number;
 }
 
 export default function ErrorAnalyticsPage() {
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, []);
-
-    const fetchAnalytics = async () => {
+    const fetchAnalytics = useCallback(async () => {
         setLoading(true);
         try {
             const response = await fetch('/api/admin/error-analytics');
@@ -51,7 +48,11 @@ export default function ErrorAnalyticsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        void Promise.resolve().then(fetchAnalytics);
+    }, [fetchAnalytics]);
 
     if (loading) {
         return (
@@ -114,7 +115,7 @@ export default function ErrorAnalyticsPage() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{data.topErrors.length}</div>
+                        <div className="text-2xl font-bold">{data.uniqueErrorCount}</div>
                         <p className="text-xs text-muted-foreground">
                             Distinct error messages
                         </p>

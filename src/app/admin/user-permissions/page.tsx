@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAdminData } from '@/hooks/admin/useAdminData';
 import { useAdminFilters } from '@/hooks/admin/useAdminFilters';
 import { Button } from '@/components/ui/button';
@@ -88,25 +88,7 @@ export default function UserPermissionsPage() {
 
 
 
-    useEffect(() => {
-        if (selectedUser) {
-            // Check if there are pending changes for this user
-            const pending = pendingChanges.get(selectedUser.id);
-            if (pending) {
-                // Load pending changes
-                setPermissions(pending);
-            } else {
-                // Fetch fresh permissions from database
-                fetchUserPermissions(selectedUser.id);
-            }
-        }
-    }, [selectedUser?.id]); // Only depend on ID to avoid infinite loops
-
-    useEffect(() => {
-        fetchAuxData();
-    }, []);
-
-    const fetchAuxData = async () => {
+    const fetchAuxData = useCallback(async () => {
         try {
             const [coursesRes, videosRes] = await Promise.all([
                 fetch('/api/admin/courses'),
@@ -125,23 +107,34 @@ export default function UserPermissionsPage() {
         } finally {
             setCoursesLoading(false);
         }
-    };
+    }, []);
 
-    const fetchUserPermissions = async (userId: string) => {
+    const fetchUserPermissions = useCallback(async (userId: string) => {
+        setPermissions({ enrolledCourses: [], accessibleVideos: [] });
         try {
-            // Fetch enrollments
             const enrollmentsRes = await fetch(`/api/admin/user-permissions?userId=${userId}`);
-            if (enrollmentsRes.ok) {
-                const data = await enrollmentsRes.json();
-                const newPermissions = {
-                    enrolledCourses: data.enrollments,
-                    accessibleVideos: data.videoAccess,
-                };
-                setPermissions(newPermissions);
+            if (!enrollmentsRes.ok) {
+                throw new Error((await enrollmentsRes.text()) || 'Unable to load user permissions');
             }
+            const data = await enrollmentsRes.json();
+            setPermissions({
+                enrolledCourses: data.enrollments,
+                accessibleVideos: data.videoAccess,
+            });
         } catch (error) {
-            console.error('Failed to fetch user permissions:', error);
+            toast.error(error instanceof Error ? error.message : 'Unable to load user permissions');
         }
+    }, []);
+
+    useEffect(() => {
+        void Promise.resolve().then(fetchAuxData);
+    }, [fetchAuxData]);
+
+    const handleSelectUser = (user: User) => {
+        setSelectedUser(user);
+        const pending = pendingChanges.get(user.id);
+        if (pending) setPermissions(pending);
+        else void fetchUserPermissions(user.id);
     };
 
     const handleToggleAccess = async (courseId: string, currentStatus: 'OPEN' | 'VERIFY') => {
@@ -159,7 +152,7 @@ export default function UserPermissionsPage() {
 
             if (!res.ok) throw new Error('Failed to update');
             toast.success(`Course set to ${newStatus}`);
-        } catch (error) {
+        } catch {
             toast.error('Failed to update course status');
             // Revert on error
             setCourses(prev => prev.map(c => c.id === courseId ? { ...c, accessType: currentStatus } : c));
@@ -240,6 +233,7 @@ export default function UserPermissionsPage() {
             let totalVideoAccessCreated = 0;
             let totalVideoAccessDeleted = 0;
             let successCount = 0;
+            const failedChanges = new Map<string, UserPermissions>();
 
             // Save all pending changes
             for (const [userId, userPermissions] of pendingChanges.entries()) {
@@ -264,6 +258,7 @@ export default function UserPermissionsPage() {
                     const error = await response.text();
                     const user = users.find(u => u.id === userId);
                     toast.error(`Failed to update ${user?.name || user?.email}: ${error}`);
+                    failedChanges.set(userId, userPermissions);
                 }
             }
 
@@ -274,9 +269,8 @@ export default function UserPermissionsPage() {
                     `Video Access: ${totalVideoAccessCreated} added, ${totalVideoAccessDeleted} removed`
                 );
 
-                // Clear pending changes after successful save
-                setPendingChanges(new Map());
             }
+            setPendingChanges(failedChanges);
         } catch (error) {
             console.error('Failed to save permissions:', error);
             toast.error('Failed to save permissions');
@@ -408,7 +402,7 @@ export default function UserPermissionsPage() {
                                     <select
                                         id="bulk-action"
                                         value={bulkAction}
-                                        onChange={(e) => setBulkAction(e.target.value as any)}
+                                        onChange={(e) => setBulkAction(e.target.value as 'ENROLL_ONLY' | 'SYNC_VIDEO_ACCESS')}
                                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     >
                                         <option value="ENROLL_ONLY">Enroll Users Only (No Video Access)</option>
@@ -535,7 +529,7 @@ export default function UserPermissionsPage() {
                                             return (
                                                 <div
                                                     key={user.id}
-                                                    onClick={() => setSelectedUser(user)}
+                                                    onClick={() => handleSelectUser(user)}
                                                     className={`p-3 rounded-md cursor-pointer transition-colors relative ${selectedUser?.id === user.id
                                                         ? 'bg-primary text-primary-foreground'
                                                         : 'hover:bg-accent'

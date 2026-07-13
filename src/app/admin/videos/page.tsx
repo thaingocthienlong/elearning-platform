@@ -8,7 +8,7 @@ import { Search as SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, RefreshCw, CheckCircle, XCircle, PlayCircle, Upload } from 'lucide-react';
+import { Loader2, RefreshCw, CheckCircle, XCircle, PlayCircle, Trash2, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -62,6 +62,7 @@ export default function AdminVideosPage() {
 
 
     const [syncingId, setSyncingId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     // Upload dialog state
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -105,11 +106,15 @@ export default function AdminVideosPage() {
     // Fetch courses when upload dialog opens
     useEffect(() => {
         if (uploadDialogOpen) {
-            fetch('/api/courses')
-                .then((res) => res.json())
+            fetch('/api/admin/courses')
+                .then((res) => {
+                    if (!res.ok) throw new Error('Failed to load courses');
+                    return res.json();
+                })
                 .then((data) => {
+                    if (!Array.isArray(data)) throw new Error('Invalid courses response');
                     setCourses(data);
-                    if (data.length > 0) setSelectedCourseId(data[0].id);
+                    setSelectedCourseId(data[0]?.id ?? '');
                 })
                 .catch((err) => console.error('Failed to load courses', err));
         }
@@ -141,6 +146,34 @@ export default function AdminVideosPage() {
             toast.error('Failed to sync video');
         } finally {
             setSyncingId(null);
+        }
+    };
+
+    const handleDelete = async (video: Video) => {
+        const confirmed = window.confirm(
+            `Permanently delete "${video.title}" from Tencent VOD and remove it from the platform? This cannot be undone.`
+        );
+
+        if (!confirmed) return;
+
+        setDeletingId(video.id);
+        try {
+            const response = await fetch(`/api/admin/videos/${video.id}`, {
+                method: 'DELETE',
+            });
+            const result = await response.json().catch(() => ({ error: 'Unknown deletion error' }));
+
+            if (!response.ok) {
+                throw new Error(result.error || `Delete failed: ${response.status}`);
+            }
+
+            toast.success(result.alreadyDeleted ? 'Video was already deleted' : 'Video deleted');
+            fetchVideos();
+        } catch (error) {
+            console.error('Delete video error:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to delete video');
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -431,6 +464,22 @@ export default function AdminVideosPage() {
                                                             )}
                                                         </Button>
                                                     )}
+
+                                                    <Button
+                                                        size="sm"
+                                                        variant="destructive"
+                                                        onClick={() => handleDelete(video)}
+                                                        disabled={deletingId !== null}
+                                                        title="Delete video from Tencent VOD and the platform"
+                                                    >
+                                                        {deletingId === video.id ? (
+                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <Trash2 className="w-4 h-4 mr-1" /> Delete
+                                                            </>
+                                                        )}
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         );

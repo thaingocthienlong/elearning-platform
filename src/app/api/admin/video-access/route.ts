@@ -21,24 +21,47 @@ export async function GET(request: Request) {
 
         const videoAccesses = await prisma.videoAccess.findMany({
             where: { userId },
-            include: {
-                Video: {
-                    select: {
-                        id: true,
-                        title: true,
-                        Course: {
-                            select: {
-                                id: true,
-                                title: true,
-                            },
-                        },
-                    },
-                },
-            },
             orderBy: { grantedAt: 'desc' },
         });
 
-        return NextResponse.json(videoAccesses);
+        const videos = await prisma.video.findMany({
+            where: {
+                id: { in: [...new Set(videoAccesses.map((access) => access.videoId))] },
+            },
+            select: {
+                id: true,
+                title: true,
+                courseId: true,
+            },
+        });
+        const courses = await prisma.course.findMany({
+            where: {
+                id: { in: [...new Set(videos.map((video) => video.courseId))] },
+            },
+            select: {
+                id: true,
+                title: true,
+            },
+        });
+        const videosById = new Map(videos.map((video) => [video.id, video]));
+        const coursesById = new Map(courses.map((course) => [course.id, course]));
+
+        return NextResponse.json(
+            videoAccesses.map((access) => {
+                const video = videosById.get(access.videoId);
+
+                return {
+                    ...access,
+                    Video: video
+                        ? {
+                            id: video.id,
+                            title: video.title,
+                            Course: coursesById.get(video.courseId) ?? null,
+                        }
+                        : null,
+                };
+            })
+        );
     } catch (error) {
         console.error('Fetch video access error:', error);
         return new NextResponse('Internal Server Error', { status: 500 });
@@ -80,27 +103,41 @@ export async function POST(request: Request) {
                 userId,
                 videoId,
             },
-            include: {
-                Video: {
-                    select: {
-                        title: true,
-                        Course: {
-                            select: {
-                                title: true,
-                            },
-                        },
-                    },
-                },
-                User: {
-                    select: {
-                        email: true,
-                        name: true,
-                    },
-                },
-            },
         });
 
-        return NextResponse.json(videoAccess);
+        const [video, user] = await Promise.all([
+            prisma.video.findUnique({
+                where: { id: videoId },
+                select: {
+                    title: true,
+                    courseId: true,
+                },
+            }),
+            prisma.user.findUnique({
+                where: { id: userId },
+                select: {
+                    email: true,
+                    name: true,
+                },
+            }),
+        ]);
+        const course = video
+            ? await prisma.course.findUnique({
+                where: { id: video.courseId },
+                select: { title: true },
+            })
+            : null;
+
+        return NextResponse.json({
+            ...videoAccess,
+            Video: video
+                ? {
+                    title: video.title,
+                    Course: course,
+                }
+                : null,
+            User: user,
+        });
     } catch (error) {
         console.error('Grant video access error:', error);
         return new NextResponse('Internal Server Error', { status: 500 });

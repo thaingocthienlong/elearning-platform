@@ -21,6 +21,12 @@ const defaultWatermarkSettings = {
 // GET - Fetch current watermark settings
 export async function GET() {
     try {
+        const session = await getServerSession(authOptions);
+
+        if (session?.user?.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const settings = await prisma.watermarkSettings.upsert({
             where: { scope: WATERMARK_SCOPE },
             update: {},

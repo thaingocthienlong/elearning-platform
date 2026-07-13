@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import type { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { serverLog } from '@/lib/server-log';
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {
+    const where: Prisma.SecurityEventWhereInput = {
       createdAt: {
         gte: since,
       },
@@ -54,23 +55,25 @@ export async function GET(req: NextRequest) {
     }
 
     if (search) {
+      const [matchingUsers, matchingVideos] = await Promise.all([
+        prisma.user.findMany({
+          where: {
+            OR: [
+              { email: { contains: search, mode: 'insensitive' } },
+              { name: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+          select: { id: true },
+        }),
+        prisma.video.findMany({
+          where: { title: { contains: search, mode: 'insensitive' } },
+          select: { id: true },
+        }),
+      ]);
+
       where.OR = [
-        {
-          User: {
-            email: {
-              contains: search,
-              mode: 'insensitive',
-            },
-          },
-        },
-        {
-          Video: {
-            title: {
-              contains: search,
-              mode: 'insensitive',
-            },
-          },
-        },
+        { userId: { in: matchingUsers.map((user) => user.id) } },
+        { videoId: { in: matchingVideos.map((video) => video.id) } },
       ];
     }
 
@@ -78,19 +81,6 @@ export async function GET(req: NextRequest) {
     const [events, totalCount] = await Promise.all([
       prisma.securityEvent.findMany({
         where,
-        include: {
-          User: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
-          Video: {
-            select: {
-              title: true,
-            },
-          },
-        },
         orderBy: {
           createdAt: 'desc',
         },
@@ -100,10 +90,39 @@ export async function GET(req: NextRequest) {
       prisma.securityEvent.count({ where }),
     ]);
 
+    const eventUserIds = [...new Set(events.map((event) => event.userId))];
+    const eventVideoIds = [
+      ...new Set(events.flatMap((event) => (event.videoId ? [event.videoId] : []))),
+    ];
+    const [users, videos] = await Promise.all([
+      eventUserIds.length > 0
+        ? prisma.user.findMany({
+          where: { id: { in: eventUserIds } },
+          select: { id: true, name: true, email: true },
+        })
+        : Promise.resolve([]),
+      eventVideoIds.length > 0
+        ? prisma.video.findMany({
+          where: { id: { in: eventVideoIds } },
+          select: { id: true, title: true },
+        })
+        : Promise.resolve([]),
+    ]);
+    const usersById = new Map(users.map((user) => [user.id, user]));
+    const videosById = new Map(videos.map((video) => [video.id, video]));
+    const formattedEvents = events.map((event) => ({
+      ...event,
+      User: usersById.get(event.userId) ?? {
+        name: 'Nguoi dung khong ton tai',
+        email: 'Email khong ton tai',
+      },
+      Video: event.videoId ? (videosById.get(event.videoId) ?? null) : null,
+    }));
+
     const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
-      events,
+      events: formattedEvents,
       totalCount,
       totalPages,
       currentPage: page,

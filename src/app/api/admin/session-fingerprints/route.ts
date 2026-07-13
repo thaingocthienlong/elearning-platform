@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import type { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -17,11 +18,22 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get('search') || '';
 
     const skip = (page - 1) * limit;
-    const where: any = {};
+    const where: Prisma.SessionWhereInput = {};
 
     if (search) {
+      const matchingUsers = await prisma.user.findMany({
+        where: {
+          OR: [
+            { email: { contains: search, mode: 'insensitive' } },
+            { name: { contains: search, mode: 'insensitive' } },
+          ],
+        },
+        select: { id: true },
+      });
+      const matchingUserIds = matchingUsers.map((user) => user.id);
+
       where.OR = [
-        { user: { email: { contains: search, mode: 'insensitive' } } },
+        { userId: { in: matchingUserIds } },
         { ipAddress: { contains: search, mode: 'insensitive' } },
       ];
     }
@@ -57,13 +69,14 @@ export async function GET(req: NextRequest) {
     const [sessions, totalCount, uniqueUsers] = await Promise.all([
       prisma.session.findMany({
         where,
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
+        select: {
+          id: true,
+          userId: true,
+          fingerprint: true,
+          userAgent: true,
+          ipAddress: true,
+          lastActive: true,
+          expires: true,
         },
         orderBy: {
           lastActive: 'desc',
@@ -78,6 +91,26 @@ export async function GET(req: NextRequest) {
         distinct: ['userId'],
       }),
     ]);
+
+    const sessionUserIds = [...new Set(sessions.map((sessionRecord) => sessionRecord.userId))];
+    const users = sessionUserIds.length > 0
+      ? await prisma.user.findMany({
+        where: { id: { in: sessionUserIds } },
+        select: { id: true, name: true, email: true },
+      })
+      : [];
+    const usersById = new Map(users.map((user) => [user.id, user]));
+    const formattedSessions = sessions.map((sessionRecord) => {
+      const user = usersById.get(sessionRecord.userId);
+
+      return {
+        ...sessionRecord,
+        user: {
+          name: user?.name ?? 'Nguoi dung khong ton tai',
+          email: user?.email ?? sessionRecord.userId,
+        },
+      };
+    });
 
     // Calculate active sessions (last active within 30 minutes)
     const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
@@ -98,7 +131,7 @@ export async function GET(req: NextRequest) {
     const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
-      sessions,
+      sessions: formattedSessions,
       stats,
       totalCount,
       totalPages,

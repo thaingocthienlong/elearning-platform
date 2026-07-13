@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useSession } from 'next-auth/react';
@@ -22,6 +22,7 @@ import {
     Fingerprint,
     Shield,
     Palette,
+    Bug,
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -34,9 +35,16 @@ export default function AdminLayout({
     const { t } = useLanguage();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+    useEffect(() => {
+        if (status !== 'loading' && (!session || session.user?.role !== 'ADMIN')) {
+            router.replace('/');
+        }
+    }, [router, session, status]);
+
     const sidebarItems = [
         { href: '/admin', label: t('overview'), icon: LayoutDashboard },
         { href: '/admin/analytics', label: t('analytics'), icon: BarChart },
+        { href: '/admin/error-analytics', label: 'Error Analytics', icon: Bug },
         { href: '/admin/users', label: t('users'), icon: Users },
         { href: '/admin/courses', label: t('courses'), icon: BookOpen },
         { href: '/admin/videos', label: t('videos'), icon: Video },
@@ -56,7 +64,6 @@ export default function AdminLayout({
     }
 
     if (!session || session.user?.role !== 'ADMIN') {
-        router.push('/');
         return null;
     }
 

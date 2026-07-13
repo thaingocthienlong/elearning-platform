@@ -7,12 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import ViewsChart from '@/components/admin/ViewsChart';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
 
 export default function AdminDashboard() {
     const { t } = useLanguage();
     const [stats, setStats] = useState({ videoCount: 0, courseCount: 0, userCount: 0 });
     const [systemMode, setSystemMode] = useState<'courses' | 'meeting'>('courses');
     const [loading, setLoading] = useState(true);
+    const [modeUpdating, setModeUpdating] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -41,7 +43,9 @@ export default function AdminDashboard() {
     }, []);
 
     const toggleSystemMode = async () => {
+        if (modeUpdating) return;
         const newMode = systemMode === 'courses' ? 'meeting' : 'courses';
+        setModeUpdating(true);
         try {
             const res = await fetch('/api/admin/config/mode', {
                 method: 'POST',
@@ -50,9 +54,14 @@ export default function AdminDashboard() {
             });
             if (res.ok) {
                 setSystemMode(newMode);
+                toast.success(`System mode changed to ${newMode}`);
+            } else {
+                throw new Error((await res.text()) || 'Unable to update system mode');
             }
         } catch (error) {
-            console.error('Failed to update system mode:', error);
+            toast.error(error instanceof Error ? error.message : 'Unable to update system mode');
+        } finally {
+            setModeUpdating(false);
         }
     };
 
@@ -78,6 +87,8 @@ export default function AdminDashboard() {
                             <Switch
                                 checked={systemMode === 'meeting'}
                                 onCheckedChange={toggleSystemMode}
+                                disabled={modeUpdating}
+                                aria-label="Toggle system operation mode"
                             />
                             <span className={`text-sm font-bold ${systemMode === 'meeting' ? 'text-green-600' : 'text-gray-500'}`}>Meeting</span>
                         </div>
@@ -128,7 +139,7 @@ export default function AdminDashboard() {
             </Card>
 
             <div className="flex gap-4">
-                <Link href="/admin/upload">
+                <Link href="/admin/videos">
                     <Button>{t('uploadNewVideo')}</Button>
                 </Link>
                 <Link href="/admin/courses">

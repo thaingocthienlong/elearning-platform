@@ -40,70 +40,119 @@ export async function POST(request: Request) {
             }
         }
 
-        // Process each entry
-        for (const entry of entries) {
-            const { fullname, phone, email } = entry;
-            const normalizedEmail = email.toLowerCase().trim();
+        // Process each entry independently so one malformed row cannot abort the batch.
+        for (const [index, rawEntry] of entries.entries()) {
+            const entry = rawEntry && typeof rawEntry === 'object'
+                ? rawEntry as { fullname?: unknown; phone?: unknown; email?: unknown }
+                : {};
+            const fullname = typeof entry.fullname === 'string' ? entry.fullname : '';
+            const phone = typeof entry.phone === 'string' ? entry.phone : '';
+            const normalizedEmail = typeof entry.email === 'string'
+                ? entry.email.toLowerCase().trim()
+                : '';
+
+            if (!/^[^\s@]+@[^\s@]+$/.test(normalizedEmail)) {
+                results.errors.push(`Entry ${index + 1}: a valid email is required`);
+                continue;
+            }
 
             try {
-                // 1. Add to whitelist
-                try {
-                    await prisma.allowedEmail.create({
-                        data: {
-                            fullname: fullname || null,
-                            phone: phone || null,
-                            email: normalizedEmail,
-                            notes: courseId ? 'Bulk import with enrollment' : 'Bulk import',
-                            createdBy: session.user.id,
-                        },
-                    });
-                    results.whitelisted++;
-                } catch (error: unknown) {
-                    if ((error as { code?: string }).code === 'P2002') {
-                        results.duplicateWhitelist++;
-                    } else {
-                        throw error;
-                    }
-                }
+                const entryResult = await prisma.$transaction(async (transaction) => {
+                    const entryCounts = {
+                        whitelisted: 0,
+                        usersCreated: 0,
+                        enrollmentsCreated: 0,
+                        duplicateWhitelist: 0,
+                        duplicateEnrollments: 0,
+                    };
 
-                // 2. If courseId provided, create/find user and enroll
-                if (courseId) {
-                    // Create or find user
-                    let user = await prisma.user.findUnique({
+                    const existingAllowedEmail = await transaction.allowedEmail.findUnique({
                         where: { email: normalizedEmail },
+                        select: { id: true },
                     });
 
-                    if (!user) {
-                        // Create placeholder user
-                        user = await prisma.user.create({
+                    if (existingAllowedEmail) {
+                        entryCounts.duplicateWhitelist++;
+                    } else {
+                        await transaction.allowedEmail.create({
                             data: {
+                                fullname: fullname || null,
+                                phone: phone || null,
                                 email: normalizedEmail,
-                                name: fullname || normalizedEmail.split('@')[0],
-                                updatedAt: new Date(),
+                                notes: courseId ? 'Bulk import with enrollment' : 'Bulk import',
+                                createdBy: session.user.id,
                             },
                         });
-                        results.usersCreated++;
+                        entryCounts.whitelisted++;
                     }
 
-                    // Create enrollment
-                    try {
-                        await prisma.enrollment.create({
-                            data: {
+                    if (courseId) {
+                        let user = await transaction.user.findUnique({
+                            where: { email: normalizedEmail },
+                            select: { id: true, isDeleted: true },
+                        });
+
+                        if (!user) {
+                            user = await transaction.user.create({
+                                data: {
+                                    email: normalizedEmail,
+                                    name: fullname || normalizedEmail.split('@')[0],
+                                    updatedAt: new Date(),
+                                },
+                                select: { id: true, isDeleted: true },
+                            });
+                            entryCounts.usersCreated++;
+                        } else if (user.isDeleted) {
+                            await transaction.user.update({
+                                where: { id: user.id },
+                                data: { isDeleted: false },
+                            });
+                        }
+
+                        const existingEnrollment = await transaction.enrollment.findUnique({
+                            where: {
+                                userId_courseId: {
+                                    userId: user.id,
+                                    courseId,
+                                },
+                            },
+                            select: { isDeleted: true },
+                        });
+
+                        await transaction.enrollment.upsert({
+                            where: {
+                                userId_courseId: {
+                                    userId: user.id,
+                                    courseId,
+                                },
+                            },
+                            create: {
                                 userId: user.id,
-                                courseId: courseId,
+                                courseId,
+                            },
+                            update: {
+                                isDeleted: false,
                             },
                         });
-                        results.enrollmentsCreated++;
-                    } catch (error: unknown) {
-                        if ((error as { code?: string }).code === 'P2002') {
-                            results.duplicateEnrollments++;
+
+                        if (!existingEnrollment || existingEnrollment.isDeleted) {
+                            entryCounts.enrollmentsCreated++;
                         } else {
-                            throw error;
+                            entryCounts.duplicateEnrollments++;
                         }
                     }
-                }
+
+                    return entryCounts;
+                });
+
+                results.whitelisted += entryResult.whitelisted;
+                results.usersCreated += entryResult.usersCreated;
+                results.enrollmentsCreated += entryResult.enrollmentsCreated;
+                results.duplicateWhitelist += entryResult.duplicateWhitelist;
+                results.duplicateEnrollments += entryResult.duplicateEnrollments;
             } catch (error: unknown) {
-                results.errors.push(`${normalizedEmail}: ${(error as Error).message}`);
+                const message = error instanceof Error ? error.message : 'Unknown error';
+                results.errors.push(`${normalizedEmail}: ${message}`);
             }
         }
 

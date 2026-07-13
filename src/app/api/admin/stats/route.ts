@@ -11,9 +11,11 @@ export async function GET() {
     }
 
     try {
-        const videoCount = await prisma.video.count();
-        const courseCount = await prisma.course.count();
-        const userCount = await prisma.user.count();
+        const [videoCount, courseCount, userCount] = await Promise.all([
+            prisma.video.count({ where: { isDeleted: false } }),
+            prisma.course.count({ where: { isDeleted: false } }),
+            prisma.user.count({ where: { isDeleted: false } }),
+        ]);
 
         return NextResponse.json({ videoCount, courseCount, userCount });
     } catch (error) {
