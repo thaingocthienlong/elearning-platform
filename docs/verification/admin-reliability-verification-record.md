@@ -53,3 +53,18 @@ Requirements `UI-04`, `STAGE-05`, `DATA-03`, `SEC-09`, `TENCENT-08`, and `TENCEN
 ## Result
 
 Automated verification passed. Browser authentication and unavailable `gitleaks` are recorded, bounded gaps.
+
+## 2026-07-13 Security-Event Flush Regression
+
+- Requirement: `SEC-09`.
+- Reported failure: admin page sent a bodyless `DELETE`, while route required `confirm: "FLUSH_SECURITY_EVENTS"`; route correctly returned `400`.
+- Fix: admin page now sends JSON content type and exact confirmation token.
+- Safety preserved: route remains ADMIN-only, rejects missing/wrong confirmation, deletes only after validation, and writes a surviving audit event.
+
+| Command | Actual Result |
+| --- | --- |
+| `npm test -- admin-security-events --runInBand` | Passed: 2 suites, 3 tests. |
+| `npm run typecheck` | Passed with no errors. |
+| `npx eslint src/app/admin/security-events/page.tsx __tests__/components/admin-security-events.test.tsx` | Passed with 0 errors and 4 inherited warnings in the page. |
+
+Live browser deletion was intentionally skipped because it would destroy current security-event rows. Component coverage verifies the outgoing request contract; route coverage verifies rejection without confirmation plus successful confirmation and retained audit behavior.

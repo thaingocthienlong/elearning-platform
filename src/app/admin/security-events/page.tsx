@@ -106,6 +106,8 @@ export default function SecurityEventsPage() {
     try {
       const response = await fetch('/api/admin/security-events', {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: 'FLUSH_SECURITY_EVENTS' }),
       });
 
       if (!response.ok) {
