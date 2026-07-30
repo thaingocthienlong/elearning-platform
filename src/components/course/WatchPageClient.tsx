@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import VideoSidebarWrapper from '@/components/course/VideoSidebarWrapper';
-import { toast } from 'sonner';
 
 import PlayerLoading from '@/components/video/PlayerLoading';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,7 +12,6 @@ const DRMPlayerWrapper = dynamic(() => import('@/components/video/DRMPlayerWrapp
     loading: () => <PlayerLoading />
 });
 import BrowserBanner from '@/components/BrowserBanner';
-import IPRConsentOverlay from '@/components/course/IPRConsentOverlay';
 import { useSessionValidator } from '@/hooks/useSessionValidator';
 import ChatLogViewer from '@/components/course/ChatLogViewer';
 import { Badge } from '@/components/ui/badge';
@@ -58,7 +56,6 @@ export default function WatchPageClient({
     chatLog,
 }: WatchPageClientProps & { chatLog?: any }) {
     const { t } = useLanguage();
-    const [isIPRAccepted, setIsIPRAccepted] = useState(false);
     const playbackSources = useMemo(() =>
         selectWatchPlaybackSources({
             userAgent: typeof navigator === 'undefined' ? '' : navigator.userAgent,
@@ -106,43 +103,24 @@ export default function WatchPageClient({
                             </div>
                         )}
 
-                        {/* IPR Overlay or Player */}
-                        {!isIPRAccepted ? (
-                            <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black shadow-xl">
-                                <IPRConsentOverlay onAccept={() => {
-                                    setIsIPRAccepted(true);
-                                    // Warn iOS Safari users
-                                    const ua = navigator.userAgent;
-                                    const isIOS = /iPhone|iPad|iPod/.test(ua);
-                                    const isSafari = /Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua);
-                                    if (isIOS && isSafari) {
-                                        toast.warning(t('iosSafariWarning'), {
-                                            duration: 6000,
-                                        });
-                                    }
-                                }} />
+                        <>
+                            <DRMPlayerWrapper
+                                dashUrl={playbackSources.dashUrl}
+                                hlsUrl={playbackSources.hlsUrl}
+                                drmToken={playbackSources.drmToken}
+                                videoId={videoId}
+                                viewCount={viewCount}
+                                viewLimit={viewLimit}
+                                watermarkText={watermarkText}
+                                requireHD={false}
+                                isClearHlsFallback={playbackSources.isClearHlsFallback}
+                                isFairPlayConfigured={isFairPlayConfigured}
+                                onFullscreenChange={setIsVideoFullscreen}
+                            />
+                            <div className="rounded-lg border border-border bg-card p-4 shadow-none">
+                                <ChatLogViewer chatLog={chatLog} />
                             </div>
-                        ) : (
-                            <>
-                                <DRMPlayerWrapper
-                                    dashUrl={playbackSources.dashUrl}
-                                    hlsUrl={playbackSources.hlsUrl}
-                                    drmToken={playbackSources.drmToken}
-                                    videoId={videoId}
-                                    viewCount={viewCount}
-                                    viewLimit={viewLimit}
-                                    watermarkText={watermarkText}
-                                    requireHD={false}
-                                    isClearHlsFallback={playbackSources.isClearHlsFallback}
-                                    isFairPlayConfigured={isFairPlayConfigured}
-                                    onFullscreenChange={setIsVideoFullscreen}
-                                />
-                                {/* Chat Log Viewer */}
-                                <div className="rounded-lg border border-border bg-card p-4 shadow-none">
-                                    <ChatLogViewer chatLog={chatLog} />
-                                </div>
-                            </>
-                        )}
+                        </>
                     </div>
                 </div>
 
