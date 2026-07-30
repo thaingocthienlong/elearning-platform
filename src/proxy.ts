@@ -138,6 +138,7 @@ export async function proxy(req: NextRequest) {
   }
 
   if (isTosProtectedApi && !sessionToken) {
+    // Downstream API auth owns the unauthenticated response before TOS applies.
     return NextResponse.next();
   }
 

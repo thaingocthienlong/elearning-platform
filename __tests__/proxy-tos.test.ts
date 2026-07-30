@@ -61,6 +61,22 @@ describe('Proxy TOS gate', () => {
     },
   );
 
+  test('keeps the existing sign-in redirect for an unauthenticated DRM request', async () => {
+    const response = await proxy(request('/api/drm/token', ''));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toContain('/api/auth/signin');
+    expect(response.headers.get('location')).toContain('callbackUrl=%2Fapi%2Fdrm%2Ftoken');
+    expect(mockedVerify).not.toHaveBeenCalled();
+  });
+
+  test('passes an unauthenticated Zoom request to its underlying API auth boundary', async () => {
+    const response = await proxy(request('/api/zoom/signature', ''));
+
+    expect(response.headers.get('x-middleware-next')).toBe('1');
+    expect(mockedVerify).not.toHaveBeenCalled();
+  });
+
   test('passes a valid session-bound acceptance cookie', async () => {
     mockedVerify.mockResolvedValue(true);
     const response = await proxy(
@@ -70,6 +86,18 @@ describe('Proxy TOS gate', () => {
     expect(response.headers.get('x-middleware-next')).toBe('1');
     expect(mockedVerify).toHaveBeenCalledWith(
       'accept-A',
+      'session-A',
+      'test-only-secret',
+    );
+  });
+
+  test('continues TOS verification when Redis is unavailable', async () => {
+    mockedGetRedisClient.mockReturnValue(null);
+
+    await proxy(request('/courses'));
+
+    expect(mockedVerify).toHaveBeenCalledWith(
+      undefined,
       'session-A',
       'test-only-secret',
     );
