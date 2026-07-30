@@ -101,6 +101,22 @@ describe('media route entitlement adoption', () => {
     expect(mockedCreateTencentDrmToken).not.toHaveBeenCalled();
   });
 
+  test('DRM token route keeps unauthenticated entitlement mapping without TOS lookup', async () => {
+    mockedGetServerSession.mockResolvedValue(null);
+    mockedEvaluate.mockResolvedValue({
+      allowed: false,
+      code: 'UNAUTHENTICATED',
+    });
+
+    const response = await drmTokenPost(jsonRequest({ videoId: 'video-1' }));
+
+    expect(response.status).toBe(401);
+    expect(mockedEvaluate).toHaveBeenCalledWith(
+      expect.objectContaining({ session: null, videoId: 'video-1', checkViewLimit: true }),
+    );
+    expect(mockedHasTosAccess).not.toHaveBeenCalled();
+  });
+
   test('DRM token route denies expired access before signing a token', async () => {
     mockedEvaluate.mockResolvedValue({
       allowed: false,
