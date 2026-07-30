@@ -69,6 +69,22 @@ describe('Proxy TOS gate', () => {
     },
   );
 
+  test('keeps the existing revoked-session redirect for DRM', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    mockedGetRedisClient.mockReturnValue({
+      get: jest.fn(async (key: string) =>
+        key.startsWith('session_revoked:') ? 'true' : null,
+      ),
+    });
+
+    const response = await proxy(request('/api/drm/token'));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toContain('error=SessionRevoked');
+    expect(mockedVerify).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
   test('passes a valid session-bound acceptance cookie', async () => {
     mockedVerify.mockResolvedValue(true);
     const response = await proxy(

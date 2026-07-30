@@ -106,11 +106,6 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // Route auth validates database sessions before its TOS guard runs.
-  if (isTosProtectedApi) {
-    return NextResponse.next();
-  }
-
   const usesExistingSessionGate =
     path.startsWith('/admin') ||
     path.startsWith('/api/drm') ||
@@ -120,25 +115,32 @@ export async function proxy(req: NextRequest) {
 
   if (usesExistingSessionGate) {
     if (!sessionToken) {
-      const signInUrl = new URL('/api/auth/signin', req.url);
-      signInUrl.searchParams.set('callbackUrl', path);
-      return NextResponse.redirect(signInUrl);
-    }
-
-    try {
-      const redis = getRedisClient();
-      if (redis) {
-        const isRevoked = await redis.get(`session_revoked:${sessionToken}`);
-        if (isRevoked === 'true') {
-          const signInUrl = new URL('/api/auth/signin', req.url);
-          signInUrl.searchParams.set('error', 'SessionRevoked');
-          signInUrl.searchParams.set('callbackUrl', path);
-          return NextResponse.redirect(signInUrl);
-        }
+      if (!isTosProtectedApi) {
+        const signInUrl = new URL('/api/auth/signin', req.url);
+        signInUrl.searchParams.set('callbackUrl', path);
+        return NextResponse.redirect(signInUrl);
       }
-    } catch (error) {
-      console.error('Proxy session revocation check error:', error);
+    } else {
+      try {
+        const redis = getRedisClient();
+        if (redis) {
+          const isRevoked = await redis.get(`session_revoked:${sessionToken}`);
+          if (isRevoked === 'true') {
+            const signInUrl = new URL('/api/auth/signin', req.url);
+            signInUrl.searchParams.set('error', 'SessionRevoked');
+            signInUrl.searchParams.set('callbackUrl', path);
+            return NextResponse.redirect(signInUrl);
+          }
+        }
+      } catch (error) {
+        console.error('Proxy session revocation check error:', error);
+      }
     }
+  }
+
+  // Route auth validates database sessions before its TOS guard runs.
+  if (isTosProtectedApi) {
+    return NextResponse.next();
   }
 
   if (isTosProtectedPage) {
