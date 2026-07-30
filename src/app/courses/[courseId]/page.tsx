@@ -1,14 +1,19 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import CourseDetailClient from '@/components/course/CourseDetailClient';
+import { requireTosAccess } from '@/lib/tos-access-server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function CoursePage({ params }: { params: Promise<{ courseId: string }> }) {
     const { courseId } = await params;
     const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+        redirect('/auth/signin');
+    }
+    await requireTosAccess();
 
     const { getCached } = await import('@/lib/redis');
 

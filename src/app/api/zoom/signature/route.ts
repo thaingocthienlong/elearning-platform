@@ -3,6 +3,7 @@ import { KJUR } from 'jsrsasign';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { hasTosAccess, tosAcceptanceRequiredResponse } from '@/lib/tos-access-server';
 
 const WATERMARK_SCOPE = 'global';
 
@@ -17,6 +18,10 @@ export async function POST(req: Request) {
                 { error: 'Authentication required' },
                 { status: 401 }
             );
+        }
+
+        if (!(await hasTosAccess())) {
+            return tosAcceptanceRequiredResponse();
         }
 
         const key = process.env.ZOOM_MEETING_SDK_KEY;

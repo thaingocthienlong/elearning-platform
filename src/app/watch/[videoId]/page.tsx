@@ -11,6 +11,7 @@ import {
     createTencentDrmToken,
     createTencentSimpleAesPlaybackUrl,
 } from '@/lib/tencent/vod';
+import { requireTosAccess } from '@/lib/tos-access-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
     if (!session) {
         redirect('/api/auth/signin');
     }
+    await requireTosAccess();
 
     const { videoId } = await params;
 

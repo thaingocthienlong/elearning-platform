@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { POST as zoomSignaturePost } from '@/app/api/zoom/signature/route';
 import { GET as zoomDiagnosticsGet } from '@/app/api/zoom/diagnostics/route';
+import { hasTosAccess } from '@/lib/tos-access-server';
 
 jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
@@ -12,6 +13,13 @@ jest.mock('next-auth', () => ({
 
 jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
   authOptions: {},
+}));
+
+jest.mock('@/lib/tos-access-server', () => ({
+  hasTosAccess: jest.fn(),
+  tosAcceptanceRequiredResponse: jest.fn(() =>
+    Response.json({ code: 'TOS_ACCEPTANCE_REQUIRED' }, { status: 403 }),
+  ),
 }));
 
 jest.mock('@/lib/prisma', () => ({
@@ -26,6 +34,7 @@ jest.mock('@/lib/prisma', () => ({
 }));
 
 const mockedGetServerSession = getServerSession as jest.Mock;
+const mockedHasTosAccess = hasTosAccess as jest.Mock;
 const mockedPrisma = prisma as unknown as {
   allowedEmail: {
     findUnique: jest.Mock;
@@ -63,6 +72,7 @@ describe('Zoom signature route', () => {
     };
     mockedPrisma.allowedEmail.findUnique.mockResolvedValue(null);
     mockedPrisma.watermarkSettings.findUnique.mockResolvedValue(null);
+    mockedHasTosAccess.mockResolvedValue(true);
   });
 
   afterAll(() => {
@@ -76,6 +86,22 @@ describe('Zoom signature route', () => {
 
     expect(response.status).toBe(401);
     expect(mockedPrisma.allowedEmail.findUnique).not.toHaveBeenCalled();
+  });
+
+  test('rejects authenticated requests before config or database work when TOS is missing', async () => {
+    mockedGetServerSession.mockResolvedValue({
+      user: { email: 'learner@example.test', role: 'USER' },
+    });
+    mockedHasTosAccess.mockResolvedValue(false);
+
+    const response = await zoomSignaturePost(request());
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      code: 'TOS_ACCEPTANCE_REQUIRED',
+    });
+    expect(mockedPrisma.allowedEmail.findUnique).not.toHaveBeenCalled();
+    expect(mockedPrisma.watermarkSettings.findUnique).not.toHaveBeenCalled();
   });
 
   test('fails closed when Zoom signing config is missing', async () => {

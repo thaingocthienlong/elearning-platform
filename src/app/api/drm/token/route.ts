@@ -8,6 +8,7 @@ import {
 import { serverLog } from '@/lib/server-log';
 import { createTencentDrmToken, resolveTencentLicenseUrl } from '@/lib/tencent/vod';
 import type { TencentDrmType } from '@/lib/tencent/types';
+import { hasTosAccess, tosAcceptanceRequiredResponse } from '@/lib/tos-access-server';
 
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
@@ -20,6 +21,10 @@ export async function POST(req: Request) {
 
         if (!videoId) {
             return new NextResponse('Invalid request', { status: 400 });
+        }
+
+        if (session && !(await hasTosAccess())) {
+            return tosAcceptanceRequiredResponse();
         }
 
         const entitlement = await evaluateMediaEntitlement({

@@ -11,6 +11,7 @@ import { prisma } from '@/lib/prisma';
 import { POST as drmTokenPost } from '@/app/api/drm/token/route';
 import { POST as drmLicensePost } from '@/app/api/drm/license/route';
 import { POST as heartbeatPost } from '@/app/api/watch/heartbeat/route';
+import { hasTosAccess } from '@/lib/tos-access-server';
 
 jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
@@ -18,6 +19,13 @@ jest.mock('next-auth', () => ({
 
 jest.mock('@/lib/auth', () => ({
   authOptions: {},
+}));
+
+jest.mock('@/lib/tos-access-server', () => ({
+  hasTosAccess: jest.fn(),
+  tosAcceptanceRequiredResponse: jest.fn(() =>
+    Response.json({ code: 'TOS_ACCEPTANCE_REQUIRED' }, { status: 403 }),
+  ),
 }));
 
 jest.mock('@/lib/tencent/vod', () => ({
@@ -50,6 +58,7 @@ jest.mock('@/lib/prisma', () => ({
 const mockedGetServerSession = getServerSession as jest.Mock;
 const mockedEvaluate = evaluateMediaEntitlement as jest.Mock;
 const mockedCreateTencentDrmToken = createTencentDrmToken as jest.Mock;
+const mockedHasTosAccess = hasTosAccess as jest.Mock;
 const mockedPrisma = prisma as unknown as {
   watchRecord: {
     findUnique: jest.Mock;
@@ -76,6 +85,20 @@ describe('media route entitlement adoption', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedGetServerSession.mockResolvedValue(session);
+    mockedHasTosAccess.mockResolvedValue(true);
+  });
+
+  test('DRM token route denies authenticated requests before entitlement when TOS is missing', async () => {
+    mockedHasTosAccess.mockResolvedValue(false);
+
+    const response = await drmTokenPost(jsonRequest({ videoId: 'video-1' }));
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      code: 'TOS_ACCEPTANCE_REQUIRED',
+    });
+    expect(mockedEvaluate).not.toHaveBeenCalled();
+    expect(mockedCreateTencentDrmToken).not.toHaveBeenCalled();
   });
 
   test('DRM token route denies expired access before signing a token', async () => {

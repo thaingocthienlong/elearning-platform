@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import CoursesListClient from '@/components/course/CoursesListClient';
+import { requireTosAccess } from '@/lib/tos-access-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,7 @@ export default async function CoursesPage() {
     if (!session?.user?.email) {
         redirect('/auth/signin');
     }
+    await requireTosAccess();
 
     // Fetch user and courses in parallel
     const user = await prisma.user.findUnique({
