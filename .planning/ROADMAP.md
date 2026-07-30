@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Academic Frontend Redesign** - Existing routes and workflows receive a formal institute-style UI with responsive and screenshot coverage.
 - [x] **Phase 8: Maintainer Operations and Hardening Backlog** - Maintainers have subsystem, upgrade, readiness, and production-hardening guidance after staging readiness.
 - [x] **Phase 9: Tencent-Only Media Platform Migration** - Future incoming courses use Tencent VOD Commercial DRM as the only media upload, processing, DRM, playback, webhook, and deletion path.
-- [ ] **Phase 10: 24-Hour TOS Access Guard** - Authenticated learners must explicitly read and accept the current TOS before course, playback, or meeting access.
+- [x] **Phase 10: 24-Hour TOS Access Guard** - Authenticated learners must explicitly read and accept the current TOS before course, playback, or meeting access.
 
 ## Phase Details
 
@@ -201,7 +201,7 @@ Plans:
   5. Targeted tests, full quality gates, secret scan, and browser smoke pass.
 **Plans**: 1 plan
 Plans:
-- [ ] `docs/superpowers/plans/2026-07-29-tos-access-guard.md` - Signed TOS access guard, consent UI, and verification.
+- [x] `docs/superpowers/plans/2026-07-29-tos-access-guard.md` - Signed TOS access guard, consent UI, and verification.
 
 ## Progress
 
@@ -219,7 +219,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 7. Academic Frontend Redesign | 4/4 | Complete | 2026-05-06 |
 | 8. Maintainer Operations and Hardening Backlog | 4/4 | Complete | 2026-05-06 |
 | 9. Tencent-Only Media Platform Migration | 1/1 | Complete | 2026-07-03 |
-| 10. 24-Hour TOS Access Guard | 0/1 | In Progress | - |
+| 10. 24-Hour TOS Access Guard | 1/1 | Complete | 2026-07-30 |
 
 ## Coverage
 
@@ -307,8 +307,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | TOS-05 | Phase 10 |
 | TOS-06 | Phase 10 |
 
-**Coverage validated:** 81/81 active milestone requirements mapped exactly once; 75 complete and 6 pending.
+**Coverage validated:** 81/81 active milestone requirements mapped exactly once and complete.
 
 ---
 *Roadmap created: 2026-05-05*
-*Last updated: 2026-07-30 for Phase 10 TOS access guard planning*
+*Last updated: 2026-07-30 for Phase 10 TOS access guard closure*

@@ -27,6 +27,7 @@ Maintainers can reliably run, secure, deploy, and evolve the platform without gu
 - Phase 6 Vercel staging runbook, callback/origin contract, env matrix staging notes, and smoke checklist/verifier - validated.
 - Phase 7 formal institute-style frontend treatment for primary user routes, watch shell, meeting states, auth, support shell, navigation, and screenshot checklist - validated.
 - Phase 8 subsystem operations runbooks, vendor upgrade playbooks, health checklist, and prioritized production hardening backlog - validated.
+- Phase 10 24-hour TOS access guard requiring signed, session-bound, HttpOnly browser acceptance before course, playback, or meeting access - validated.
 
 ### Active
 
@@ -41,7 +42,6 @@ Maintainers can reliably run, secure, deploy, and evolve the platform without gu
 - [ ] Reduce duplicated/generated Zoom assets and document the retained source of truth for SDK assets and upgrade procedure.
 - [x] Redesign the frontend into a formal institute/academic style while preserving existing course, watch, admin, meeting, support, and authentication workflows.
 - [ ] Improve database performance by optimizing the current Prisma/MongoDB implementation first: profile query hotspots, fix redundant queries, add indexes where needed, limit broad admin reads, and cache read-heavy summaries.
-- [ ] Require authenticated learners to accept the current TOS before course, playback, or meeting access, using a signed session-bound browser cookie that expires within 24 hours.
 - [ ] Evaluate database migration only if profiling shows the current database is the bottleneck or staging requirements cannot be met safely with MongoDB.
 - [x] Prepare a staging deployment path, including Vercel configuration, required external services, environment variables, smoke tests, and access expectations.
 

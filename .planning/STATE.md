@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-06)
+See: .planning/PROJECT.md (updated 2026-07-30)
 
 **Core value:** Maintainers can reliably run, secure, deploy, and evolve the platform without guessing how its DRM, Zoom, database, authentication, and streaming flows fit together.
-**Current focus:** Phase 10 - 24-Hour TOS Access Guard
+**Current focus:** Phase 10 - 24-Hour TOS Access Guard complete
 
 ## Current Position
 
 Phase: 10 of 10 (24-Hour TOS Access Guard)
 Plan: docs/superpowers/plans/2026-07-29-tos-access-guard.md
-Status: Implementation and automated, desktop, and mobile deny/UI smoke verified; authenticated allow-path proof pending.
-Last activity: 2026-07-30 - Implemented Phase 10 and verified automated plus desktop/mobile deny/UI smoke paths.
+Status: Complete locally; live provider smoke remains governed by existing credential availability.
+Last activity: 2026-07-30 - Closed Phase 10 after automated, browser-authenticated, and scoped security verification.
 
-Progress: [#########-] 90%
+Progress: [##########] 100%
 
 ## Performance Metrics
 
@@ -38,7 +38,7 @@ Progress: [#########-] 90%
 
 **Recent Trend:**
 - Last 5 plans: 07-04, 08-01, 08-02, 08-03, 08-04
-- Trend: Phase 10 verification pending authenticated browser allow-path evidence.
+- Trend: Phase 10 closed locally; external-provider certification remains credential-governed.
 
 *Updated after each plan completion*
 
@@ -84,7 +84,7 @@ Recent decisions affecting current work:
 - [Phase 7]: Automated screenshot capture is blocked until Playwright or equivalent browser automation tooling is installed/configured.
 - [Phase 8]: Production hardening P0 items remain open by design: strict CI secret scanning, credential rotation decisions, durable video processing orchestration, backup/restore drills, and incident response.
 - [Phase 9]: Local Tencent-only migration is complete; live Tencent API checks and browser playback smoke require Tencent credentials, console templates, webhook URL, and a test video.
-- [Phase 10]: Browser allow, re-entry, and session-change smoke remains blocked: Google-only NextAuth uses Prisma MongoDB database sessions, but no local MongoDB, test auth fixture, or browser storage state exists. Resume with checklist items 6-9 using a valid authenticated local/staging session, then close GSD.
+- [Phase 10]: Local TOS completion is verified with a database-backed test session and local test-only Zoom/Redis mocks. This does not certify real Zoom, Tencent, or other live-provider behavior; those checks remain governed by the existing credential and service-access blockers.
 - [Quality]: `npm run lint` passes with inherited warnings; later phases should retire warnings as touched code is hardened.
 - [Tooling]: `gsd-sdk` was not available on PATH during Phase 1 verification, so Markdown tracking files were updated directly.
 
@@ -100,6 +100,6 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-07-30
-Stopped at: Phase 10 authenticated browser allow-path verification.
-Resume: Run checklist items 6-9 with a valid authenticated local/staging session, then close GSD.
+Stopped at: Phase 10 closed locally.
+Resume: No Phase 10 work remains. Run real Zoom, Tencent, and other live-provider certification only when existing credentials and test resources are available.
 Resume file: docs/superpowers/plans/2026-07-29-tos-access-guard.md
