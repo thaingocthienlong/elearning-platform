@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-05-06)
 
 Phase: 10 of 10 (24-Hour TOS Access Guard)
 Plan: docs/superpowers/plans/2026-07-29-tos-access-guard.md
-Status: Planned; implementation in progress.
-Last activity: 2026-07-30 - Registered Phase 10 and started implementation.
+Status: Implementation and automated, desktop, and mobile deny/UI smoke verified; authenticated allow-path proof pending.
+Last activity: 2026-07-30 - Implemented Phase 10 and verified automated plus desktop/mobile deny/UI smoke paths.
 
 Progress: [#########-] 90%
 
@@ -84,6 +84,7 @@ Recent decisions affecting current work:
 - [Phase 7]: Automated screenshot capture is blocked until Playwright or equivalent browser automation tooling is installed/configured.
 - [Phase 8]: Production hardening P0 items remain open by design: strict CI secret scanning, credential rotation decisions, durable video processing orchestration, backup/restore drills, and incident response.
 - [Phase 9]: Local Tencent-only migration is complete; live Tencent API checks and browser playback smoke require Tencent credentials, console templates, webhook URL, and a test video.
+- [Phase 10]: Browser allow, re-entry, and session-change smoke remains blocked: Google-only NextAuth uses Prisma MongoDB database sessions, but no local MongoDB, test auth fixture, or browser storage state exists. Resume with checklist items 6-9 using a valid authenticated local/staging session, then close GSD.
 - [Quality]: `npm run lint` passes with inherited warnings; later phases should retire warnings as touched code is hardened.
 - [Tooling]: `gsd-sdk` was not available on PATH during Phase 1 verification, so Markdown tracking files were updated directly.
 
@@ -98,6 +99,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-11
-Stopped at: Phase 7 UI-SPEC approved after DESIGN.md re-baseline.
-Resume file: .planning/phases/07-academic-frontend-redesign/UI-SPEC.md
+Last session: 2026-07-30
+Stopped at: Phase 10 authenticated browser allow-path verification.
+Resume: Run checklist items 6-9 with a valid authenticated local/staging session, then close GSD.
+Resume file: docs/superpowers/plans/2026-07-29-tos-access-guard.md
