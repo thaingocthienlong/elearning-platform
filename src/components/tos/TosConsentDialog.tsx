@@ -115,6 +115,16 @@ export default function TosConsentDialog({
           aria-label={t('tosScrollRegionLabel')}
           tabIndex={0}
           className="h-[min(48vh,28rem)] rounded-md border"
+          onKeyDown={(event) => {
+            if (event.key !== 'End') return;
+            const viewport = scrollAreaRef.current?.querySelector<HTMLElement>(
+              '[data-radix-scroll-area-viewport]',
+            );
+            if (!viewport) return;
+            event.preventDefault();
+            viewport.scrollTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+            markReadAtEnd(viewport);
+          }}
           onScrollCapture={(event) => {
             if (event.target instanceof HTMLElement) markReadAtEnd(event.target);
           }}

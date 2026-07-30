@@ -74,6 +74,18 @@ describe('TosConsentDialog', () => {
     expect(screen.getByRole('button', { name: 'tosAgree' })).toBeEnabled();
   });
 
+  test('scrolls the viewport to the end when the focused region receives End', () => {
+    render(<TosConsentDialog />);
+    const region = screen.getByRole('region', { name: 'tosScrollRegionLabel' });
+    const viewport = region.querySelector<HTMLElement>('[data-radix-scroll-area-viewport]')!;
+    finishMeasurement(viewport, { scrollHeight: 600, clientHeight: 200 });
+
+    fireEvent.keyDown(region, { key: 'End' });
+
+    expect(viewport.scrollTop).toBe(400);
+    expect(screen.getByRole('checkbox', { name: 'tosConfirmation' })).toBeEnabled();
+  });
+
   test('unlocks confirmation when all content fits without scrolling', () => {
     render(<TosConsentDialog />);
     const region = screen.getByRole('region', { name: 'tosScrollRegionLabel' });
