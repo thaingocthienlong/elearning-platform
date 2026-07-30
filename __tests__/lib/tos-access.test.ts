@@ -1,5 +1,8 @@
 /** @jest-environment node */
 import {
+  TOS_MAX_SESSION_TOKEN_LENGTH,
+  TOS_MAX_PAYLOAD_LENGTH,
+  TOS_MAX_TOKEN_LENGTH,
   TOS_TTL_SECONDS,
   TOS_VERSION,
   createTosAccessToken,
@@ -100,6 +103,28 @@ describe('TOS access token', () => {
     ['a.b', SESSION, undefined],
   ])('fails closed for missing or malformed inputs', async (token, session, secret) => {
     await expect(verifyTosAccessToken(token, session, secret, NOW)).resolves.toBe(false);
+  });
+
+  test('fails closed for oversized cookie and session inputs', async () => {
+    const valid = await createTosAccessToken(SESSION, SECRET, NOW);
+    const oversizedToken = `${valid}${'a'.repeat(TOS_MAX_TOKEN_LENGTH)}`;
+    const oversizedSession = 's'.repeat(TOS_MAX_SESSION_TOKEN_LENGTH + 1);
+
+    await expect(verifyTosAccessToken(oversizedToken, SESSION, SECRET, NOW)).resolves.toBe(false);
+    await expect(verifyTosAccessToken(valid, oversizedSession, SECRET, NOW)).resolves.toBe(false);
+    await expect(createTosAccessToken(oversizedSession, SECRET, NOW)).rejects.toThrow();
+  });
+
+  test('fails closed for an oversized encoded payload', async () => {
+    const digest = await crypto.subtle.digest('SHA-256', encoder.encode(SESSION));
+    const token = await signPayload({
+      version: TOS_VERSION,
+      expiresAt: NOW + 1_000,
+      sessionHash: base64url(new Uint8Array(digest)),
+      padding: 'x'.repeat(TOS_MAX_PAYLOAD_LENGTH),
+    });
+
+    await expect(verifyTosAccessToken(token, SESSION, SECRET, NOW)).resolves.toBe(false);
   });
 
   test('stores only a session hash, never the raw session or email', async () => {

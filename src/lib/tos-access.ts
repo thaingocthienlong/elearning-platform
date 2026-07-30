@@ -2,6 +2,10 @@ export const TOS_COOKIE_NAME = 'tos_access';
 export const TOS_REQUIRED_CODE = 'TOS_ACCEPTANCE_REQUIRED';
 export const TOS_VERSION = '2026-07-29';
 export const TOS_TTL_SECONDS = 86_400;
+export const TOS_MAX_TOKEN_LENGTH = 2_048;
+export const TOS_MAX_SESSION_TOKEN_LENGTH = 512;
+export const TOS_MAX_PAYLOAD_LENGTH = 1_024;
+export const TOS_MAX_SIGNATURE_LENGTH = 512;
 
 export const NEXTAUTH_SESSION_COOKIE_NAMES = [
   '__Secure-next-auth.session-token',
@@ -63,7 +67,7 @@ export async function createTosAccessToken(
   secret: string,
   nowMs = Date.now(),
 ): Promise<string> {
-  if (!sessionToken || !secret) {
+  if (!sessionToken || !secret || sessionToken.length > TOS_MAX_SESSION_TOKEN_LENGTH) {
     throw new Error('TOS signing inputs are missing');
   }
 
@@ -89,13 +93,23 @@ export async function verifyTosAccessToken(
   secret: string | undefined,
   nowMs = Date.now(),
 ): Promise<boolean> {
-  if (!token || !sessionToken || !secret) return false;
+  if (
+    !token ||
+    !sessionToken ||
+    !secret ||
+    token.length > TOS_MAX_TOKEN_LENGTH ||
+    sessionToken.length > TOS_MAX_SESSION_TOKEN_LENGTH
+  ) return false;
 
   try {
     const parts = token.split('.');
     if (parts.length !== 2 || !parts[0] || !parts[1]) return false;
 
     const [encodedPayload, encodedSignature] = parts;
+    if (
+      encodedPayload.length > TOS_MAX_PAYLOAD_LENGTH ||
+      encodedSignature.length > TOS_MAX_SIGNATURE_LENGTH
+    ) return false;
     const key = await importHmacKey(secret, ['verify']);
     const signatureValid = await crypto.subtle.verify(
       'HMAC',
