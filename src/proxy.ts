@@ -2,8 +2,22 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { getRedisClient } from '@/lib/redis';
+import {
+  TOS_COOKIE_NAME,
+  TOS_REQUIRED_CODE,
+  readSessionToken,
+  verifyTosAccessToken,
+} from '@/lib/tos-access';
 
 let ratelimit: Ratelimit | null = null;
+
+const TOS_PAGE_PREFIXES = ['/courses', '/watch', '/meeting'] as const;
+const TOS_API_PATHS = new Set(['/api/drm/token', '/api/zoom/signature']);
+const TOS_BYPASS_PREFIXES = ['/tos-approval', '/api/tos/accept', '/api/auth', '/_next'] as const;
+
+function isPathOrChild(path: string, prefix: string): boolean {
+  return path === prefix || path.startsWith(`${prefix}/`);
+}
 
 function getRateLimiter() {
   const redis = getRedisClient();
@@ -22,6 +36,10 @@ function getRateLimiter() {
 
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
+  const bypassesTos = TOS_BYPASS_PREFIXES.some((prefix) => isPathOrChild(path, prefix));
+  const isTosProtectedPage = !bypassesTos &&
+    TOS_PAGE_PREFIXES.some((prefix) => isPathOrChild(path, prefix));
+  const isTosProtectedApi = !bypassesTos && TOS_API_PATHS.has(path);
   // console.log(`Middleware Global Debug: Request for ${path}`);
 
 
@@ -89,46 +107,58 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // Protected paths
-  if (path.startsWith('/admin') || path.startsWith('/api/drm') || path.startsWith('/meeting')) {
-    // For database sessions, we need to check the session cookie
-    const sessionToken = req.cookies.get('next-auth.session-token')?.value ||
-      req.cookies.get('__Secure-next-auth.session-token')?.value;
+  const usesExistingSessionGate =
+    path.startsWith('/admin') ||
+    path.startsWith('/api/drm') ||
+    isPathOrChild(path, '/meeting') ||
+    isTosProtectedPage;
+  const sessionToken = readSessionToken(req.cookies);
 
+  if (usesExistingSessionGate) {
     if (!sessionToken) {
-      // No session cookie, redirect to signin
       const signInUrl = new URL('/api/auth/signin', req.url);
       signInUrl.searchParams.set('callbackUrl', path);
       return NextResponse.redirect(signInUrl);
     }
 
-    // Check if session has been revoked (cached in Redis for fast lookup)
-    // This prevents revoked sessions from accessing protected routes until cookie expires
     try {
       const redis = getRedisClient();
-      if (!redis) {
-        return NextResponse.next();
-      }
-
-      const revokedKey = `session_revoked:${sessionToken}`;
-      const isRevoked = await redis.get(revokedKey);
-
-      if (isRevoked === 'true') {
-        // Session was explicitly revoked by admin, redirect to signin with error
-        const signInUrl = new URL('/api/auth/signin', req.url);
-        signInUrl.searchParams.set('error', 'SessionRevoked');
-        signInUrl.searchParams.set('callbackUrl', path);
-        return NextResponse.redirect(signInUrl);
+      if (redis) {
+        const isRevoked = await redis.get(`session_revoked:${sessionToken}`);
+        if (isRevoked === 'true') {
+          const signInUrl = new URL('/api/auth/signin', req.url);
+          signInUrl.searchParams.set('error', 'SessionRevoked');
+          signInUrl.searchParams.set('callbackUrl', path);
+          return NextResponse.redirect(signInUrl);
+        }
       }
     } catch (error) {
-      // Fail open if Redis is unavailable - server-side getServerSession will validate
-      // This ensures the app remains functional even if cache is down
       console.error('Proxy session revocation check error:', error);
     }
+  }
 
-    // Session cookie exists and not revoked, allow the request to proceed
-    // The actual role check and full validation will happen server-side
+  if (isTosProtectedApi && !sessionToken) {
     return NextResponse.next();
+  }
+
+  if (isTosProtectedPage || isTosProtectedApi) {
+    const acceptanceToken = req.cookies.get(TOS_COOKIE_NAME)?.value;
+    const accepted = await verifyTosAccessToken(
+      acceptanceToken,
+      sessionToken,
+      process.env.NEXTAUTH_SECRET,
+    );
+
+    if (!accepted) {
+      const response = isTosProtectedApi
+        ? NextResponse.json({ code: TOS_REQUIRED_CODE }, { status: 403 })
+        : NextResponse.rewrite(new URL('/tos-approval', req.url));
+
+      if (acceptanceToken) {
+        response.cookies.delete(TOS_COOKIE_NAME);
+      }
+      return response;
+    }
   }
 
   return NextResponse.next();
