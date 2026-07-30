@@ -41,6 +41,7 @@ Maintainers can reliably run, secure, deploy, and evolve the platform without gu
 - [ ] Reduce duplicated/generated Zoom assets and document the retained source of truth for SDK assets and upgrade procedure.
 - [x] Redesign the frontend into a formal institute/academic style while preserving existing course, watch, admin, meeting, support, and authentication workflows.
 - [ ] Improve database performance by optimizing the current Prisma/MongoDB implementation first: profile query hotspots, fix redundant queries, add indexes where needed, limit broad admin reads, and cache read-heavy summaries.
+- [ ] Require authenticated learners to accept the current TOS before course, playback, or meeting access, using a signed session-bound browser cookie that expires within 24 hours.
 - [ ] Evaluate database migration only if profiling shows the current database is the bottleneck or staging requirements cannot be met safely with MongoDB.
 - [x] Prepare a staging deployment path, including Vercel configuration, required external services, environment variables, smoke tests, and access expectations.
 
@@ -115,6 +116,7 @@ Historically, Axinom was central to the v1 rescue milestone. The current Tencent
 | Redesign primary user surfaces before deep admin UI | Phase 7 user choice prioritized home, courses, course detail, watch, meeting, support/auth, while preserving dense admin behavior through shared tokens/nav. | Accepted in Phase 7 |
 | Capture production hardening separately from staging readiness | Phase 8 records production launch blockers as P0/P1/P2 backlog items rather than claiming v1 production certification. | Accepted in Phase 8 |
 | Replace Axinom with Tencent for future courses | User confirmed old courses/videos no longer need support and incoming courses are the target. Keeping Axinom fallback would add risk and maintenance cost. | Accepted for Tencent migration milestone |
+| Use a signed session-bound HttpOnly cookie for TOS acceptance | Browser-and-session scope needs no database, Redis key, or cross-device history; native Web Crypto supplies tamper resistance. | Accepted for Phase 10 |
 
 ## Evolution
 
@@ -134,4 +136,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state.
 
 ---
-*Last updated: 2026-07-02 for Tencent-only media migration*
+*Last updated: 2026-07-30 for Phase 10 TOS access guard planning*

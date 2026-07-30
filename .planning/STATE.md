@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** Maintainers can reliably run, secure, deploy, and evolve the platform without guessing how its DRM, Zoom, database, authentication, and streaming flows fit together.
-**Current focus:** Phase 9 - Tencent-only media migration for future incoming courses
+**Current focus:** Phase 10 - 24-Hour TOS Access Guard
 
 ## Current Position
 
-Phase: 9 of 9 (Tencent-Only Media Platform Migration)
-Plan: 2026-07-02-tencent-only-migration.md
-Status: Complete locally; live Tencent staging checks remain deferred until credentials, console setup, and test media exist.
-Last activity: 2026-07-03 - Tencent-only media migration implemented, verified locally, old media rows exported, and handoff written.
+Phase: 10 of 10 (24-Hour TOS Access Guard)
+Plan: docs/superpowers/plans/2026-07-29-tos-access-guard.md
+Status: Planned; implementation in progress.
+Last activity: 2026-07-30 - Approved design and implementation plan created.
 
-Progress: [##########] 100%
+Progress: [#########-] 90%
 
 ## Performance Metrics
 
@@ -70,6 +70,7 @@ Recent decisions affecting current work:
 - [Phase 8]: Production launch blockers are tracked separately in `docs/operations/hardening-backlog.md`; v1 completion means staging-ready rescue baseline, not production certification.
 - [Phase 9]: Future incoming courses use Tencent VOD Commercial DRM as the only media provider; old Axinom videos are not supported after cutover.
 - [Phase 9]: Export old media rows before any cleanup and do not delete external provider assets without explicit user confirmation.
+- [Phase 10]: Use a signed session-bound HttpOnly cookie for TOS acceptance; browser-and-session scope needs no database, Redis key, or cross-device history, and native Web Crypto supplies tamper resistance.
 
 ### Pending Todos
 

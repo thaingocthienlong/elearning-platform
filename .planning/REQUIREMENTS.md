@@ -112,6 +112,17 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 - [x] **TENCENT-08**: Admin delete marks videos safely and requests Tencent media deletion only after provider confirmation.
 - [x] **TENCENT-09**: Verification covers unit tests, route tests, Tencent setup checks, build, and staging smoke.
 
+## Phase 10 Requirements
+
+### 24-Hour TOS Access Guard
+
+- [ ] **TOS-01**: A protected page cannot render until the authenticated user scrolls through the current TOS, checks the confirmation, and agrees.
+- [ ] **TOS-02**: Acceptance is stored in a signed, session-bound, HttpOnly cookie with a hard 24-hour lifetime.
+- [ ] **TOS-03**: `/courses/**`, `/watch/**`, and `/meeting/**` reject missing, expired, mismatched, or tampered acceptance.
+- [ ] **TOS-04**: DRM-token and Zoom-signature issuance independently reject requests without valid acceptance.
+- [ ] **TOS-05**: The consent dialog is accessible, cannot be dismissed into protected content, supports explicit refusal, and reports submission errors without granting access.
+- [ ] **TOS-06**: Unit, route, proxy, component, build, security-scan, and browser-smoke verification cover allow and deny paths.
+
 ## v2 Requirements
 
 Deferred to future milestones after staging readiness.
@@ -218,12 +229,29 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 | OPS-03 | Phase 8 | Complete |
 | OPS-04 | Phase 8 | Complete |
 | OPS-05 | Phase 8 | Complete |
+| TENCENT-01 | Phase 9 | Complete |
+| TENCENT-02 | Phase 9 | Complete |
+| TENCENT-03 | Phase 9 | Complete |
+| TENCENT-04 | Phase 9 | Complete |
+| TENCENT-05 | Phase 9 | Complete |
+| TENCENT-06 | Phase 9 | Complete |
+| TENCENT-07 | Phase 9 | Complete |
+| TENCENT-08 | Phase 9 | Complete |
+| TENCENT-09 | Phase 9 | Complete |
+| TOS-01 | Phase 10 | Pending |
+| TOS-02 | Phase 10 | Pending |
+| TOS-03 | Phase 10 | Pending |
+| TOS-04 | Phase 10 | Pending |
+| TOS-05 | Phase 10 | Pending |
+| TOS-06 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 66 total
-- Mapped to phases: 66
+- Active milestone requirements: 81 total
+- Complete: 75
+- Pending: 6
+- Mapped to phases: 81
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-06 after Phase 8 verification*
+*Last updated: 2026-07-30 for Phase 10 TOS access guard planning*
