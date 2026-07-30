@@ -4,7 +4,6 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { getRedisClient } from '@/lib/redis';
 import {
   TOS_COOKIE_NAME,
-  TOS_REQUIRED_CODE,
   readSessionToken,
   verifyTosAccessToken,
 } from '@/lib/tos-access';
@@ -107,6 +106,11 @@ export async function proxy(req: NextRequest) {
     }
   }
 
+  // Route auth validates database sessions before its TOS guard runs.
+  if (isTosProtectedApi) {
+    return NextResponse.next();
+  }
+
   const usesExistingSessionGate =
     path.startsWith('/admin') ||
     path.startsWith('/api/drm') ||
@@ -137,12 +141,7 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  if (isTosProtectedApi && !sessionToken) {
-    // Downstream API auth owns the unauthenticated response before TOS applies.
-    return NextResponse.next();
-  }
-
-  if (isTosProtectedPage || isTosProtectedApi) {
+  if (isTosProtectedPage) {
     const acceptanceToken = req.cookies.get(TOS_COOKIE_NAME)?.value;
     const accepted = await verifyTosAccessToken(
       acceptanceToken,
@@ -151,9 +150,7 @@ export async function proxy(req: NextRequest) {
     );
 
     if (!accepted) {
-      const response = isTosProtectedApi
-        ? NextResponse.json({ code: TOS_REQUIRED_CODE }, { status: 403 })
-        : NextResponse.rewrite(new URL('/tos-approval', req.url));
+      const response = NextResponse.rewrite(new URL('/tos-approval', req.url));
 
       if (acceptanceToken) {
         response.cookies.delete(TOS_COOKIE_NAME);

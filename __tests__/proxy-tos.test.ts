@@ -50,32 +50,24 @@ describe('Proxy TOS gate', () => {
   );
 
   test.each(['/api/drm/token', '/api/zoom/signature'])(
-    'returns JSON 403 for protected API %s',
+    'passes stale session cookies for protected API %s to route authentication',
     async (path) => {
-      const response = await proxy(request(path));
-      expect(response.status).toBe(403);
-      await expect(response.json()).resolves.toEqual({
-        code: 'TOS_ACCEPTANCE_REQUIRED',
-      });
-      expect(response.headers.get('x-middleware-rewrite')).toBeNull();
+      const response = await proxy(request(path, 'next-auth.session-token=stale-or-forged'));
+
+      expect(response.headers.get('x-middleware-next')).toBe('1');
+      expect(mockedVerify).not.toHaveBeenCalled();
     },
   );
 
-  test('keeps the existing sign-in redirect for an unauthenticated DRM request', async () => {
-    const response = await proxy(request('/api/drm/token', ''));
+  test.each(['/api/drm/token', '/api/zoom/signature'])(
+    'passes missing session cookies for protected API %s to route authentication',
+    async (path) => {
+      const response = await proxy(request(path, ''));
 
-    expect(response.status).toBe(307);
-    expect(response.headers.get('location')).toContain('/api/auth/signin');
-    expect(response.headers.get('location')).toContain('callbackUrl=%2Fapi%2Fdrm%2Ftoken');
-    expect(mockedVerify).not.toHaveBeenCalled();
-  });
-
-  test('passes an unauthenticated Zoom request to its underlying API auth boundary', async () => {
-    const response = await proxy(request('/api/zoom/signature', ''));
-
-    expect(response.headers.get('x-middleware-next')).toBe('1');
-    expect(mockedVerify).not.toHaveBeenCalled();
-  });
+      expect(response.headers.get('x-middleware-next')).toBe('1');
+      expect(mockedVerify).not.toHaveBeenCalled();
+    },
+  );
 
   test('passes a valid session-bound acceptance cookie', async () => {
     mockedVerify.mockResolvedValue(true);
