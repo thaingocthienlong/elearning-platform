@@ -27,24 +27,51 @@ export async function GET(request: Request) {
             return new NextResponse('User ID is required', { status: 400 });
         }
 
-        // Fetch enrollments
-        const enrollments = await prisma.enrollment.findMany({
-            where: {
-                userId,
-                isDeleted: false,
-            },
-            select: { courseId: true },
-        });
+        const [enrollments, videoAccess] = await Promise.all([
+            prisma.enrollment.findMany({
+                where: {
+                    userId,
+                    isDeleted: false,
+                },
+                select: { courseId: true },
+            }),
+            prisma.videoAccess.findMany({
+                where: { userId },
+                select: { videoId: true },
+            }),
+        ]);
 
-        // Fetch video access
-        const videoAccess = await prisma.videoAccess.findMany({
-            where: { userId },
-            select: { videoId: true },
-        });
+        const [activeCourses, activeVideos] = await Promise.all([
+            prisma.course.findMany({
+                where: {
+                    id: { in: enrollments.map((enrollment) => enrollment.courseId) },
+                    isDeleted: false,
+                },
+                select: { id: true },
+            }),
+            prisma.video.findMany({
+                where: {
+                    id: { in: videoAccess.map((access) => access.videoId) },
+                    isDeleted: false,
+                },
+                select: { id: true, courseId: true },
+            }),
+        ]);
+
+        const activeCourseIds = new Set(activeCourses.map((course) => course.id));
+        const activeVideoIds = new Set(
+            activeVideos
+                .filter((video) => activeCourseIds.has(video.courseId))
+                .map((video) => video.id)
+        );
 
         return NextResponse.json({
-            enrollments: enrollments.map((e) => e.courseId),
-            videoAccess: videoAccess.map((v) => v.videoId),
+            enrollments: enrollments
+                .map((enrollment) => enrollment.courseId)
+                .filter((courseId) => activeCourseIds.has(courseId)),
+            videoAccess: videoAccess
+                .map((access) => access.videoId)
+                .filter((videoId) => activeVideoIds.has(videoId)),
         });
     } catch (error) {
         console.error('Failed to fetch user permissions:', error);

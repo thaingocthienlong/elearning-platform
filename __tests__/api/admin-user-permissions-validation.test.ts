@@ -3,7 +3,7 @@
  */
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
-import { POST } from '@/app/api/admin/user-permissions/route';
+import { GET, POST } from '@/app/api/admin/user-permissions/route';
 
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/lib/auth', () => ({ authOptions: {} }));
@@ -14,7 +14,7 @@ jest.mock('@/lib/redis', () => ({
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     user: { findFirst: jest.fn() },
-    course: { count: jest.fn() },
+    course: { count: jest.fn(), findMany: jest.fn() },
     video: { findMany: jest.fn() },
     enrollment: { findMany: jest.fn() },
     videoAccess: { findMany: jest.fn() },
@@ -24,13 +24,65 @@ jest.mock('@/lib/prisma', () => ({
 
 const mockedPrisma = prisma as unknown as {
   user: { findFirst: jest.Mock };
-  course: { count: jest.Mock };
+  course: { count: jest.Mock; findMany: jest.Mock };
   video: { findMany: jest.Mock };
+  enrollment: { findMany: jest.Mock };
+  videoAccess: { findMany: jest.Mock };
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
   (getServerSession as jest.Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+});
+
+test('omits permissions that reference inactive or missing courses and videos', async () => {
+  mockedPrisma.enrollment.findMany.mockResolvedValue([
+    { courseId: 'course-active' },
+    { courseId: 'course-orphan' },
+  ]);
+  mockedPrisma.videoAccess.findMany.mockResolvedValue([
+    { videoId: 'video-active' },
+    { videoId: 'video-orphan' },
+  ]);
+  mockedPrisma.course.findMany.mockResolvedValue([{ id: 'course-active' }]);
+  mockedPrisma.video.findMany.mockResolvedValue([
+    { id: 'video-active', courseId: 'course-active' },
+  ]);
+
+  const response = await GET(new Request(
+    'http://localhost.test/api/admin/user-permissions?userId=user-1'
+  ));
+
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({
+    enrollments: ['course-active'],
+    videoAccess: ['video-active'],
+  });
+});
+
+test('omits active video access outside the user active enrollments', async () => {
+  mockedPrisma.enrollment.findMany.mockResolvedValue([
+    { courseId: 'course-active' },
+  ]);
+  mockedPrisma.videoAccess.findMany.mockResolvedValue([
+    { videoId: 'video-active' },
+    { videoId: 'video-outside-enrollment' },
+  ]);
+  mockedPrisma.course.findMany.mockResolvedValue([{ id: 'course-active' }]);
+  mockedPrisma.video.findMany.mockResolvedValue([
+    { id: 'video-active', courseId: 'course-active' },
+    { id: 'video-outside-enrollment', courseId: 'course-other' },
+  ]);
+
+  const response = await GET(new Request(
+    'http://localhost.test/api/admin/user-permissions?userId=user-1'
+  ));
+
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({
+    enrollments: ['course-active'],
+    videoAccess: ['video-active'],
+  });
 });
 
 test('rejects malformed permission arrays before database writes', async () => {
