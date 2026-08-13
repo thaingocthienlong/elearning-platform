@@ -17,12 +17,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { TOS_VERSION } from '@/lib/tos-access';
 
 const SCROLL_END_TOLERANCE_PX = 4;
-const SECTION_KEYS = [
-  ['tosPersonalTitle', 'tosPersonalBody'],
-  ['tosIntellectualPropertyTitle', 'tosIntellectualPropertyBody'],
-  ['tosConductTitle', 'tosConductBody'],
-  ['tosSecurityTitle', 'tosSecurityBody'],
-  ['tosLifetimeTitle', 'tosLifetimeBody'],
+const CONTENT_KEYS = [
+  'tosContentOne',
+  'tosContentTwo',
+  'tosContentThree',
+  'tosContentFour',
 ] as const;
 
 type TosConsentDialogProps = {
@@ -129,14 +128,11 @@ export default function TosConsentDialog({
             if (event.target instanceof HTMLElement) markReadAtEnd(event.target);
           }}
         >
-          <div className="space-y-5 p-4 pr-6 text-sm leading-6">
-            {SECTION_KEYS.map(([titleKey, bodyKey]) => (
-              <section key={titleKey} className="space-y-1">
-                <h2 className="font-semibold text-foreground">{t(titleKey)}</h2>
-                <p className="text-muted-foreground">{t(bodyKey)}</p>
-              </section>
+          <ul className="list-disc space-y-4 p-4 pl-9 pr-6 text-sm leading-6 text-muted-foreground">
+            {CONTENT_KEYS.map((contentKey) => (
+              <li key={contentKey}>{t(contentKey)}</li>
             ))}
-          </div>
+          </ul>
         </ScrollArea>
 
         <p className="text-sm text-muted-foreground" aria-live="polite">

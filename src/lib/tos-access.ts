@@ -1,6 +1,6 @@
 export const TOS_COOKIE_NAME = 'tos_access';
 export const TOS_REQUIRED_CODE = 'TOS_ACCEPTANCE_REQUIRED';
-export const TOS_VERSION = '2026-07-29';
+export const TOS_VERSION = '2026-08-13';
 export const TOS_TTL_SECONDS = 86_400;
 export const TOS_MAX_TOKEN_LENGTH = 2_048;
 export const TOS_MAX_SESSION_TOKEN_LENGTH = 512;

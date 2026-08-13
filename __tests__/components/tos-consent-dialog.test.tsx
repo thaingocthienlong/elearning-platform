@@ -9,7 +9,7 @@ jest.mock('@/contexts/LanguageContext', () => ({
   }),
 }));
 
-jest.mock('@/lib/tos-access', () => ({ TOS_VERSION: '2026-07-29' }));
+jest.mock('@/lib/tos-access', () => ({ TOS_VERSION: '2026-08-13' }));
 
 let frames: FrameRequestCallback[] = [];
 
@@ -133,7 +133,7 @@ describe('TosConsentDialog', () => {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accepted: true, version: '2026-07-29' }),
+      body: JSON.stringify({ accepted: true, version: '2026-08-13' }),
     });
     expect(screen.getByRole('button', { name: 'tosSubmitting' })).toBeDisabled();
 

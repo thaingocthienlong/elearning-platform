@@ -53,6 +53,19 @@ describe('TOS access token', () => {
     ).resolves.toBe(false);
   });
 
+  test('rejects acceptance from the previous TOS version', async () => {
+    const digest = await crypto.subtle.digest('SHA-256', encoder.encode(SESSION));
+    const previousVersionToken = await signPayload({
+      version: '2026-07-29',
+      expiresAt: NOW + 1_000,
+      sessionHash: base64url(new Uint8Array(digest)),
+    });
+
+    await expect(
+      verifyTosAccessToken(previousVersionToken, SESSION, SECRET, NOW),
+    ).resolves.toBe(false);
+  });
+
   test('rejects expired, wrong-version, wrong-session, and overlong tokens', async () => {
     const digest = await crypto.subtle.digest('SHA-256', encoder.encode(SESSION));
     const sessionHash = base64url(new Uint8Array(digest));
