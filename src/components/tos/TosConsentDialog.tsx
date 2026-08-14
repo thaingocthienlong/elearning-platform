@@ -94,7 +94,7 @@ export default function TosConsentDialog({
     <Dialog open>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] gap-4 sm:max-w-2xl"
+        className="max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-[80rem] gap-4 overflow-y-auto p-4 sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100%-2rem)] sm:max-w-[80rem] sm:gap-5 sm:p-6"
         onEscapeKeyDown={(event) => event.preventDefault()}
         onPointerDownOutside={(event) => event.preventDefault()}
       >
@@ -103,9 +103,13 @@ export default function TosConsentDialog({
             <span className="rounded-full bg-red-500/10 p-2 text-red-600">
               <ShieldAlert className="h-5 w-5" aria-hidden="true" />
             </span>
-            <DialogTitle>{t('tosTitle')}</DialogTitle>
+            <DialogTitle className="text-2xl leading-tight sm:text-3xl lg:text-[2.75rem]">
+              {t('tosTitle')}
+            </DialogTitle>
           </div>
-          <DialogDescription>{t('tosDescription')}</DialogDescription>
+          <DialogDescription className="text-base leading-relaxed text-foreground/75 sm:text-lg lg:text-xl">
+            {t('tosDescription')}
+          </DialogDescription>
         </DialogHeader>
 
         <ScrollArea
@@ -113,7 +117,7 @@ export default function TosConsentDialog({
           role="region"
           aria-label={t('tosScrollRegionLabel')}
           tabIndex={0}
-          className="h-[min(48vh,28rem)] rounded-md border"
+          className="h-[min(36dvh,20rem)] rounded-md border sm:h-[min(46dvh,30rem)] lg:h-[min(58dvh,42rem)]"
           onKeyDown={(event) => {
             if (event.key !== 'End') return;
             const viewport = scrollAreaRef.current?.querySelector<HTMLElement>(
@@ -128,40 +132,58 @@ export default function TosConsentDialog({
             if (event.target instanceof HTMLElement) markReadAtEnd(event.target);
           }}
         >
-          <ul className="list-disc space-y-4 p-4 pl-9 pr-6 text-sm leading-6 text-muted-foreground">
+          <ul className="mx-auto max-w-[68ch] list-disc space-y-6 px-6 py-5 pl-10 text-xl leading-[1.55] text-foreground sm:space-y-8 sm:px-8 sm:py-6 sm:pl-12 sm:text-2xl lg:px-10 lg:py-8 lg:pl-16 lg:text-[2.1875rem]">
             {CONTENT_KEYS.map((contentKey) => (
               <li key={contentKey}>{t(contentKey)}</li>
             ))}
           </ul>
         </ScrollArea>
 
-        <p className="text-sm text-muted-foreground" aria-live="polite">
+        <p
+          className="text-base leading-relaxed text-foreground/80 sm:text-lg lg:text-xl"
+          aria-live="polite"
+        >
           {t(hasRead ? 'tosReadComplete' : 'tosReadInstruction')}
         </p>
 
         <div className="flex items-start gap-3">
           <Checkbox
             id="tos-confirmation"
+            className="mt-0.5 size-5 sm:size-6"
             checked={confirmed}
             disabled={!hasRead || submitting}
             onCheckedChange={(checked) => setConfirmed(checked === true)}
           />
-          <label htmlFor="tos-confirmation" className="text-sm leading-5">
+          <label
+            htmlFor="tos-confirmation"
+            className="text-base leading-relaxed text-foreground sm:text-lg lg:text-xl"
+          >
             {t('tosConfirmation')}
           </label>
         </div>
 
         {error && (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="text-base text-destructive sm:text-lg">
             {error}
           </p>
         )}
 
-        <DialogFooter>
-          <Button type="button" variant="outline" disabled={submitting} onClick={onDecline}>
+        <DialogFooter className="gap-2 sm:gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 px-5 text-base sm:h-12 sm:px-6 sm:text-lg"
+            disabled={submitting}
+            onClick={onDecline}
+          >
             {t('tosDecline')}
           </Button>
-          <Button type="button" disabled={!hasRead || !confirmed || submitting} onClick={accept}>
+          <Button
+            type="button"
+            className="h-11 px-5 text-base sm:h-12 sm:px-6 sm:text-lg"
+            disabled={!hasRead || !confirmed || submitting}
+            onClick={accept}
+          >
             {t(submitting ? 'tosSubmitting' : 'tosAgree')}
           </Button>
         </DialogFooter>

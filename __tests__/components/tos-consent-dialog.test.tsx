@@ -56,6 +56,21 @@ describe('TosConsentDialog', () => {
     jest.restoreAllMocks();
   });
 
+  test('renders legal copy as an enlarged high-contrast reading surface', () => {
+    render(<TosConsentDialog />);
+
+    const legalCopy = screen.getByRole('list');
+    expect(legalCopy).toHaveClass(
+      'text-xl',
+      'sm:text-2xl',
+      'lg:text-[2.1875rem]',
+      'leading-[1.55]',
+      'text-foreground',
+    );
+    expect(legalCopy).not.toHaveClass('text-sm', 'text-muted-foreground');
+    expect(screen.getByRole('dialog')).toHaveClass('sm:max-w-[80rem]');
+  });
+
   test('keeps confirmation disabled until overflowing content reaches the end', () => {
     render(<TosConsentDialog />);
     const region = screen.getByRole('region', { name: 'tosScrollRegionLabel' });
