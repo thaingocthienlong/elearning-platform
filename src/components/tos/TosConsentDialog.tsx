@@ -103,11 +103,11 @@ export default function TosConsentDialog({
             <span className="rounded-full bg-red-500/10 p-2 text-red-600">
               <ShieldAlert className="h-5 w-5" aria-hidden="true" />
             </span>
-            <DialogTitle className="text-2xl leading-tight sm:text-3xl lg:text-[2.75rem]">
+            <DialogTitle className="text-2xl leading-tight sm:text-3xl sm:leading-tight lg:text-[2.75rem] lg:leading-tight">
               {t('tosTitle')}
             </DialogTitle>
           </div>
-          <DialogDescription className="text-base leading-relaxed text-foreground/75 sm:text-lg lg:text-xl">
+          <DialogDescription className="text-base leading-relaxed text-foreground/75 sm:text-lg sm:leading-relaxed lg:text-xl lg:leading-relaxed">
             {t('tosDescription')}
           </DialogDescription>
         </DialogHeader>
@@ -132,7 +132,7 @@ export default function TosConsentDialog({
             if (event.target instanceof HTMLElement) markReadAtEnd(event.target);
           }}
         >
-          <ul className="mx-auto max-w-[68ch] list-disc space-y-6 px-6 py-5 pl-10 text-xl leading-[1.55] text-foreground sm:space-y-8 sm:px-8 sm:py-6 sm:pl-12 sm:text-2xl lg:px-10 lg:py-8 lg:pl-16 lg:text-[2.1875rem]">
+          <ul className="mx-auto max-w-[68ch] list-disc space-y-6 px-6 py-5 pl-10 text-xl leading-[1.55] text-foreground sm:space-y-8 sm:px-8 sm:py-6 sm:pl-12 sm:text-2xl sm:leading-[1.55] lg:px-10 lg:py-8 lg:pl-16 lg:text-[2.1875rem] lg:leading-[1.55]">
             {CONTENT_KEYS.map((contentKey) => (
               <li key={contentKey}>{t(contentKey)}</li>
             ))}
@@ -140,7 +140,7 @@ export default function TosConsentDialog({
         </ScrollArea>
 
         <p
-          className="text-base leading-relaxed text-foreground/80 sm:text-lg lg:text-xl"
+          className="text-base leading-relaxed text-foreground/80 sm:text-lg sm:leading-relaxed lg:text-xl lg:leading-relaxed"
           aria-live="polite"
         >
           {t(hasRead ? 'tosReadComplete' : 'tosReadInstruction')}
@@ -156,7 +156,7 @@ export default function TosConsentDialog({
           />
           <label
             htmlFor="tos-confirmation"
-            className="text-base leading-relaxed text-foreground sm:text-lg lg:text-xl"
+            className="text-base leading-relaxed text-foreground sm:text-lg sm:leading-relaxed lg:text-xl lg:leading-relaxed"
           >
             {t('tosConfirmation')}
           </label>

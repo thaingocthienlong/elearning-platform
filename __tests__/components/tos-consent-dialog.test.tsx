@@ -65,10 +65,33 @@ describe('TosConsentDialog', () => {
       'sm:text-2xl',
       'lg:text-[2.1875rem]',
       'leading-[1.55]',
+      'sm:leading-[1.55]',
+      'lg:leading-[1.55]',
       'text-foreground',
     );
     expect(legalCopy).not.toHaveClass('text-sm', 'text-muted-foreground');
     expect(screen.getByRole('dialog')).toHaveClass('sm:max-w-[80rem]');
+
+    expect(screen.getByRole('heading', { name: 'tosTitle' })).toHaveClass(
+      'leading-tight',
+      'sm:leading-tight',
+      'lg:leading-tight',
+    );
+    expect(screen.getByText('tosDescription')).toHaveClass(
+      'leading-relaxed',
+      'sm:leading-relaxed',
+      'lg:leading-relaxed',
+    );
+    expect(screen.getByText('tosReadInstruction')).toHaveClass(
+      'leading-relaxed',
+      'sm:leading-relaxed',
+      'lg:leading-relaxed',
+    );
+    expect(screen.getByText('tosConfirmation')).toHaveClass(
+      'leading-relaxed',
+      'sm:leading-relaxed',
+      'lg:leading-relaxed',
+    );
   });
 
   test('keeps confirmation disabled until overflowing content reaches the end', () => {
