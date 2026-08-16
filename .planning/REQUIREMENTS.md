@@ -123,6 +123,17 @@ Requirements for the rescue and modernization milestone. Each requirement must b
 - [x] **TOS-05**: The consent dialog is accessible, cannot be dismissed into protected content, supports explicit refusal, and reports submission errors without granting access.
 - [x] **TOS-06**: Unit, route, proxy, component, build, security-scan, and browser-smoke verification cover allow and deny paths.
 
+## Phase 10.1 Requirements
+
+### Tencent 720p Cost-Safe Processing
+
+- [ ] **TENCENT-COST-01**: `WV-SAES-V1` contains exactly one custom H.264 720p-capped MultiDRM rendition and one custom H.264 720p-capped SimpleAES rendition, with required audio and no other processing task.
+- [ ] **TENCENT-COST-02**: Upload stores the source without starting processing; only one app-owned route can start paid processing after explicit admin approval.
+- [ ] **TENCENT-COST-03**: The app reads authoritative Tencent duration, dimensions, bitrate, and live profile topology, displays a conservative numeric quote, enforces a hard USD cap, and rejects missing, stale, changed, ineligible, or unconfirmed quotes without a provider call.
+- [ ] **TENCENT-COST-04**: A permanent processing-attempt ledger, atomic local claim, stable Tencent `SessionId`, and read-only reconciliation prevent repeat submissions across concurrency, retries, ambiguous failures, and provider-window expiry.
+- [ ] **TENCENT-COST-05**: Strict live verification uses only Describe APIs, and guarded configuration supports dry-run, explicit apply, non-secret rollback snapshots, exact read-back validation, and no media-processing action.
+- [ ] **TENCENT-COST-06**: Webhook, sync, status, cron, UI, tests, docs, audit fields, and rollout checks enforce the dual-output readiness contract and never automatically reprocess existing media.
+
 ## v2 Requirements
 
 Deferred to future milestones after staging readiness.
@@ -244,14 +255,20 @@ Roadmap-validated mapping. Every v1 requirement maps to exactly one phase.
 | TOS-04 | Phase 10 | Complete |
 | TOS-05 | Phase 10 | Complete |
 | TOS-06 | Phase 10 | Complete |
+| TENCENT-COST-01 | Phase 10.1 | Pending |
+| TENCENT-COST-02 | Phase 10.1 | Pending |
+| TENCENT-COST-03 | Phase 10.1 | Pending |
+| TENCENT-COST-04 | Phase 10.1 | Pending |
+| TENCENT-COST-05 | Phase 10.1 | Pending |
+| TENCENT-COST-06 | Phase 10.1 | Pending |
 
 **Coverage:**
-- Active milestone requirements: 81 total
+- Active milestone requirements: 87 total
 - Complete: 81
-- Pending: 0
-- Mapped to phases: 81
+- Pending: 6
+- Mapped to phases: 87
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-07-30 for Phase 10 TOS access guard closure*
+*Last updated: 2026-08-16 for inserted Phase 10.1 Tencent cost-safety planning*

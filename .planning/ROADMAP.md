@@ -22,6 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: Maintainer Operations and Hardening Backlog** - Maintainers have subsystem, upgrade, readiness, and production-hardening guidance after staging readiness.
 - [x] **Phase 9: Tencent-Only Media Platform Migration** - Future incoming courses use Tencent VOD Commercial DRM as the only media upload, processing, DRM, playback, webhook, and deletion path.
 - [x] **Phase 10: 24-Hour TOS Access Guard** - Authenticated learners must explicitly read and accept the current TOS before course, playback, or meeting access.
+- [ ] **Phase 10.1: Tencent 720p Cost-Safe Processing (INSERTED)** - Paid Tencent work starts once, only after exact live-profile validation, a numeric quote, and explicit admin approval.
 
 ## Phase Details
 
@@ -203,10 +204,24 @@ Plans:
 Plans:
 - [x] `docs/superpowers/plans/2026-07-29-tos-access-guard.md` - Signed TOS access guard, consent UI, and verification.
 
+### Phase 10.1: Tencent 720p Cost-Safe Processing (INSERTED)
+**Goal**: Preserve Widevine and Safari playback while preventing duplicate or unnecessary Tencent VOD processing charges.
+**Depends on**: Phase 10
+**Requirements**: TENCENT-COST-01, TENCENT-COST-02, TENCENT-COST-03, TENCENT-COST-04, TENCENT-COST-05, TENCENT-COST-06
+**Success Criteria** (what must be TRUE):
+  1. `WV-SAES-V1` contains exactly one custom H.264 720p-capped MultiDRM rendition and one custom H.264 720p-capped SimpleAES rendition, with no other processing task.
+  2. Upload alone starts no paid task; an authenticated admin must approve a fresh authoritative duration and maximum-USD quote.
+  3. A permanent local attempt key, atomic claim, and stable Tencent `SessionId` prevent duplicate processing across concurrency, retries, crashes, and provider-window expiry.
+  4. Webhook, sync, status, and cron publish only when both expected definition IDs pass the shared dual-output readiness contract.
+  5. Live verification is Describe-only, configuration is guarded and rollbackable, and no existing FileId is processed during implementation or deployment.
+**Plans**: 1 plan
+Plans:
+- [ ] `docs/superpowers/plans/2026-08-16-tencent-720p-cost-safety.md` - Exact 720p topology, one-shot approval flow, readiness, tooling, and rollout verification.
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 10.1
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -220,6 +235,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 8. Maintainer Operations and Hardening Backlog | 4/4 | Complete | 2026-05-06 |
 | 9. Tencent-Only Media Platform Migration | 1/1 | Complete | 2026-07-03 |
 | 10. 24-Hour TOS Access Guard | 1/1 | Complete | 2026-07-30 |
+| 10.1. Tencent 720p Cost-Safe Processing | 0/1 | Planned | - |
 
 ## Coverage
 
@@ -306,9 +322,15 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | TOS-04 | Phase 10 |
 | TOS-05 | Phase 10 |
 | TOS-06 | Phase 10 |
+| TENCENT-COST-01 | Phase 10.1 |
+| TENCENT-COST-02 | Phase 10.1 |
+| TENCENT-COST-03 | Phase 10.1 |
+| TENCENT-COST-04 | Phase 10.1 |
+| TENCENT-COST-05 | Phase 10.1 |
+| TENCENT-COST-06 | Phase 10.1 |
 
-**Coverage validated:** 81/81 active milestone requirements mapped exactly once and complete.
+**Coverage validated:** 87/87 active milestone requirements mapped exactly once; 81 complete and 6 pending.
 
 ---
 *Roadmap created: 2026-05-05*
-*Last updated: 2026-07-30 for Phase 10 TOS access guard closure*
+*Last updated: 2026-08-16 for inserted Phase 10.1 Tencent cost-safety planning*

@@ -28,9 +28,11 @@ Maintainers can reliably run, secure, deploy, and evolve the platform without gu
 - Phase 7 formal institute-style frontend treatment for primary user routes, watch shell, meeting states, auth, support shell, navigation, and screenshot checklist - validated.
 - Phase 8 subsystem operations runbooks, vendor upgrade playbooks, health checklist, and prioritized production hardening backlog - validated.
 - Phase 10 24-hour TOS access guard requiring signed, session-bound, HttpOnly browser acceptance before course, playback, or meeting access - validated.
+- Phase 10.1 Tencent 720p cost-safety design for one MultiDRM rendition, one SimpleAES rendition, explicit cost approval, and permanent duplicate prevention - approved; implementation pending.
 
 ### Active
 
+- [ ] Implement TENCENT-COST-01 through TENCENT-COST-06: remove upload-owned processing, require an authoritative numeric quote and explicit admin approval, enforce one permanent attempt per FileId/profile, validate the exact two-output 720p topology, and keep configuration/verification free of media-processing calls.
 - [ ] Make dependency installation reproducible from a clean checkout, including missing direct dependencies, package scripts, Node version expectations, and generated Prisma client setup.
 - [ ] Create maintainer setup documentation covering prerequisites, environment variables, local services, install commands, seed/setup steps, local dev server launch, and staging deployment checks.
 - [ ] Add or repair test infrastructure so critical flows can be verified through scripts, automated tests, or documented manual checks.
@@ -97,6 +99,7 @@ Historically, Axinom was central to the v1 rescue milestone. The current Tencent
 - **Security**: Sensitive env/key/media artifacts must not be read unnecessarily, copied into docs, or committed; docs should use placeholder examples only.
 - **Runtime**: Node.js, npm, Next.js App Router, Prisma client generation, and external service credentials must be documented as explicit prerequisites.
 - **Deployment**: Vercel is the detected deployment target; any staging plan must account for serverless limits, env vars, long-running video processing triggers, Redis availability, and external webhook URLs.
+- **Tencent processing cost**: Code deployment and profile configuration must not process or reprocess media. A paid canary requires a separate current quote and user approval.
 
 ## Key Decisions
 
@@ -117,6 +120,9 @@ Historically, Axinom was central to the v1 rescue milestone. The current Tencent
 | Capture production hardening separately from staging readiness | Phase 8 records production launch blockers as P0/P1/P2 backlog items rather than claiming v1 production certification. | Accepted in Phase 8 |
 | Replace Axinom with Tencent for future courses | User confirmed old courses/videos no longer need support and incoming courses are the target. Keeping Axinom fallback would add risk and maintenance cost. | Accepted for Tencent migration milestone |
 | Use a signed session-bound HttpOnly cookie for TOS acceptance | Browser-and-session scope needs no database, Redis key, or cross-device history; native Web Crypto supplies tamper resistance. | Accepted for Phase 10 |
+| Make paid Tencent processing app-owned and explicitly approved | Upload-owned procedures start before authoritative duration, live topology validation, numeric cost display, and provider-side deduplication can be applied. | Accepted for Phase 10.1 |
+| Keep exactly one MultiDRM 720p-capped rendition and one SimpleAES 720p-capped rendition | Chrome/Android still require Widevine and Safari still requires the no-FairPlay fallback; every additional resolution or media task creates unnecessary cost. | Accepted for Phase 10.1 |
+| Use a permanent local attempt ledger plus Tencent SessionId | Tencent's deduplication window is temporary, so the database must remain the authoritative no-repeat control. | Accepted for Phase 10.1 |
 
 ## Evolution
 
@@ -136,4 +142,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state.
 
 ---
-*Last updated: 2026-07-30 for Phase 10 TOS access guard planning*
+*Last updated: 2026-08-16 for inserted Phase 10.1 Tencent cost-safety planning*

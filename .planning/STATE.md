@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-30)
+See: .planning/PROJECT.md (updated 2026-08-16)
 
 **Core value:** Maintainers can reliably run, secure, deploy, and evolve the platform without guessing how its DRM, Zoom, database, authentication, and streaming flows fit together.
-**Current focus:** Phase 10 - 24-Hour TOS Access Guard complete
+**Current focus:** Phase 10.1 - Tencent 720p Cost-Safe Processing (INSERTED)
 
 ## Current Position
 
-Phase: 10 of 10 (24-Hour TOS Access Guard)
-Plan: docs/superpowers/plans/2026-07-29-tos-access-guard.md
-Status: Complete locally; live provider smoke remains governed by existing credential availability.
-Last activity: 2026-07-30 - Closed Phase 10 after automated, browser-authenticated, and scoped security verification.
+Phase: 10.1 (Tencent 720p Cost-Safe Processing, INSERTED)
+Plan: docs/superpowers/plans/2026-08-16-tencent-720p-cost-safety.md
+Status: Approved design; implementation pending.
+Last activity: 2026-08-16 - Approved the Tencent 720p cost-safety design and prepared the implementation plan.
 
-Progress: [##########] 100%
+Progress: [#########-] 93% (81 of 87 active requirements complete)
 
 ## Performance Metrics
 
@@ -38,7 +38,7 @@ Progress: [##########] 100%
 
 **Recent Trend:**
 - Last 5 plans: 07-04, 08-01, 08-02, 08-03, 08-04
-- Trend: Phase 10 closed locally; external-provider certification remains credential-governed.
+- Trend: Phase 10 remains closed; urgent Phase 10.1 inserts cost controls before any further Tencent media processing.
 
 *Updated after each plan completion*
 
@@ -71,10 +71,14 @@ Recent decisions affecting current work:
 - [Phase 9]: Future incoming courses use Tencent VOD Commercial DRM as the only media provider; old Axinom videos are not supported after cutover.
 - [Phase 9]: Export old media rows before any cleanup and do not delete external provider assets without explicit user confirmation.
 - [Phase 10]: Use a signed session-bound HttpOnly cookie for TOS acceptance; browser-and-session scope needs no database, Redis key, or cross-device history, and native Web Crypto supplies tamper resistance.
+- [Phase 10.1]: Upload stores the Tencent source only; paid processing is app-owned and requires a fresh numeric quote plus explicit admin approval.
+- [Phase 10.1]: Preserve one 720p-capped MultiDRM output and one 720p-capped SimpleAES output, with no other paid processing task.
+- [Phase 10.1]: A permanent local attempt key is authoritative; Tencent `SessionId` deduplication is defense in depth only.
 
 ### Pending Todos
 
-- Run Tencent staging pilot after credentials, console setup, webhook URL, and test media are available.
+- Implement TENCENT-COST-01 through TENCENT-COST-06 without processing existing media.
+- After code and remote-profile verification pass, request separate approval for one short paid canary.
 
 ### Blockers/Concerns
 
@@ -85,6 +89,7 @@ Recent decisions affecting current work:
 - [Phase 8]: Production hardening P0 items remain open by design: strict CI secret scanning, credential rotation decisions, durable video processing orchestration, backup/restore drills, and incident response.
 - [Phase 9]: Local Tencent-only migration is complete; live Tencent API checks and browser playback smoke require Tencent credentials, console templates, webhook URL, and a test video.
 - [Phase 10]: Local TOS completion is verified with a database-backed test session and local test-only Zoom/Redis mocks. This does not certify real Zoom, Tencent, or other live-provider behavior; those checks remain governed by the existing credential and service-access blockers.
+- [Phase 10.1]: No existing Tencent FileId may be reprocessed during implementation, deployment, verification, or configuration; a short canary requires a separate numeric approval.
 - [Quality]: `npm run lint` passes with inherited warnings; later phases should retire warnings as touched code is hardened.
 - [Tooling]: `gsd-sdk` was not available on PATH during Phase 1 verification, so Markdown tracking files were updated directly.
 
@@ -99,7 +104,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-30
-Stopped at: Phase 10 closed locally.
-Resume: No Phase 10 work remains. Run real Zoom, Tencent, and other live-provider certification only when existing credentials and test resources are available.
-Resume file: docs/superpowers/plans/2026-07-29-tos-access-guard.md
+Last session: 2026-08-16
+Stopped at: Phase 10.1 design approved; implementation plan ready.
+Resume: Execute the Phase 10.1 plan test-first. Do not call a Tencent processing API or mutate the remote task flow without the plan's explicit gates and user approval.
+Resume file: docs/superpowers/plans/2026-08-16-tencent-720p-cost-safety.md

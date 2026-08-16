@@ -1,7 +1,7 @@
 # Tencent 720p Cost-Safe Processing Design
 
 Date: 2026-08-16
-Status: Ready for user review
+Status: Approved by user on 2026-08-16
 Requirements: TENCENT-COST-01 through TENCENT-COST-06
 
 ## Context
