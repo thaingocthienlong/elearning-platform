@@ -12,11 +12,13 @@ type TencentWebhookPayload = {
   EventType?: string;
   FileUploadEvent?: {
     FileId?: string;
+    SourceContext?: string;
   };
   ProcedureStateChangeEvent?: {
     FileId?: string;
     TaskId?: string;
     Status?: string;
+    SessionContext?: string;
     MediaProcessResultSet?: Array<{
       Type?: string;
       TranscodeTask?: {
@@ -37,10 +39,11 @@ type TencentWebhookPayload = {
   };
 };
 
-function compactWhere(fileId?: string, taskId?: string) {
-  const clauses: Array<{ tencentFileId: string } | { tencentTaskId: string }> = [];
+function compactWhere(fileId?: string, taskId?: string, sourceContext?: string) {
+  const clauses: Array<{ tencentFileId: string } | { tencentTaskId: string } | { id: string }> = [];
   if (fileId) clauses.push({ tencentFileId: fileId });
   if (taskId) clauses.push({ tencentTaskId: taskId });
+  if (sourceContext && /^[0-9a-f]{24}$/i.test(sourceContext)) clauses.push({ id: sourceContext });
   return clauses;
 }
 
@@ -69,9 +72,10 @@ export async function POST(req: Request) {
   const payload = (await req.json()) as TencentWebhookPayload;
   const fileId = payload.FileId ?? payload.FileUploadEvent?.FileId ?? payload.ProcedureStateChangeEvent?.FileId;
   const taskId = payload.TaskId ?? payload.ProcedureStateChangeEvent?.TaskId;
+  const sourceContext = payload.FileUploadEvent?.SourceContext ?? payload.ProcedureStateChangeEvent?.SessionContext;
   const rawStatus = payload.Status ?? payload.ProcedureStateChangeEvent?.Status;
   const status = normalizeTencentStatus(rawStatus);
-  const whereClauses = compactWhere(fileId, taskId);
+  const whereClauses = compactWhere(fileId, taskId, sourceContext);
 
   if (whereClauses.length === 0) {
     return NextResponse.json({ ok: true, ignored: true });

@@ -148,34 +148,22 @@ Implementation behavior:
 
 ### 5. Create or select a DRM-capable procedure
 
-Tencent encrypts VOD output through media processing. This repo sends a `procedure` value during upload/processing, so the procedure name must exactly match a Tencent task flow.
+Tencent encrypts VOD output through media processing. Upload starts the task flow once; the legacy `/api/video/process` trigger is disabled.
 
-Recommended preset path:
+Required task flow:
 
 1. VOD console > **Application Management**.
-2. Click the selected app.
-3. Open **Media Processing** > **Task Flow** or **Task Flow Template**.
-4. Look for Tencent's MultiDRM preset. Official docs commonly name it `MultiDrm-WV-FP-V1-Preset`; some console surfaces show `WidevineFairPlayPreset`.
-5. Open or view the preset details.
-6. Confirm it creates adaptive bitrate output with Widevine DRM encryption.
-7. Copy the exact task flow name into `TENCENT_VOD_PROCEDURE_NAME`.
-
-If the preset is unavailable, create a custom task flow:
-
-1. Click **Create Task Flow**.
-2. Name it `course-drm-720p`.
-3. Add an adaptive bitrate or HLS output step.
-4. Set the output to a 720p-focused profile for the first course test.
-5. Enable MultiDRM/Commercial DRM encryption on the main adaptive output for Widevine.
-6. Add a second adaptive bitrate/HLS output for Apple fallback.
-7. Set the second output to **Private (SimpleAES)** or **HLS Private Encryption** and keep it below 720p.
-8. Save the task flow.
-9. Use `course-drm-720p` as `TENCENT_VOD_PROCEDURE_NAME`.
+2. Open **Media Processing** > **Task Flow** or **Task Flow Template**.
+3. Use the custom task flow name `WV-SAES-V1`.
+4. Add exactly one 720p HLS MultiDRM output for Widevine/FairPlay packaging.
+5. Add exactly one 720p HLS Private Encryption (`SimpleAES`) output for Safari fallback.
+6. Remove other video resolutions, sprites, covers, snapshots, and unrelated processing tasks.
+7. Set `TENCENT_VOD_PROCEDURE_NAME=WV-SAES-V1`.
 
 Map the value:
 
 ```env
-TENCENT_VOD_PROCEDURE_NAME=<exact-drm-task-flow-name>
+TENCENT_VOD_PROCEDURE_NAME=WV-SAES-V1
 ```
 
 ### 6. Configure the playback domain

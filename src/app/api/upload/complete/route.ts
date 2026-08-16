@@ -33,20 +33,22 @@ export async function POST(req: Request) {
   const { videoId, fileId, mediaUrl } = validation.data;
   const video = await prisma.video.findUnique({
     where: { id: videoId },
-    select: { id: true, isDeleted: true },
+    select: { id: true, isDeleted: true, tencentStatus: true },
   });
 
   if (!video || video.isDeleted) {
     return NextResponse.json({ error: 'Video not found' }, { status: 404 });
   }
 
+  const isUploadState = !video.tencentStatus ||
+    ['UPLOAD_APPLIED', 'UPLOAD_CONFIRMED', 'UNKNOWN'].includes(video.tencentStatus);
+
   const updated = await prisma.video.update({
     where: { id: videoId },
     data: {
       tencentFileId: fileId,
-      tencentStatus: 'UPLOAD_CONFIRMED',
       tencentSyncedAt: new Date(),
-      ...playbackUrlPatch(mediaUrl),
+      ...(isUploadState ? { tencentStatus: 'UPLOAD_CONFIRMED', ...playbackUrlPatch(mediaUrl) } : {}),
     },
     select: {
       id: true,

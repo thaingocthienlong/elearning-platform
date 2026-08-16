@@ -18,6 +18,8 @@ const REQUIRED_STRICT = [
   'NEXT_PUBLIC_TENCENT_FAIRPLAY_LICENSE_URL',
 ] as const;
 
+const REQUIRED_UPLOAD_PROCEDURE = 'WV-SAES-V1';
+
 function read(env: NodeJS.ProcessEnv | Record<string, string | undefined>, name: string) {
   const value = env[name];
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
@@ -42,6 +44,11 @@ export function validateTencentEnv(
       if (!present) {
         errors.push(`${name} is required for Tencent strict validation.`);
       }
+    }
+
+    const procedureName = read(env, 'TENCENT_VOD_PROCEDURE_NAME');
+    if (procedureName && procedureName !== REQUIRED_UPLOAD_PROCEDURE) {
+      errors.push(`TENCENT_VOD_PROCEDURE_NAME must be ${REQUIRED_UPLOAD_PROCEDURE}.`);
     }
   } else if (!read(env, 'TENCENT_SECRET_ID') || !read(env, 'TENCENT_SECRET_KEY')) {
     warnings.push('Tencent live credentials are not configured; live checks will be skipped.');

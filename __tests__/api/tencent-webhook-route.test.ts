@@ -98,4 +98,49 @@ describe('Tencent webhook route', () => {
       }),
     });
   });
+
+  test('binds a new upload by signed SourceContext before processing callbacks arrive', async () => {
+    const response = await POST(jsonRequest({
+      EventType: 'NewFileUpload',
+      FileUploadEvent: {
+        FileId: 'tencent-file-id',
+        SourceContext: '64b7f0000000000000000002',
+      },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mockedPrisma.video.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        OR: [
+          { tencentFileId: 'tencent-file-id' },
+          { id: '64b7f0000000000000000002' },
+        ],
+      },
+      data: expect.objectContaining({
+        tencentFileId: 'tencent-file-id',
+      }),
+    }));
+  });
+
+  test('binds an early procedure callback by signed SessionContext', async () => {
+    await POST(jsonRequest({
+      EventType: 'ProcedureStateChanged',
+      ProcedureStateChangeEvent: {
+        FileId: 'tencent-file-id',
+        TaskId: 'task-id',
+        Status: 'PROCESSING',
+        SessionContext: '64b7f0000000000000000002',
+      },
+    }));
+
+    expect(mockedPrisma.video.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        OR: [
+          { tencentFileId: 'tencent-file-id' },
+          { tencentTaskId: 'task-id' },
+          { id: '64b7f0000000000000000002' },
+        ],
+      },
+    }));
+  });
 });
