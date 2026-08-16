@@ -255,19 +255,7 @@ export default function AdminVideosPage() {
                 throw new Error(errData.error || `Upload completion failed: ${completeRes.status}`);
             }
 
-            setStatus('Submitting Tencent processing task...');
-            const processRes = await fetch('/api/video/process', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ videoId }),
-            });
-
-            if (!processRes.ok) {
-                const errData = await processRes.json().catch(() => ({ error: 'Unknown processing error' }));
-                throw new Error(errData.error || `Processing failed: ${processRes.status}`);
-            }
-
-            setStatus('Upload and processing started successfully!');
+            setStatus('Upload complete. Tencent is processing WV-SAES-V1 (720p).');
 
             // Reset form and close dialog
             setTimeout(() => {

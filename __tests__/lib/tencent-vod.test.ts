@@ -17,7 +17,7 @@ jest.mock('@/lib/tencent/env', () => ({
     secretId: 'test-secret-id',
     secretKey: 'test-secret-key',
     playbackKey: 'test-playback-key',
-    procedureName: 'course-drm-720p',
+    procedureName: 'WV-SAES-V1',
     subAppId: 123456,
     widevineLicenseUrl: 'https://widevine.example/license',
     fairplayLicenseUrl: 'https://fairplay.example/license',
@@ -64,7 +64,7 @@ describe('Tencent VOD service helpers', () => {
     expect(result.currentTimeStamp).toBe(1700000000);
     expect(result.expireTime).toBe(1700003600);
     expect(decoded).toContain('secretId=test-secret-id');
-    expect(decoded).toContain('procedure=course-drm-720p');
+    expect(decoded).toContain('procedure=WV-SAES-V1');
     expect(decoded).toContain('sourceContext=64b7f0000000000000000002');
     expect(decoded).toContain('vodSubAppId=123456');
     expect(decoded).not.toContain('test-secret-key');
@@ -75,7 +75,7 @@ describe('Tencent VOD service helpers', () => {
       secretId: 'test-secret-id',
       secretKey: 'test-secret-key',
       playbackKey: 'JduzsUuRvGVPRHvIYwLv',
-      procedureName: 'course-drm-720p',
+      procedureName: 'WV-SAES-V1',
       subAppId: 1500014561,
       widevineLicenseUrl: 'https://widevine.example/license',
       fairplayLicenseUrl: 'https://fairplay.example/license',
@@ -99,7 +99,7 @@ describe('Tencent VOD service helpers', () => {
       secretId: 'test-secret-id',
       secretKey: 'test-secret-key',
       playbackKey: 'test-playback-key',
-      procedureName: 'course-drm-720p',
+      procedureName: 'WV-SAES-V1',
       subAppId: 1500014561,
       widevineLicenseUrl: 'https://widevine.example/license',
       fairplayLicenseUrl: 'https://fairplay.example/license',
@@ -202,7 +202,7 @@ describe('Tencent VOD service helpers', () => {
 
     expect(mockedCallTencentVod).toHaveBeenCalledWith('ProcessMediaByProcedure', {
       FileId: 'tencent-file-id',
-      ProcedureName: 'course-drm-720p',
+      ProcedureName: 'WV-SAES-V1',
     });
   });
 });

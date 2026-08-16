@@ -107,6 +107,7 @@ describe('Tencent upload and process routes', () => {
     mockedPrisma.video.findUnique.mockResolvedValue({
       id: '64b7f0000000000000000002',
       isDeleted: false,
+      tencentStatus: 'UPLOAD_APPLIED',
     });
     mockedPrisma.video.update.mockResolvedValue({
       id: '64b7f0000000000000000002',
@@ -143,33 +144,45 @@ describe('Tencent upload and process routes', () => {
     });
   });
 
-  test('admin process submits Tencent processing by file id', async () => {
+  test('upload completion does not roll back a READY webhook state', async () => {
     mockedPrisma.video.findUnique.mockResolvedValue({
       id: '64b7f0000000000000000002',
-      title: 'Lesson 1',
-      tencentFileId: 'tencent-file-id',
+      isDeleted: false,
+      tencentStatus: 'READY',
     });
-    mockedProcessTencentMedia.mockResolvedValue({ TaskId: 'task-id' });
-    mockedPrisma.video.update.mockResolvedValue({});
+    mockedPrisma.video.update.mockResolvedValue({
+      id: '64b7f0000000000000000002',
+      tencentFileId: 'tencent-file-id',
+      tencentStatus: 'READY',
+      dashUrl: null,
+      hlsUrl: 'https://media.example/protected.m3u8',
+    });
 
-    const response = await processPost(jsonRequest('http://localhost/api/video/process', {
+    const response = await completePost(jsonRequest('http://localhost/api/upload/complete', {
       videoId: '64b7f0000000000000000002',
+      fileId: 'tencent-file-id',
+      mediaUrl: 'https://media.example/source.mp4',
     }));
-    const body = await response.json();
 
     expect(response.status).toBe(200);
+    const update = mockedPrisma.video.update.mock.calls[0][0];
+    expect(update.data).not.toHaveProperty('tencentStatus');
+    expect(update.data).toEqual(expect.objectContaining({
+      tencentFileId: 'tencent-file-id',
+      tencentSyncedAt: expect.any(Date),
+    }));
+  });
+
+  test('legacy process endpoint cannot start a second Tencent task', async () => {
+    const response = await processPost();
+    const body = await response.json();
+
+    expect(response.status).toBe(410);
     expect(body).toEqual({
-      success: true,
-      provider: 'tencent',
-      taskId: 'task-id',
+      error: 'Tencent processing starts during upload via WV-SAES-V1.',
     });
-    expect(mockedProcessTencentMedia).toHaveBeenCalledWith('tencent-file-id');
-    expect(mockedPrisma.video.update).toHaveBeenCalledWith({
-      where: { id: '64b7f0000000000000000002' },
-      data: {
-        tencentTaskId: 'task-id',
-        tencentStatus: 'PROCESSING',
-      },
-    });
+    expect(mockedProcessTencentMedia).not.toHaveBeenCalled();
+    expect(mockedPrisma.video.findUnique).not.toHaveBeenCalled();
+    expect(mockedPrisma.video.update).not.toHaveBeenCalled();
   });
 });
