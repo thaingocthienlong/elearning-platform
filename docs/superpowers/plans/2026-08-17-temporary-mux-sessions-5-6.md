@@ -53,7 +53,7 @@ test('keeps unmatched titles on the Tencent path', () => {
 Run:
 
 ```powershell
-npx.cmd jest --runInBand __tests__/lib/temporary-mux-playback.test.ts --testPathIgnorePatterns=".worktrees/"
+npx.cmd jest --runInBand __tests__/lib/temporary-mux-playback.test.ts
 ```
 
 Expected: FAIL because the resolver returns `null` for session 5 and session 6 before their playback records and aliases are defined.
@@ -101,7 +101,7 @@ Do not change `normalizeTitle`, `resolveTemporaryMuxPlayback`, `TemporaryMuxPlay
 Run:
 
 ```powershell
-npx.cmd jest --runInBand __tests__/lib/temporary-mux-playback.test.ts --testPathIgnorePatterns=".worktrees/"
+npx.cmd jest --runInBand __tests__/lib/temporary-mux-playback.test.ts
 ```
 
 Expected: PASS with all six canonical mappings, all six deployed-title aliases, the unmatched-title Tencent fallback, and defensive object-copy regression.
@@ -111,7 +111,7 @@ Expected: PASS with all six canonical mappings, all six deployed-title aliases, 
 Run:
 
 ```powershell
-npx.cmd jest --runInBand __tests__/lib/temporary-mux-playback.test.ts __tests__/components/temporary-mux-player.test.tsx __tests__/components/watch-page-client.test.tsx __tests__/app/tos-protected-pages.test.tsx --testPathIgnorePatterns=".worktrees/"
+npx.cmd jest --runInBand __tests__/lib/temporary-mux-playback.test.ts __tests__/components/temporary-mux-player.test.tsx __tests__/components/watch-page-client.test.tsx __tests__/app/tos-protected-pages.test.tsx
 ```
 
 Expected: PASS; component behavior remains unchanged, and the server page keeps entitlement and TOS checks before either player branch.
