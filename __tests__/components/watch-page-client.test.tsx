@@ -23,6 +23,13 @@ jest.mock('@/components/course/ChatLogViewer', () => function ChatLogViewerMock(
 jest.mock('@/components/course/VideoSidebarWrapper', () => function VideoSidebarWrapperMock() {
   return <aside />;
 });
+jest.mock('@/components/video/TemporaryMuxPlayer', () => function TemporaryMuxPlayerMock({
+  watermarkText,
+}: {
+  watermarkText: string;
+}) {
+  return <div data-testid="temporary-mux-player">{watermarkText}</div>;
+});
 
 const baseProps = {
   videoId: 'video-1',
@@ -47,10 +54,10 @@ const muxPlayback: TemporaryMuxPlayback = {
   iframeTitle: 'video1448353709',
 };
 
-test('renders the Mux iframe and removes the DRM label for a temporary Mux playback', () => {
+test('passes the watermark and removes the DRM label for a temporary Mux playback', () => {
   render(<WatchPageClient {...baseProps} temporaryMuxPlayback={muxPlayback} />);
 
-  expect(screen.getByTitle('video1448353709')).toBeInTheDocument();
+  expect(screen.getByTestId('temporary-mux-player')).toHaveTextContent('Learner');
   expect(screen.getByText('Temporary Mux')).toBeInTheDocument();
   expect(screen.queryByText('DRM')).not.toBeInTheDocument();
   expect(screen.queryByText('watermarked')).not.toBeInTheDocument();

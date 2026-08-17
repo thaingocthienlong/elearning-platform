@@ -115,7 +115,7 @@ export default function WatchPageClient({
 
                         <>
                             {temporaryMuxPlayback ? (
-                                <TemporaryMuxPlayer playback={temporaryMuxPlayback} />
+                                <TemporaryMuxPlayer playback={temporaryMuxPlayback} watermarkText={watermarkText} />
                             ) : (
                                 <DRMPlayerWrapper
                                     dashUrl={playbackSources.dashUrl}

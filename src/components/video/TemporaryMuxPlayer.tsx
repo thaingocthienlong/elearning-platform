@@ -1,10 +1,19 @@
 'use client';
 
 import type { TemporaryMuxPlayback } from '@/lib/temporary-mux-playback';
+import Watermark from '@/components/video/Watermark';
 
-export default function TemporaryMuxPlayer({ playback }: { playback: TemporaryMuxPlayback }) {
+export default function TemporaryMuxPlayer({
+  playback,
+  watermarkText,
+}: {
+  playback: TemporaryMuxPlayback;
+  watermarkText: string;
+}) {
+  const containerId = `temporary-mux-player-${playback.playbackId}`;
+
   return (
-    <div className="aspect-video w-full overflow-hidden rounded-lg bg-black shadow-xl">
+    <div id={containerId} className="relative aspect-video w-full overflow-hidden rounded-lg bg-black shadow-xl">
       <iframe
         src={playback.playerUrl}
         title={playback.iframeTitle}
@@ -12,6 +21,7 @@ export default function TemporaryMuxPlayer({ playback }: { playback: TemporaryMu
         allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
         allowFullScreen
       />
+      <Watermark text={watermarkText} containerId={containerId} />
     </div>
   );
 }
