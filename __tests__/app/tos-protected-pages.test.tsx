@@ -2,6 +2,7 @@
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
+import type { MediaEntitlementAllowed } from '@/lib/media-entitlement';
 import { createTencentDrmToken } from '@/lib/tencent/vod';
 import { requireTosAccess } from '@/lib/tos-access-server';
 import CoursesPage from '@/app/courses/page';
@@ -40,7 +41,26 @@ const mockedPrisma = prisma as unknown as {
   user: { findUnique: jest.Mock };
   course: { findUnique: jest.Mock; findMany: jest.Mock };
   enrollment: { findMany: jest.Mock; findUnique: jest.Mock };
+  allowedEmail: { findUnique: jest.Mock };
+  video: { findMany: jest.Mock };
+  watchRecord: { findMany: jest.Mock };
 };
+
+function allowedEntitlementWith(
+  video: Partial<MediaEntitlementAllowed['video']> & { title?: string | null },
+): MediaEntitlementAllowed {
+  return {
+    allowed: true,
+    user: { id: 'user-1', email: 'learner@example.test' },
+    video: {
+      id: 'video-1',
+      courseId: 'course-1',
+      ...video,
+    },
+    watchRecord: null,
+    effectiveViewLimit: null,
+  };
+}
 
 describe('protected Server Components', () => {
   beforeEach(() => {
@@ -65,6 +85,21 @@ describe('protected Server Components', () => {
   test('watch performs no entitlement or Tencent token work before TOS', async () => {
     await expect(WatchPage({ params: Promise.resolve({ videoId: 'video-1' }) })).rejects.toThrow('TOS required');
     expect(mockedEvaluate).not.toHaveBeenCalled();
+    expect(mockedCreateToken).not.toHaveBeenCalled();
+  });
+
+  test('does not construct a Tencent token after entitlement selects Video buổi 1 for Mux', async () => {
+    mockedRequireTos.mockResolvedValue(undefined);
+    mockedEvaluate.mockResolvedValue(allowedEntitlementWith({
+      title: 'Video buổi 1',
+      tencentFileId: 'tencent-file-1',
+    }));
+    mockedPrisma.allowedEmail.findUnique.mockResolvedValue(null);
+    mockedPrisma.video.findMany.mockResolvedValue([]);
+    mockedPrisma.watchRecord.findMany.mockResolvedValue([]);
+
+    await WatchPage({ params: Promise.resolve({ videoId: 'video-1' }) });
+
     expect(mockedCreateToken).not.toHaveBeenCalled();
   });
 });

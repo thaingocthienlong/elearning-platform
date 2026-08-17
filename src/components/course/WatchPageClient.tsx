@@ -16,6 +16,8 @@ import { useSessionValidator } from '@/hooks/useSessionValidator';
 import ChatLogViewer from '@/components/course/ChatLogViewer';
 import { Badge } from '@/components/ui/badge';
 import { selectWatchPlaybackSources } from '@/lib/playback-routing';
+import TemporaryMuxPlayer from '@/components/video/TemporaryMuxPlayer';
+import type { TemporaryMuxPlayback } from '@/lib/temporary-mux-playback';
 
 interface WatchPageClientProps {
     videoId: string;
@@ -36,6 +38,7 @@ interface WatchPageClientProps {
     hlsUrlClear: string | null;
     isFairPlayConfigured: boolean;
     chatLog?: any;
+    temporaryMuxPlayback: TemporaryMuxPlayback | null;
 }
 
 export default function WatchPageClient({
@@ -54,6 +57,7 @@ export default function WatchPageClient({
     hlsUrlClear,
     isFairPlayConfigured,
     chatLog,
+    temporaryMuxPlayback,
 }: WatchPageClientProps & { chatLog?: any }) {
     const { t } = useLanguage();
     const playbackSources = useMemo(() =>
@@ -92,8 +96,14 @@ export default function WatchPageClient({
                                     <h1 className="mt-1 truncate text-[21px] font-semibold leading-[1.19]">{courseTitle}</h1>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    <Badge variant="secondary" className="rounded-full">DRM</Badge>
-                                    <Badge variant="outline" className="rounded-full border-primary/30 text-primary">{t('watermarked')}</Badge>
+                                    {temporaryMuxPlayback ? (
+                                        <Badge variant="secondary" className="rounded-full">Temporary Mux</Badge>
+                                    ) : (
+                                        <>
+                                            <Badge variant="secondary" className="rounded-full">DRM</Badge>
+                                            <Badge variant="outline" className="rounded-full border-primary/30 text-primary">{t('watermarked')}</Badge>
+                                        </>
+                                    )}
                                     {viewLimit !== null && (
                                         <Badge variant="outline" className="rounded-full">
                                             {viewCount}/{viewLimit} {t('views')}
@@ -104,19 +114,23 @@ export default function WatchPageClient({
                         )}
 
                         <>
-                            <DRMPlayerWrapper
-                                dashUrl={playbackSources.dashUrl}
-                                hlsUrl={playbackSources.hlsUrl}
-                                drmToken={playbackSources.drmToken}
-                                videoId={videoId}
-                                viewCount={viewCount}
-                                viewLimit={viewLimit}
-                                watermarkText={watermarkText}
-                                requireHD={false}
-                                isClearHlsFallback={playbackSources.isClearHlsFallback}
-                                isFairPlayConfigured={isFairPlayConfigured}
-                                onFullscreenChange={setIsVideoFullscreen}
-                            />
+                            {temporaryMuxPlayback ? (
+                                <TemporaryMuxPlayer playback={temporaryMuxPlayback} />
+                            ) : (
+                                <DRMPlayerWrapper
+                                    dashUrl={playbackSources.dashUrl}
+                                    hlsUrl={playbackSources.hlsUrl}
+                                    drmToken={playbackSources.drmToken}
+                                    videoId={videoId}
+                                    viewCount={viewCount}
+                                    viewLimit={viewLimit}
+                                    watermarkText={watermarkText}
+                                    requireHD={false}
+                                    isClearHlsFallback={playbackSources.isClearHlsFallback}
+                                    isFairPlayConfigured={isFairPlayConfigured}
+                                    onFullscreenChange={setIsVideoFullscreen}
+                                />
+                            )}
                             <div className="rounded-lg border border-border bg-card p-4 shadow-none">
                                 <ChatLogViewer chatLog={chatLog} />
                             </div>

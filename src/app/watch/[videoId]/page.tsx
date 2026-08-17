@@ -12,6 +12,7 @@ import {
     createTencentSimpleAesPlaybackUrl,
 } from '@/lib/tencent/vod';
 import { requireTosAccess } from '@/lib/tos-access-server';
+import { resolveTemporaryMuxPlayback } from '@/lib/temporary-mux-playback';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,6 +61,9 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
         currentWatchRecord: entitlement.watchRecord,
         effectiveViewLimit: entitlement.effectiveViewLimit,
     };
+    const temporaryMuxPlayback = resolveTemporaryMuxPlayback(
+        (video as typeof video & { title?: string | null }).title,
+    );
 
     const [whitelistEntry, courseVideos] = await Promise.all([
         // Whitelist data for watermark
@@ -105,7 +109,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
     }));
 
     let initialDrmToken = '';
-    if (video.tencentFileId) {
+    if (!temporaryMuxPlayback && video.tencentFileId) {
         try {
             initialDrmToken = createTencentDrmToken({
                 fileId: video.tencentFileId,
@@ -117,7 +121,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
     }
 
     let appleFallbackHlsUrl = video.hlsUrlClear ?? null;
-    if (video.hlsUrlClear && video.tencentAppleFallbackDrmType === 'SimpleAES' && video.tencentFileId) {
+    if (!temporaryMuxPlayback && video.hlsUrlClear && video.tencentAppleFallbackDrmType === 'SimpleAES' && video.tencentFileId) {
         try {
             const fallbackToken = createTencentDrmToken({
                 fileId: video.tencentFileId,
@@ -156,6 +160,7 @@ export default async function WatchPage({ params }: { params: Promise<{ videoId:
                 hlsUrlClear={appleFallbackHlsUrl}
                 isFairPlayConfigured={Boolean(process.env.NEXT_PUBLIC_TENCENT_FAIRPLAY_CERT_URL)}
                 chatLog={(video as any).chatLog}
+                temporaryMuxPlayback={temporaryMuxPlayback}
             />
         </SecurityWrapper>
     );
