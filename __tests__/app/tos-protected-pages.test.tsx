@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { evaluateMediaEntitlement } from '@/lib/media-entitlement';
 import type { MediaEntitlementAllowed } from '@/lib/media-entitlement';
-import { createTencentDrmToken } from '@/lib/tencent/vod';
+import { createTencentDrmToken, createTencentSimpleAesPlaybackUrl } from '@/lib/tencent/vod';
 import { requireTosAccess } from '@/lib/tos-access-server';
 import CoursesPage from '@/app/courses/page';
 import CoursePage from '@/app/courses/[courseId]/page';
@@ -17,6 +17,7 @@ jest.mock('@/lib/media-entitlement', () => ({ evaluateMediaEntitlement: jest.fn(
 jest.mock('@/lib/tencent/vod', () => ({
   createTencentDrmToken: jest.fn(),
   createTencentSimpleAesPlaybackUrl: jest.fn(),
+  createTencentAppleFallbackTokenExpiry: jest.fn(() => new Date('2026-08-17T00:00:00.000Z')),
 }));
 jest.mock('@/lib/prisma', () => ({
   prisma: {
@@ -37,6 +38,7 @@ const mockedSession = getServerSession as jest.Mock;
 const mockedRequireTos = requireTosAccess as jest.Mock;
 const mockedEvaluate = evaluateMediaEntitlement as jest.Mock;
 const mockedCreateToken = createTencentDrmToken as jest.Mock;
+const mockedCreateSimpleAesPlaybackUrl = createTencentSimpleAesPlaybackUrl as jest.Mock;
 const mockedPrisma = prisma as unknown as {
   user: { findUnique: jest.Mock };
   course: { findUnique: jest.Mock; findMany: jest.Mock };
@@ -88,11 +90,14 @@ describe('protected Server Components', () => {
     expect(mockedCreateToken).not.toHaveBeenCalled();
   });
 
-  test('does not construct a Tencent token after entitlement selects Video buổi 1 for Mux', async () => {
+  test('does not construct Tencent tokens or a SimpleAES fallback after entitlement selects Video buổi 1 for Mux', async () => {
     mockedRequireTos.mockResolvedValue(undefined);
     mockedEvaluate.mockResolvedValue(allowedEntitlementWith({
       title: 'Video buổi 1',
       tencentFileId: 'tencent-file-1',
+      hlsUrlClear: 'https://example.test/tencent-clear.m3u8',
+      tencentAppleFallbackDrmType: 'SimpleAES',
+      duration: 60,
     }));
     mockedPrisma.allowedEmail.findUnique.mockResolvedValue(null);
     mockedPrisma.video.findMany.mockResolvedValue([]);
@@ -101,5 +106,6 @@ describe('protected Server Components', () => {
     await WatchPage({ params: Promise.resolve({ videoId: 'video-1' }) });
 
     expect(mockedCreateToken).not.toHaveBeenCalled();
+    expect(mockedCreateSimpleAesPlaybackUrl).not.toHaveBeenCalled();
   });
 });

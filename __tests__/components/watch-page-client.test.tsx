@@ -53,6 +53,7 @@ test('renders the Mux iframe and removes the DRM label for a temporary Mux playb
   expect(screen.getByTitle('video1448353709')).toBeInTheDocument();
   expect(screen.getByText('Temporary Mux')).toBeInTheDocument();
   expect(screen.queryByText('DRM')).not.toBeInTheDocument();
+  expect(screen.queryByText('watermarked')).not.toBeInTheDocument();
   expect(screen.queryByTestId('tencent-player')).not.toBeInTheDocument();
 });
 
