@@ -2,10 +2,10 @@ import { resolveTemporaryMuxPlayback } from '@/lib/temporary-mux-playback';
 
 describe('resolveTemporaryMuxPlayback', () => {
   test.each([
-    ['Video buổi 1', 'Rb99oLfhARO02STw01e7uuFnMpI6elTFJQWGIcr0024ETc', 'https://player.mux.com/Rb99oLfhARO02STw01e7uuFnMpI6elTFJQWGIcr0024ETc?metadata-video-title=video1448353709&video-title=video1448353709', 'video1448353709'],
-    ['VIDEO BUỔI 2', 'rcckJNkDpVjKGcZz9kD3gFQ00j75pJMZOoWm4Z01HbFkI', 'https://player.mux.com/rcckJNkDpVjKGcZz9kD3gFQ00j75pJMZOoWm4Z01HbFkI?metadata-video-title=video1293633231&video-title=video1293633231', 'video1293633231'],
-    ['Video   buổi 3', 'uTpirfGCW8hzK02FkCJYvj4eXWeb4bkYKAMgG02tlH6bw', 'https://player.mux.com/uTpirfGCW8hzK02FkCJYvj4eXWeb4bkYKAMgG02tlH6bw?metadata-video-title=video1634486089&video-title=video1634486089', 'video1634486089'],
-    ['Video buổi 4', 'F01QluvVYbhckxauduQkF69leqZ3aERdhEcGsxSEJnVc', 'https://player.mux.com/F01QluvVYbhckxauduQkF69leqZ3aERdhEcGsxSEJnVc?metadata-video-title=video1558523669&video-title=video1558523669', 'video1558523669'],
+    ['Video buổi 1', 'fP7nQIJz8nuf7Xpm4A168zxyu01DuvuE9bpedV8AzZeI', 'https://player.mux.com/fP7nQIJz8nuf7Xpm4A168zxyu01DuvuE9bpedV8AzZeI?metadata-video-title=video1448353709&video-title=video1448353709', 'video1448353709'],
+    ['VIDEO BUỔI 2', 'KRFPLaZSWNiR6YBEPlzfenKlfc1ekEbDfe02ViIeZDFM', 'https://player.mux.com/KRFPLaZSWNiR6YBEPlzfenKlfc1ekEbDfe02ViIeZDFM?metadata-video-title=video1293633231&video-title=video1293633231', 'video1293633231'],
+    ['Video   buổi 3', '2XBNATYPcdqKk7KAoHDmLEAreM1G64eQKWUysio9Z1M', 'https://player.mux.com/2XBNATYPcdqKk7KAoHDmLEAreM1G64eQKWUysio9Z1M?metadata-video-title=video1634486089&video-title=video1634486089', 'video1634486089'],
+    ['Video buổi 4', 'eEY00T47o1MYsJ9Qh2tqSKTDaR8pzEgv6bcsSYgWlBVg', 'https://player.mux.com/eEY00T47o1MYsJ9Qh2tqSKTDaR8pzEgv6bcsSYgWlBVg?metadata-video-title=video1558523669&video-title=video1558523669', 'video1558523669'],
   ])('maps %s to its approved Mux player', (title, playbackId, playerUrl, iframeTitle) => {
     expect(resolveTemporaryMuxPlayback(title)).toMatchObject({ playbackId, playerUrl, iframeTitle });
   });
@@ -25,8 +25,8 @@ describe('resolveTemporaryMuxPlayback', () => {
     first!.iframeTitle = 'mutated';
 
     expect(resolveTemporaryMuxPlayback('Video buổi 1')).toMatchObject({
-      playbackId: 'Rb99oLfhARO02STw01e7uuFnMpI6elTFJQWGIcr0024ETc',
-      playerUrl: 'https://player.mux.com/Rb99oLfhARO02STw01e7uuFnMpI6elTFJQWGIcr0024ETc?metadata-video-title=video1448353709&video-title=video1448353709',
+      playbackId: 'fP7nQIJz8nuf7Xpm4A168zxyu01DuvuE9bpedV8AzZeI',
+      playerUrl: 'https://player.mux.com/fP7nQIJz8nuf7Xpm4A168zxyu01DuvuE9bpedV8AzZeI?metadata-video-title=video1448353709&video-title=video1448353709',
       iframeTitle: 'video1448353709',
     });
   });

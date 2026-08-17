@@ -6,23 +6,23 @@ export interface TemporaryMuxPlayback {
 
 const PLAYBACKS: Readonly<Record<string, TemporaryMuxPlayback>> = {
   'video buoi 1': {
-    playbackId: 'Rb99oLfhARO02STw01e7uuFnMpI6elTFJQWGIcr0024ETc',
-    playerUrl: 'https://player.mux.com/Rb99oLfhARO02STw01e7uuFnMpI6elTFJQWGIcr0024ETc?metadata-video-title=video1448353709&video-title=video1448353709',
+    playbackId: 'fP7nQIJz8nuf7Xpm4A168zxyu01DuvuE9bpedV8AzZeI',
+    playerUrl: 'https://player.mux.com/fP7nQIJz8nuf7Xpm4A168zxyu01DuvuE9bpedV8AzZeI?metadata-video-title=video1448353709&video-title=video1448353709',
     iframeTitle: 'video1448353709',
   },
   'video buoi 2': {
-    playbackId: 'rcckJNkDpVjKGcZz9kD3gFQ00j75pJMZOoWm4Z01HbFkI',
-    playerUrl: 'https://player.mux.com/rcckJNkDpVjKGcZz9kD3gFQ00j75pJMZOoWm4Z01HbFkI?metadata-video-title=video1293633231&video-title=video1293633231',
+    playbackId: 'KRFPLaZSWNiR6YBEPlzfenKlfc1ekEbDfe02ViIeZDFM',
+    playerUrl: 'https://player.mux.com/KRFPLaZSWNiR6YBEPlzfenKlfc1ekEbDfe02ViIeZDFM?metadata-video-title=video1293633231&video-title=video1293633231',
     iframeTitle: 'video1293633231',
   },
   'video buoi 3': {
-    playbackId: 'uTpirfGCW8hzK02FkCJYvj4eXWeb4bkYKAMgG02tlH6bw',
-    playerUrl: 'https://player.mux.com/uTpirfGCW8hzK02FkCJYvj4eXWeb4bkYKAMgG02tlH6bw?metadata-video-title=video1634486089&video-title=video1634486089',
+    playbackId: '2XBNATYPcdqKk7KAoHDmLEAreM1G64eQKWUysio9Z1M',
+    playerUrl: 'https://player.mux.com/2XBNATYPcdqKk7KAoHDmLEAreM1G64eQKWUysio9Z1M?metadata-video-title=video1634486089&video-title=video1634486089',
     iframeTitle: 'video1634486089',
   },
   'video buoi 4': {
-    playbackId: 'F01QluvVYbhckxauduQkF69leqZ3aERdhEcGsxSEJnVc',
-    playerUrl: 'https://player.mux.com/F01QluvVYbhckxauduQkF69leqZ3aERdhEcGsxSEJnVc?metadata-video-title=video1558523669&video-title=video1558523669',
+    playbackId: 'eEY00T47o1MYsJ9Qh2tqSKTDaR8pzEgv6bcsSYgWlBVg',
+    playerUrl: 'https://player.mux.com/eEY00T47o1MYsJ9Qh2tqSKTDaR8pzEgv6bcsSYgWlBVg?metadata-video-title=video1558523669&video-title=video1558523669',
     iframeTitle: 'video1558523669',
   },
 };
