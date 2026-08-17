@@ -14,6 +14,8 @@ test('renders the approved Mux iframe without a frame border', () => {
   );
 
   const frame = screen.getByTitle('video1448353709');
+  expect(frame.parentElement).toHaveClass('aspect-video', 'w-full');
+  expect(frame).toHaveClass('border-0');
   expect(frame).toHaveAttribute(
     'src',
     'https://player.mux.com/Rb99oLfhARO02STw01e7uuFnMpI6elTFJQWGIcr0024ETc?metadata-video-title=video1448353709&video-title=video1448353709',
