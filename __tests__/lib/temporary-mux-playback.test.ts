@@ -10,6 +10,15 @@ describe('resolveTemporaryMuxPlayback', () => {
     expect(resolveTemporaryMuxPlayback(title)).toMatchObject({ playbackId, playerUrl, iframeTitle });
   });
 
+  test.each([
+    ['Buổi 1 - Sáng 15.08.2026', 'fP7nQIJz8nuf7Xpm4A168zxyu01DuvuE9bpedV8AzZeI'],
+    ['Buổi 2 - Chiều 15.08.2026', 'KRFPLaZSWNiR6YBEPlzfenKlfc1ekEbDfe02ViIeZDFM'],
+    ['Buổi 3 - Sáng 16.08.2026', '2XBNATYPcdqKk7KAoHDmLEAreM1G64eQKWUysio9Z1M'],
+    ['Buổi 4 - Chiều 16.08.2026', 'eEY00T47o1MYsJ9Qh2tqSKTDaR8pzEgv6bcsSYgWlBVg'],
+  ])('maps the deployed course title %s to its Mux player', (title, playbackId) => {
+    expect(resolveTemporaryMuxPlayback(title)).toMatchObject({ playbackId });
+  });
+
   test('keeps non-session titles on the Tencent path', () => {
     expect(resolveTemporaryMuxPlayback('Video buổi 5')).toBeNull();
     expect(resolveTemporaryMuxPlayback(null)).toBeNull();

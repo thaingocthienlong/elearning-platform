@@ -27,6 +27,13 @@ const PLAYBACKS: Readonly<Record<string, TemporaryMuxPlayback>> = {
   },
 };
 
+const TITLE_ALIASES: Readonly<Record<string, string>> = {
+  'buoi 1 - sang 15.08.2026': 'video buoi 1',
+  'buoi 2 - chieu 15.08.2026': 'video buoi 2',
+  'buoi 3 - sang 16.08.2026': 'video buoi 3',
+  'buoi 4 - chieu 16.08.2026': 'video buoi 4',
+};
+
 function normalizeTitle(title: string | null | undefined): string {
   return (title ?? '')
     .normalize('NFD')
@@ -38,6 +45,7 @@ function normalizeTitle(title: string | null | undefined): string {
 }
 
 export function resolveTemporaryMuxPlayback(title: string | null | undefined): TemporaryMuxPlayback | null {
-  const playback = PLAYBACKS[normalizeTitle(title)];
+  const normalizedTitle = normalizeTitle(title);
+  const playback = PLAYBACKS[TITLE_ALIASES[normalizedTitle] ?? normalizedTitle];
   return playback ? { ...playback } : null;
 }
