@@ -25,6 +25,16 @@ const PLAYBACKS: Readonly<Record<string, TemporaryMuxPlayback>> = {
     playerUrl: 'https://player.mux.com/eEY00T47o1MYsJ9Qh2tqSKTDaR8pzEgv6bcsSYgWlBVg?metadata-video-title=video1558523669&video-title=video1558523669',
     iframeTitle: 'video1558523669',
   },
+  'video buoi 5': {
+    playbackId: '7kVVqLtA1IvRm3006EGQmhSsO8UY1QX3nOfiU4SHNi6E',
+    playerUrl: 'https://player.mux.com/7kVVqLtA1IvRm3006EGQmhSsO8UY1QX3nOfiU4SHNi6E?metadata-video-title=video1882740513&video-title=video1882740513',
+    iframeTitle: 'video1882740513',
+  },
+  'video buoi 6': {
+    playbackId: 'QP1WlkGeYqfT2600o9czEje8QUnnVsqcUsEIOCT0101wEI',
+    playerUrl: 'https://player.mux.com/QP1WlkGeYqfT2600o9czEje8QUnnVsqcUsEIOCT0101wEI?metadata-video-title=video1276259655&video-title=video1276259655',
+    iframeTitle: 'video1276259655',
+  },
 };
 
 const TITLE_ALIASES: Readonly<Record<string, string>> = {
@@ -32,6 +42,8 @@ const TITLE_ALIASES: Readonly<Record<string, string>> = {
   'buoi 2 - chieu 15.08.2026': 'video buoi 2',
   'buoi 3 - sang 16.08.2026': 'video buoi 3',
   'buoi 4 - chieu 16.08.2026': 'video buoi 4',
+  'buoi 5 - sang 17.08.2026': 'video buoi 5',
+  'buoi 6 - chieu 17.08.2026': 'video buoi 6',
 };
 
 function normalizeTitle(title: string | null | undefined): string {
