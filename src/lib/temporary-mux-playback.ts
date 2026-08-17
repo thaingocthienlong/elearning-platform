@@ -38,5 +38,6 @@ function normalizeTitle(title: string | null | undefined): string {
 }
 
 export function resolveTemporaryMuxPlayback(title: string | null | undefined): TemporaryMuxPlayback | null {
-  return PLAYBACKS[normalizeTitle(title)] ?? null;
+  const playback = PLAYBACKS[normalizeTitle(title)];
+  return playback ? { ...playback } : null;
 }
