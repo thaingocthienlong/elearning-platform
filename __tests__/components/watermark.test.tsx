@@ -26,7 +26,7 @@ test('sizes the watermark for an iframe-backed player container', async () => {
   container.innerHTML = '<iframe title="player"></iframe>';
   document.body.appendChild(container);
 
-  render(<Watermark text="Learner - 555-0100" containerId="iframe-player" />);
+  render(<Watermark text="Learner - 555-0100" containerId="iframe-player" />, { container });
 
   const watermark = screen.getByText('Learner - 555-0100');
   await waitFor(() => expect(watermark).toHaveStyle({ fontSize: '20px' }));
