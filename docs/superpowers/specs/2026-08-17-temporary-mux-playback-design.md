@@ -21,7 +21,7 @@ The authenticated watch page will select a Mux iframe only when the normalized v
 
 Add one server-safe, pure resolver that owns the title-to-Mux mapping and returns either a typed embed configuration or `null`. The watch server component continues to authenticate the session, require TOS acceptance, and evaluate media entitlement before it calls the resolver. It passes the result to the client watch shell.
 
-The client watch shell conditionally renders a focused Mux iframe component inside the existing 16:9 player area. The iframe uses the supplied source URL, `allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"`, and `allowFullScreen`. When the resolver returns `null`, the current `DRMPlayerWrapper` remains unchanged.
+The client watch shell conditionally renders a focused Mux iframe component inside the existing 16:9 player area. The iframe uses the supplied source URL, `allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"`, and `allowFullScreen`. The trailing semicolon is retained exactly as supplied. When the resolver returns `null`, the current `DRMPlayerWrapper` remains unchanged.
 
 ## Security and operational boundary
 
