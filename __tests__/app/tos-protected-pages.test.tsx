@@ -108,4 +108,29 @@ describe('protected Server Components', () => {
     expect(mockedCreateToken).not.toHaveBeenCalled();
     expect(mockedCreateSimpleAesPlaybackUrl).not.toHaveBeenCalled();
   });
+
+  test('constructs Tencent tokens and the SimpleAES fallback for a nonmatching video title', async () => {
+    mockedRequireTos.mockResolvedValue(undefined);
+    mockedEvaluate.mockResolvedValue(allowedEntitlementWith({
+      title: 'Lesson without a temporary Mux override',
+      tencentFileId: 'tencent-file-1',
+      hlsUrlClear: 'https://example.test/tencent-clear.m3u8',
+      tencentAppleFallbackDrmType: 'SimpleAES',
+      duration: 60,
+    }));
+    mockedPrisma.allowedEmail.findUnique.mockResolvedValue(null);
+    mockedPrisma.video.findMany.mockResolvedValue([]);
+    mockedPrisma.watchRecord.findMany.mockResolvedValue([]);
+    mockedCreateToken
+      .mockReturnValueOnce('initial-drm-token')
+      .mockReturnValueOnce('simple-aes-token');
+
+    await WatchPage({ params: Promise.resolve({ videoId: 'video-1' }) });
+
+    expect(mockedCreateToken).toHaveBeenCalledTimes(2);
+    expect(mockedCreateSimpleAesPlaybackUrl).toHaveBeenCalledWith(
+      'https://example.test/tencent-clear.m3u8',
+      'simple-aes-token',
+    );
+  });
 });
