@@ -35,6 +35,11 @@ const PLAYBACKS: Readonly<Record<string, TemporaryMuxPlayback>> = {
     playerUrl: 'https://player.mux.com/QP1WlkGeYqfT2600o9czEje8QUnnVsqcUsEIOCT0101wEI?metadata-video-title=video1276259655&video-title=video1276259655',
     iframeTitle: 'video1276259655',
   },
+  'video buoi 7': {
+    playbackId: 'c7khgDaPukYcKvhAUfE3jXBvipYKnUmNm702ZJnYCdwI',
+    playerUrl: 'https://player.mux.com/c7khgDaPukYcKvhAUfE3jXBvipYKnUmNm702ZJnYCdwI?metadata-video-title=video1615352004&video-title=video1615352004',
+    iframeTitle: 'video1615352004',
+  },
 };
 
 const TITLE_ALIASES: Readonly<Record<string, string>> = {
@@ -44,6 +49,7 @@ const TITLE_ALIASES: Readonly<Record<string, string>> = {
   'buoi 4 - chieu 16.08.2026': 'video buoi 4',
   'buoi 5 - sang 17.08.2026': 'video buoi 5',
   'buoi 6 - chieu 17.08.2026': 'video buoi 6',
+  'buoi 7 - sang 18.08.2026': 'video buoi 7',
 };
 
 function normalizeTitle(title: string | null | undefined): string {
